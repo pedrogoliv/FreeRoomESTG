@@ -28,31 +28,7 @@ PORT=5000
 MONGO_URI=sua_connection_string_aqui
 
 🛠️ Tecnologias utilizadas
-Backend
-
-Node.js + Express
-
-MongoDB (Mongoose)
-
-Scraping (Cheerio / Puppeteer)
-
-Socket.IO
-
-JWT
-
-Postman
-
-Frontend
-
-HTML, CSS, JavaScript
-
-Figma
-
-Deploy
-
-Render (backend)
-
-Vercel (frontend)
+...
 
 📁 Estrutura inicial do projeto
 FreeRoomESTG/
