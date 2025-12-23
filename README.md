@@ -25,19 +25,6 @@ MONGO_URI=mongodb+srv://pedrogoliv:freeroomestgsir@salasocupadas.odtfbm2.mongodb
 Para iniciar o servidor em modo de desenvolvimento (com hot-reload via nodemon):
 npm run dev
 
-📂 Estrutura do Projeto
-A organização das diretorias segue a arquitetura MVC (Model-View-Controller) adaptada:
-FreeRoomESTG/
-├── backend/
-│   ├── src/
-│   │   ├── config/       # Configuração da BD
-│   │   ├── models/       # Schemas do MongoDB (Ocupacao, Reserva, etc)
-│   │   ├── routes/       # Endpoints da API
-│   │   ├── scripts/      # Scripts auxiliares (ex: seeders, testes manuais)
-│   │   └── server.js     # Entry point da aplicação
-│   ├── .env.example
-│   └── package.json
-└── frontend/             # (Em desenvolvimento)
 
 🎓 Autores
 Trabalho realizado no âmbito da Unidade Curricular de Sistemas de Informação em Rede (2025/26), Licenciatura em Engenharia Informática — ESTG | IPVC.
