@@ -1,12 +1,15 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const ReservaSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  salaId: { type: mongoose.Schema.Types.ObjectId, ref: "Sala", required: true },
-  
-  data: { type: String, required: true },          // "2025-01-15"
-  horaInicio: { type: String, required: true },    // "14:00"
-  horaFim: { type: String, required: true },       // "15:00"
-}, { timestamps: true });
+    // Estamos a definir os nomes EXATOS que usaste no testar_reserva.js
+    sala: String,
+    dia: String,
+    hora_inicio: String,
+    hora_fim: String,
+    responsavel: String,
+    motivo: String
+}, {
+    timestamps: true // Adiciona automaticamente data de criação
+});
 
-module.exports = mongoose.model("Reserva", ReservaSchema);
+module.exports = mongoose.model('Reserva', ReservaSchema, 'reservas');
