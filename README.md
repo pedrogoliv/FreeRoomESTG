@@ -1,60 +1,38 @@
-# FreeRoomESTG
+FreeRoomESTG 📚
+Aplicação web colaborativa para gestão e visualização de ocupação de salas na ESTG. O sistema permite consultar horários em tempo real (via scraping do ON.IPVC), reservar espaços livres e visualizar a planta da escola, facilitando a vida aos estudantes que procuram um local para estudar.
 
-FreeRoomESTG é uma aplicação colaborativa para ajudar os estudantes da ESTG a encontrar salas de estudo disponíveis em tempo real. A aplicação obtém automaticamente os horários das salas através de scraping do ON.IPVC, permitindo reservas, favoritos e visualização da planta da escola.
+🛠️ Stack Tecnológica
+Backend: Node.js, Express
 
----
+Base de Dados: MongoDB (Atlas)
 
-🚀 Instalação inicial
+Outros: Mongoose, Cheerio/Puppeteer (Scraping), Dotenv
 
-Dentro da pasta backend, correr:
+⚙️ Configuração e Instalação
+1. Preparar o Backend
+Certifica-te que tens o Node.js instalado. Depois, navega até à pasta do servidor e instala as dependências:
 
-npm init -y
-npm install express mongoose cors dotenv
-npm install --save-dev nodemon
+cd backend
+npm install
 
-🔐 Ficheiros de ambiente
-
-Criar um ficheiro .env dentro da pasta backend:
-
-PORT=5000
-MONGO_URI=<colocar_aqui_a_connection_string_do_mongodb>
-
-
-⚠️ Este ficheiro NÃO é enviado para o GitHub, porque contém credenciais sensíveis.
-
-Criar também um .env.example (este SIM vai para o GitHub):
+2. Variáveis de Ambiente
+O projeto necessita de credenciais de acesso à base de dados. Cria um ficheiro .env na raiz da pasta backend com a seguinte estrutura:
 
 PORT=5000
-MONGO_URI=sua_connection_string_aqui
+MONGO_URI=mongodb+srv://pedrogoliv:freeroomestgsir@salasocupadas.odtfbm2.mongodb.net/freeroom_estg?appName=SalasOCUPADAS
 
-🛠️ Tecnologias utilizadas
-...
+3. Correr o Projeto
+Para iniciar o servidor em modo de desenvolvimento (com hot-reload via nodemon):
+npm run dev
 
-📁 Estrutura inicial do projeto
-FreeRoomESTG/
- ├── backend/
- │    ├── server.js
- │    ├── .env
- │    ├── .env.example
- │    ├── package.json
- │    ├── src/
- │    │    ├── models/
- │    │    ├── controllers/
- │    │    ├── routes/
- │    │    ├── services/
- │    │    └── config/
- │    │         └── db.js
- │    └── node_modules/
- └── frontend/  (a criar futuramente)
 
-👥 Autores
+🎓 Autores
+Trabalho realizado no âmbito da Unidade Curricular de Sistemas de Informação em Rede (2025/26), Licenciatura em Engenharia Informática — ESTG | IPVC.
 
-Paulo Simões – 31377
+Paulo Simões (31377)
 
-Francisco Matos – 31406
+Francisco Matos (31406)
 
-José Oliveira – 31408
+José Oliveira (31408)
 
-Curso: Engenharia Informática — ESTG | IPVC
-Unidade Curricular: Sistemas de Informação em Rede (2025/26)
 Docente: Prof. Pedro Moreira
