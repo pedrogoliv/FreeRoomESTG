@@ -6,4 +6,4 @@ const FavoritoSchema = new mongoose.Schema({
   dataRegisto: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("Favorito TESTE", FavoritoSchema);
+module.exports = mongoose.model("Favorito", FavoritoSchema);
