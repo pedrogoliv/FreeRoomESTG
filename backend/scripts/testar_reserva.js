@@ -9,10 +9,10 @@ async function criarReserva() {
         motivo: "Teste do Backend via Script"
     };
 
-    console.log("📨 A enviar reserva...");
+    console.log("A enviar reserva...");
 
     try {
-        // Enviar o pedido para o teu servidor (que tem de estar a correr!)
+        // Enviar o pedido para o teu servidor 
         const resposta = await fetch('http://localhost:5000/api/reservar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -22,13 +22,13 @@ async function criarReserva() {
         const resultado = await resposta.json();
         
         if (resposta.ok) {
-            console.log("✅ SUCESSO! O servidor respondeu:", resultado);
+            console.log("SUCESSO! O servidor respondeu:", resultado);
         } else {
-            console.log("❌ ERRO! O servidor rejeitou:", resultado);
+            console.log("ERRO! O servidor rejeitou:", resultado);
         }
 
     } catch (erro) {
-        console.log("❌ ERRO DE LIGAÇÃO! O servidor está ligado?");
+        console.log("ERRO DE LIGAÇÃO! O servidor está ligado?");
         console.log(erro.message);
     }
 }
