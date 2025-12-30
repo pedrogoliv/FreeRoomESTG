@@ -1,0 +1,107 @@
+/* Container principal da página */
+.perfil-container {
+  padding: 40px;
+  background-color: #ffffff; /* Fundo branco ou cinza muito claro */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.titulo-pagina {
+  color: #e67e22; /* Laranja do FreeRoom */
+  align-self: flex-start;
+  margin-bottom: 40px;
+  font-size: 2rem;
+}
+
+/* Área dos 3 Cartões */
+.cards-grid {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap; /* Para telemóveis, os cards vão para baixo */
+  justify-content: center;
+  width: 100%;
+}
+
+/* O Cartão Individual */
+.card {
+  background: white;
+  width: 300px;
+  height: 400px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Sombra suave */
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  text-align: center;
+}
+
+/* Ícones (Círculos Pretos) */
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  background-color: #222; /* Preto suave */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  font-size: 2rem;
+  color: white;
+}
+
+/* O traço laranja debaixo do ícone */
+.separator {
+  width: 50px;
+  height: 4px;
+  background-color: #e67e22;
+  border-radius: 2px;
+  margin-bottom: 20px;
+}
+
+/* Textos */
+.card h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.card p {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Botão Laranja "Ver" */
+.btn-action {
+  background-color: #e67e22;
+  color: white;
+  border: none;
+  padding: 10px 40px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.2s;
+}
+
+.btn-action:hover {
+  background-color: #d35400;
+}
+
+/* Botão de Editar (canto superior direito) */
+.btn-edit {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #f0f0f0;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}

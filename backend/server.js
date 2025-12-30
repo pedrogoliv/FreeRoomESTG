@@ -1,130 +1,103 @@
-const express = require("express");
-const cors = require("cors");
 require("dotenv").config();
-const connectDB = require("./src/config/db");
-
-const Ocupacao = require("./src/models/OcupacaoRaw");
-const Reserva = require("./src/models/Reserva");
-
-connectDB();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
 const app = express();
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Rota de Teste
-app.get("/", (req, res) => {
-  res.send("FreeRoomESTG API running...");
-});
+// --- MODELOS ---
+const Ocupacao = require("./src/models/OcupacaoRaw"); 
+// const Reserva = require("./src/models/Reserva"); // Descomenta quando tiveres reservas
 
-// ROTA 1: Ler ocupações (GET)
-app.get("/api/todas-ocupacoes", async (req, res) => {
+// --- LIGAÇÃO À BD ---
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB Ligado!"))
+  .catch((err) => console.error("❌ Erro no Mongo:", err));
+
+// ==========================================
+//                 ROTAS
+// ==========================================
+
+app.get("/api/salas-livres", async (req, res) => {
   try {
-    const aulas = await Ocupacao.find().sort({ dia: 1, hora_inicio: 1 }).limit(50);
-    res.json(aulas);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Erro ao buscar aulas: " + err.message);
-  }
-});
+    const { dia, hora } = req.query;
 
-// ROTA 2: Listar reservas (GET) - útil para frontend/debug
-app.get("/api/reservas", async (req, res) => {
-  try {
-    const reservas = await Reserva.find().sort({ createdAt: -1 }).limit(50);
-    res.json(reservas);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ erro: err.message });
-  }
-});
+    if (!dia || !hora) return res.status(400).json({ error: "Falta dados." });
 
-// ROTA 3: Criar uma reserva (POST) com verificação de conflito
-app.post("/api/reservar", async (req, res) => {
-  try {
-    const { sala, dia, hora_inicio, hora_fim } = req.body;
+    // Regra do horário
+    if (hora < "08:00" || hora > "23:00") return res.json([]); 
 
-    if (!sala || !dia || !hora_inicio || !hora_fim) {
-      return res.status(400).json({ erro: "Faltam campos obrigatórios." });
-    }
-
-    // Função: "HH:MM" ou "HH:MM:SS" -> minutos
-    const toMinutes = (t) => {
-      const parts = t.split(":").map(Number);
-      const h = parts[0] ?? 0;
-      const m = parts[1] ?? 0;
-      return h * 60 + m;
-    };
-
-    const novoIni = toMinutes(hora_inicio);
-    const novoFim = toMinutes(hora_fim);
-
-    if (novoFim <= novoIni) {
-      return res.status(400).json({ erro: "hora_fim tem de ser maior que hora_inicio." });
-    }
-
-    // Buscar aulas e reservas existentes para a mesma sala/dia
-    const aulas = await Ocupacao.find({ sala, dia });
-    const reservas = await Reserva.find({ sala, dia });
-
-    const ocupacoes = [
-      ...aulas.map((a) => ({ tipo: "AULA", inicio: a.hora_inicio, fim: a.hora_fim })),
-      ...reservas.map((r) => ({ tipo: "RESERVA", inicio: r.hora_inicio, fim: r.hora_fim })),
+    // 1. LISTA MANUAL (Com detalhes bonitos)
+    let dbSalas = [
+      { nome: "S.1.1", piso: 1, lugares: 30 },
+      { nome: "S.1.2", piso: 1, lugares: 24 },
+      { nome: "S.1.3", piso: 1, lugares: 30 },
+      { nome: "S.1.4", piso: 1, lugares: 40 },
+      { nome: "S.1.5", piso: 1, lugares: 20 },
+      { nome: "S.1.6", piso: 1, lugares: 30 },
+      { nome: "S.1.7", piso: 1, lugares: 30 },
+      { nome: "S.1.8", piso: 1, lugares: 30 },
+      { nome: "S.2.1", piso: 2, lugares: 50 },
+      { nome: "S.2.2", piso: 2, lugares: 50 },
+      { nome: "S.2.3", piso: 2, lugares: 35 },
+      { nome: "L.1.1", piso: 1, lugares: 15 },
+      { nome: "Auditorio", piso: 0, lugares: 120 }
     ];
 
-    const conflito = ocupacoes.some((o) => {
-      const ini = toMinutes(o.inicio);
-      const fim = toMinutes(o.fim);
-      return novoIni < fim && novoFim > ini; // overlap
+    console.log(`🔍 A processar salas para ${dia} às ${hora}...`);
+
+    // 2. DESCOBRIR SALAS QUE EXISTEM NA BD (Mas não estão na lista manual)
+    // O comando .distinct("sala") dá-nos uma lista de TODOS os nomes de salas que a BD conhece
+    const todasSalasNaBD = await Ocupacao.distinct("sala");
+
+    // Adicionar as salas "desconhecidas" à nossa lista
+    todasSalasNaBD.forEach(nomeDaSala => {
+        // Se a sala NÃO estiver na lista manual...
+        if (!dbSalas.find(s => s.nome === nomeDaSala)) {
+            // ... adicionamos com dados genéricos
+            dbSalas.push({ 
+                nome: nomeDaSala, 
+                piso: "?", 
+                lugares: "?" 
+            });
+        }
     });
 
-    if (conflito) {
-      return res.status(409).json({ erro: "Sala já está ocupada nesse horário." });
-    }
+    // 3. VER QUEM ESTÁ OCUPADO AGORA
+    const ocupadasNomes = await Ocupacao.find({
+      dia: dia,
+      hora_inicio: { $lte: hora },
+      hora_fim: { $gt: hora }
+    }).distinct("sala");
 
-    const novaReserva = await Reserva.create(req.body);
-    return res.status(201).json({ mensagem: "Reserva criada!", dados: novaReserva });
+    // 4. CRUZAR TUDO
+    const resultado = dbSalas.map(sala => ({
+      ...sala,
+      sala: sala.nome, 
+      status: ocupadasNomes.includes(sala.nome) ? "Ocupada" : "Livre",
+      hora_consulta: hora
+    }));
+
+    // Ordenar por nome (S.1.1, S.1.2...) para ficar bonito
+    resultado.sort((a, b) => a.nome.localeCompare(b.nome));
+
+    res.json(resultado);
+
   } catch (err) {
-    console.error("❌ Erro ao criar reserva:", err);
-    return res.status(500).json({ erro: "Erro no servidor: " + err.message });
+    console.error(err);
+    res.status(500).send("Erro ao processar salas.");
   }
 });
 
-// Rota 4: AULAS + RESERVAS por sala/dia
-app.get("/api/sala/:nomeSala/ocupacao", async (req, res) => {
-  try {
-    const { nomeSala } = req.params;
-    const { dia } = req.query;
-
-    if (!dia) {
-      return res.status(400).json({ erro: "Falta o query param ?dia=YYYY-MM-DD" });
-    }
-
-    const aulas = await Ocupacao.find({ sala: nomeSala, dia });
-    const reservas = await Reserva.find({ sala: nomeSala, dia });
-
-    const listaOcupada = [
-      ...aulas.map((a) => ({
-        tipo: "AULA",
-        inicio: a.hora_inicio,
-        fim: a.hora_fim,
-        titulo: a.curso || "Aula",
-      })),
-      ...reservas.map((r) => ({
-        tipo: "RESERVA",
-        inicio: r.hora_inicio,
-        fim: r.hora_fim,
-        titulo: "Reservado: " + (r.motivo || ""),
-      })),
-    ];
-
-    res.json(listaOcupada);
-  } catch (error) {
-    res.status(500).json({ erro: error.message });
-  }
+// Rota de Debug (Opcional)
+app.get("/api/debug-datas", async (req, res) => {
+  const dias = await Ocupacao.distinct("dia");
+  res.json(dias);
 });
 
+// --- ARRANCAR SERVIDOR ---
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log("Server running on port " + PORT));
+app.listen(PORT, () => console.log(`🚀 Servidor a correr na porta ${PORT}`));
