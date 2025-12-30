@@ -10,7 +10,7 @@ const OcupacaoRawSchema = new mongoose.Schema(
     semana: { type: Number },
   },
   {
-    collection: "ocupacaos", 
+    collection: "ocupacoes", 
     timestamps: false,
   }
 );
