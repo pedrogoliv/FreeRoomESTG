@@ -1,38 +1,52 @@
-// src/components/Sidebar.jsx
-import { Link, useLocation } from 'react-router-dom';
-import '../pages/Dashboard.css';
+import { NavLink, useNavigate } from "react-router-dom";
+import { FaHome, FaHeart, FaCalendarAlt, FaUser, FaSignOutAlt } from "react-icons/fa";
+import "./Sidebar.css";
 
 export default function Sidebar() {
-  const location = useLocation();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    navigate("/login");
+  }
 
   return (
     <aside className="sidebar">
-      <h2>FreeRoom ESTG</h2>
-      <ul>
-        
-        {/* Link 1: Dashboard */}
-        <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <li className={location.pathname === '/dashboard' ? 'active' : ''}>
-            🏠 Visão Geral
-          </li>
-        </Link>
+      <div className="sidebarTop">
+        <div className="brand">
+          <div className="brandTitle">
+            FreeRoom <span>ESTG</span>
+          </div>
+        </div>
 
-        {/* --- ADICIONA ESTE BLOCO AQUI --- */}
-        <Link to="/perfil" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <li className={location.pathname === '/perfil' ? 'active' : ''}>
-            👤 O Meu Perfil
-          </li>
-        </Link>
-        {/* -------------------------------- */}
-        
-        <li>📅 As Minhas Reservas</li>
-        <li>🔍 Procurar Sala</li>
-        <li>❤️ Favoritos</li>
-      </ul>
-      
-      <button className="btn-logout" onClick={() => window.location.href = "/"}>
-        Sair
-      </button>
+        <nav className="nav">
+          <NavLink to="/" end className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
+            <span className="icon"><FaHome /></span>
+            <span>Página Inicial</span>
+          </NavLink>
+
+          <NavLink to="/favoritos" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
+            <span className="icon"><FaHeart /></span>
+            <span>Favoritos</span>
+          </NavLink>
+
+          <NavLink to="/minhas-reservas" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
+            <span className="icon"><FaCalendarAlt /></span>
+            <span>As Minhas Reservas</span>
+          </NavLink>
+
+          <NavLink to="/perfil" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
+            <span className="icon"><FaUser /></span>
+            <span>Meu Perfil</span>
+          </NavLink>
+        </nav>
+      </div>
+
+      <div className="sidebarBottom">
+        <button className="logoutBtn" onClick={handleLogout}>
+          <span className="logoutIcon"><FaSignOutAlt /></span>
+          <span>Sair</span>
+        </button>
+      </div>
     </aside>
   );
 }
