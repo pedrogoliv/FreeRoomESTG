@@ -5,9 +5,9 @@ import "./Sidebar.css";
 export default function Sidebar() {
   const navigate = useNavigate();
 
-  function handleLogout() {
-    navigate("/login");
-  }
+    function handleLogout() {
+      window.location.href = "/login";
+    }
 
   return (
     <aside className="sidebar">

@@ -1,84 +1,113 @@
+/* --- CONTENTOR PRINCIPAL --- */
 .sidebar {
-  width: 270px;
-  min-height: 100vh;
-  background: #2f3e4e; 
-  color: #eaf0f6;
+  width: 280px;            /* Largura confortável */
+  height: 100vh;           /* Ocupa a altura total */
+  background: #1e293b;     /* Azul Slate Escuro (Premium) */
+  color: #e2e8f0;          /* Branco sujo para ler melhor */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 18px 14px;
+  padding: 24px 20px;      /* Espaçamento interno */
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15); /* Sombra suave à direita */
+  font-family: 'Inter', sans-serif;
+  z-index: 10;
 }
 
+/* --- PARTE DE CIMA (Logo + Nav) --- */
 .sidebarTop {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 40px; /* Espaço entre o Logo e o Menu */
 }
 
+/* --- LOGÓTIPO --- */
 .brand {
-  padding: 10px 12px 6px 12px;
+  padding: 0 12px;
 }
 
 .brandTitle {
-  font-weight: 900;
-  font-size: 18px;
+  font-size: 1.6rem;
+  font-weight: 800;
   color: #ffffff;
-  letter-spacing: 0.2px;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .brandTitle span {
-  color: #E38B2C; 
+  color: #E38B2C; /* Laranja da marca */
+  position: relative;
 }
 
+/* Pequeno ponto laranja decorativo */
+.brandTitle span::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 6px;
+  height: 6px;
+  background: #E38B2C;
+  border-radius: 50%;
+}
+
+/* --- NAVEGAÇÃO --- */
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px; /* Espaço entre botões */
 }
 
 .navItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 12px;
-  border-radius: 14px;
-  color: #eaf0f6;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;     /* Cantos bem redondos */
+  color: #94a3b8;          /* Cinza inativo */
   text-decoration: none;
-  font-weight: 800;
-  font-size: 14px;
-  border: 1px solid transparent;
-  transition: 0.15s ease;
-  opacity: 0.95;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent; /* Evita saltos no hover */
 }
 
 .navItem .icon {
-  width: 22px;
-  display: inline-flex;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  opacity: 0.95;
+  transition: transform 0.2s;
 }
 
+/* Efeito Hover (Passar o rato) */
 .navItem:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.05); /* Fundo clarinho */
+  color: #f8fafc;          /* Texto branco */
+  transform: translateX(4px); /* Desliza para a direita */
 }
 
-/* Ativo (laranja igual ao figma) */
+.navItem:hover .icon {
+  transform: scale(1.1);   /* Ícone cresce um pouco */
+}
+
+/* --- ESTADO ATIVO (Página Atual) --- */
 .navItem.active {
-  background: rgba(227, 139, 44, 0.18);
-  border-color: rgba(227, 139, 44, 0.40);
+  background: #E38B2C;     /* Laranja Sólido */
   color: #ffffff;
-  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.12);
+  box-shadow: 0 8px 20px rgba(227, 139, 44, 0.3); /* Brilho Laranja */
+  font-weight: 700;
 }
 
 .navItem.active .icon {
-  opacity: 1;
+  color: #fff;
 }
 
-/* Rodapé */
+/* --- RODAPÉ (Botão Sair) --- */
 .sidebarBottom {
-  padding: 10px 12px 6px 12px;
+  border-top: 1px solid #334155; /* Linha separadora subtil */
+  padding-top: 20px;
 }
 
 .logoutBtn {
@@ -86,23 +115,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(227, 139, 44, 0.55);
-  background: rgba(227, 139, 44, 0.15);
-  color: #ffffff;
-  font-weight: 900;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid #334155; /* Borda discreta */
+  color: #cbd5e1;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.15s ease;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
 }
 
+/* Efeito Hover no Sair (Vermelho Perigo) */
 .logoutBtn:hover {
-  background: rgba(227, 139, 44, 0.24);
-  transform: translateY(-1px);
+  background: rgba(239, 68, 68, 0.15); /* Fundo vermelho transparente */
+  border-color: #ef4444;               /* Borda vermelha */
+  color: #ef4444;                      /* Texto vermelho */
+  transform: translateY(-2px);
 }
 
 .logoutIcon {
-  font-size: 16px;
+  font-size: 1.1rem;
 }

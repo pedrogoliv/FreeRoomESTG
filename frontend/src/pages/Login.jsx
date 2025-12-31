@@ -11,50 +11,55 @@ export default function Login({ onLogin }) {
     setMsg("");
 
     if (!username || !password) {
-      setMsg("Preenche username e password.");
+      setMsg("⚠️ Preenche username e password.");
       return;
     }
 
-    // login fake (frontend) -> depois ligar ao backend.
+    // Login fake
     if (onLogin) onLogin({ username });
     else setMsg("Login OK (placeholder).");
   }
 
   return (
     <div className="loginPage">
+      {/* Círculo decorativo */}
       <div className="orangeCircle" aria-hidden="true" />
 
       <div className="loginContent">
-        <h1 className="brand">FreeRoom <span>ESTG</span></h1>
+        {/* Marca com as duas cores */}
+        <h1 className="brand">
+          FreeRoom <span>ESTG</span>
+        </h1>
 
         <div className="loginCard">
-          <h2 className="loginTitle">LOGIN</h2>
+          <h2 className="loginTitle">Bem-vindo</h2>
 
           <form onSubmit={handleSubmit} className="loginForm">
-            <label className="field">
-              <span className="label">Username</span>
+            <div>
+              <label className="label">Número de Aluno / Email</label>
               <input
                 className="input"
+                type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
               />
-            </label>
+            </div>
 
-            <label className="field">
-              <span className="label">Password</span>
+            <div>
+              <label className="label">Password</label>
               <input
                 className="input"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
               />
-            </label>
+            </div>
 
-            <button className="btn" type="submit">login</button>
+            <button className="btn" type="submit">
+              Entrar
+            </button>
 
-            {msg && <p className="msg">{msg}</p>}
+            {msg && <div className="msg">{msg}</div>}
           </form>
         </div>
       </div>

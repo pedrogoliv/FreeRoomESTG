@@ -1,0 +1,23 @@
+/* src/pages/Favoritos.css */
+
+/* Wrapper para alinhar com a Sidebar (igual ao perfil) */
+.page-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f6f7fb;
+}
+
+.content-container {
+  flex: 1;
+  padding: 40px; /* O mesmo padding do perfil */
+  display: flex;
+  flex-direction: column;
+}
+
+/* O TÍTULO EXATO DO PERFIL */
+.titulo-pagina {
+  color: #E38B2C;      /* Laranja da marca */
+  margin: 0 0 30px 0;
+  font-size: 2rem;
+  font-weight: 900;   
+}

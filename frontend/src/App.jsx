@@ -2,11 +2,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 
-// Importar as tuas páginas
-import Login from './pages/Login';
+// --- IMPORTS (Têm de bater certo com os nomes dos ficheiros) ---
+import Login from './pages/Login';          // ✅ Ficheiro com L grande
 import Dashboard from './pages/Dashboard';
-import Perfil from './pages/Perfil';
-// import Reservas from './pages/Reservas'; // <--- Descomenta quando criares o ficheiro
+import Perfil from './pages/Perfil';        // ✅ Ficheiro Perfil.jsx
+import Favoritos from './pages/Favoritos';
+import MinhasReservas from './pages/minhasReservas';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -15,29 +16,43 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         
-        {/* Rota 1: Login */}
+        {/* ROTA DE LOGIN */}
+        {/* O path é "/login" (o que aparece no browser) */}
+        <Route 
+          path="/login" 
+          element={!user ? <Login onLogin={(u) => setUser(u)} /> : <Navigate to="/" />} 
+        />
+
+        {/* --- ROTAS PROTEGIDAS --- */}
+        
+        {/* Raiz redireciona para Dashboard ou Login */}
         <Route 
           path="/" 
-          element={!user ? <Login onLogin={(u) => setUser(u)} /> : <Navigate to="/dashboard" />} 
+          element={user ? <Dashboard /> : <Navigate to="/login"/>}
         />
 
-        {/* Rota 2: Dashboard (Protegida - só entra se houver user) */}
         <Route 
           path="/dashboard" 
-          element={user ? <Dashboard /> : <Navigate to="/" />} 
+          element={user ? <Dashboard /> : <Navigate to="/login" />} 
         />
 
-        {/* Rota 3: Perfil (Protegida - só entra se houver user) */}
+        <Route 
+          path="/favoritos" 
+          element={user ? <Favoritos /> : <Navigate to="/login" />} 
+        />
+
+        <Route 
+          path="/minhas-reservas" 
+          element={user ? <MinhasReservas /> : <Navigate to="/login" />} 
+        />
+
         <Route
           path="/perfil"
-          element={user ? <Perfil /> : <Navigate to="/" />}
+          element={user ? <Perfil /> : <Navigate to="/login" />}
         />
 
-        {/* Rota 3: Reservas (O tal exemplo de adicionar página nova) */}
-        {/* <Route 
-          path="/reservas" 
-          element={user ? <Reservas /> : <Navigate to="/" />} 
-        /> */}
+        {/* ROTA CURINGA (Se o endereço estiver errado, manda para o Login) */}
+        <Route path="*" element={<Navigate to="/login" />} />
 
       </Routes>
     </BrowserRouter>

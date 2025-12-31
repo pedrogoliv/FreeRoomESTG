@@ -131,7 +131,6 @@ export default function Dashboard() {
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Salas em Tempo Real</h1>
-            <p className="dashboard-subtitle">Gestão de espaços da ESTG</p>
           </div>
 
           <div className="filters">
@@ -140,7 +139,7 @@ export default function Dashboard() {
               <input
                 type="date"
                 value={diaSelecionado}
-                min={hoje}  // ⬅️ bloqueia datas passadas
+                min={hoje} // ⬅️ bloqueia datas passadas
                 onChange={(e) => setDiaSelecionado(e.target.value)}
               />
             </div>
@@ -251,17 +250,13 @@ export default function Dashboard() {
                         🏢 Piso {item.piso} • 👥 {item.lugares} lugares
                       </div>
 
-                      <div className={`sala-hora ${livre ? "txtGreen" : "txtRed"}`}>
-                        {livre ? `✅ Livre às ${horaSelecionada}` : `⛔ Ocupada`}
-                      </div>
+                      <button
+                        className="btn-details"
+                        onClick={() => handleDetalhes(item)}
+                      >
+                        Ver detalhes
+                      </button>
                     </div>
-
-                    <button
-                      className="btn-details"
-                      onClick={() => handleDetalhes(item)}
-                    >
-                      Ver detalhes
-                    </button>
                   </div>
                 );
               })}
