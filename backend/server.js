@@ -11,6 +11,8 @@ app.use(express.json());
 // O teu modelo de ocupações existente
 const Ocupacao = require("./src/models/OcupacaoRaw"); 
 
+const Reserva = require("./src/models/Reserva");
+
 // ✅ NOVO: Modelo de Utilizador (Definido aqui mesmo para ser mais rápido)
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
@@ -140,6 +142,91 @@ app.post('/api/favoritos', async (req, res) => {
   }
 });
 
+// ==========================================
+//              ROTAS DE RESERVAS
+// ==========================================
+
+// Funções utilitárias
+const isWeekend = (isoDate) => {
+  const d = new Date(`${isoDate}T00:00:00`);
+  const day = d.getDay(); // 0=Domingo, 6=Sábado
+  return day === 0 || day === 6;
+};
+
+const FERIADOS = require("./src/config/feriadosPT");
+const isFeriado = (isoDate) => FERIADOS.has(isoDate);
+
+const toMinutes = (t) => {
+  // aceita "HH:MM" ou "HH:MM:SS"
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
+
+app.post("/api/reservar", async (req, res) => {
+  try {
+    const { sala, dia, hora_inicio, hora_fim } = req.body;
+
+    if (!sala || !dia || !hora_inicio || !hora_fim) {
+      return res.status(400).json({ erro: "Faltam campos obrigatórios." });
+    }
+
+    // BLOQUEIO: fim-de-semana / feriados
+    if (isWeekend(dia)) {
+      return res
+        .status(400)
+        .json({ erro: "Não é possível reservar salas ao fim-de-semana." });
+    }
+
+    if (isFeriado(dia)) {
+      return res
+        .status(400)
+        .json({ erro: "Não é possível reservar salas em feriados." });
+    }
+
+    // validação de horas
+    const novoIni = toMinutes(hora_inicio);
+    const novoFim = toMinutes(hora_fim);
+
+    if (Number.isNaN(novoIni) || Number.isNaN(novoFim)) {
+      return res.status(400).json({ erro: "Hora inválida." });
+    }
+
+    if (novoFim <= novoIni) {
+      return res
+        .status(400)
+        .json({ erro: "hora_fim tem de ser maior que hora_inicio." });
+    }
+
+    // Buscar aulas e reservas existentes para a mesma sala/dia
+    const aulas = await Ocupacao.find({ sala, dia });
+    const reservas = await Reserva.find({ sala, dia });
+
+    // Normalizar tudo
+    const ocupacoes = [
+      ...aulas.map((a) => ({ inicio: a.hora_inicio, fim: a.hora_fim })),
+      ...reservas.map((r) => ({ inicio: r.hora_inicio, fim: r.hora_fim })),
+    ];
+
+    // Overlap
+    const conflito = ocupacoes.some((o) => {
+      const ini = toMinutes(o.inicio);
+      const fim = toMinutes(o.fim);
+      return novoIni < fim && novoFim > ini;
+    });
+
+    if (conflito) {
+      return res.status(409).json({ erro: "Sala já está ocupada nesse horário." });
+    }
+
+    // Guardar reserva
+    const novaReserva = await Reserva.create(req.body);
+    return res.status(201).json({ mensagem: "Reserva criada!", dados: novaReserva });
+  } catch (err) {
+    console.error("❌ Erro ao criar reserva:", err);
+    return res.status(500).json({ erro: "Erro no servidor: " + err.message });
+  }
+});
+
 
 // ==========================================
 //                 ROTAS DE SALAS
@@ -148,6 +235,11 @@ app.post('/api/favoritos', async (req, res) => {
 app.get("/api/salas-livres", async (req, res) => {
   try {
     const { dia, hora } = req.query;
+
+    if (isWeekend(dia) || isFeriado(dia)) {
+      return res.json([]);
+    }
+    
     if (!dia || !hora) return res.status(400).json({ error: "Falta dados." });
 
     // 1. A TUA LISTA MANUAL

@@ -8,35 +8,30 @@ export default function Dashboard() {
   const [salas, setSalas] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // --- 1. LER O UTILIZADOR LOGADO ---
+  // --- LER O UTILIZADOR LOGADO ---
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Tenta ler do localStorage ou sessionStorage
-    const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const storedUser =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
-  // --- STATES PARA O MODAL E FAVORITOS ---
+  // --- MODAL + FAVORITOS ---
   const [salaSelecionada, setSalaSelecionada] = useState(null);
-  const [favoritosIds, setFavoritosIds] = useState([]); 
+  const [favoritosIds, setFavoritosIds] = useState([]);
 
   const API_BASE = "http://localhost:5000";
 
-  // --- 2. CARREGAR FAVORITOS DA BD (CORRIGIDO) ---
+  // ---  CARREGAR FAVORITOS DA BD ---
   useEffect(() => {
-    // ✅ MUDANÇA: Agora verificamos user.username em vez de user.id
     if (user && user.username) {
-      fetch(`${API_BASE}/api/favoritos/${user.username}`) // 👈 Pede pelo NOME
+      fetch(`${API_BASE}/api/favoritos/${user.username}`)
         .then((res) => res.json())
-        .then((data) => {
-          setFavoritosIds(data); 
-        })
+        .then((data) => setFavoritosIds(data))
         .catch((err) => console.error("Erro ao buscar favoritos:", err));
     }
-  }, [user]); 
+  }, [user]);
 
   // --- LÓGICA DE DATAS E HORAS ---
   const [diaSelecionado, setDiaSelecionado] = useState(
@@ -44,7 +39,9 @@ export default function Dashboard() {
   );
   const [horaSelecionada, setHoraSelecionada] = useState("10:00");
 
-  function pad2(n) { return String(n).padStart(2, "0"); }
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
 
   function nextHalfHour() {
     const now = new Date();
@@ -55,10 +52,35 @@ export default function Dashboard() {
     return `${pad2((h + 1) % 24)}:00`;
   }
 
-  function hojeISO() { return new Date().toISOString().split("T")[0]; }
+  function hojeISO() {
+    return new Date().toISOString().split("T")[0];
+  }
 
   const hoje = hojeISO();
   const minHoraHoje = nextHalfHour();
+
+  // Fim-de-semana e estrutura para feriados
+  const isWeekend = (isoDate) => {
+    const d = new Date(`${isoDate}T00:00:00`);
+    const day = d.getDay(); // 0=Domingo, 6=Sábado
+    return day === 0 || day === 6;
+  };
+
+  //lista de feriados 
+  const FERIADOS = useMemo(
+    () =>
+      new Set([
+        // "2026-01-01",
+        // "2026-04-25",
+        // ...
+      ]),
+    []
+  );
+
+  const isFeriado = (isoDate) => FERIADOS.has(isoDate);
+
+  const fimDeSemana = isWeekend(diaSelecionado);
+  const feriado = isFeriado(diaSelecionado);
 
   // UI: Pesquisa e Tabs
   const [query, setQuery] = useState("");
@@ -89,12 +111,20 @@ export default function Dashboard() {
 
   const foraDeHoras = horaSelecionada < "08:00" || horaSelecionada > "22:30";
 
+  // se escolher fim-de-semana/feriado, fecha o modal (para não reservar)
+  useEffect(() => {
+    if (fimDeSemana || feriado) setSalaSelecionada(null);
+  }, [fimDeSemana, feriado]);
+
   // --- API FETCH SALAS ---
   useEffect(() => {
-    if (foraDeHoras) {
+    // não faz fetch ao fim-de-semana/feriado
+    if (foraDeHoras || fimDeSemana || feriado) {
       setLoading(false);
+      setSalas([]);
       return;
     }
+
     setLoading(true);
     fetch(
       `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(
@@ -111,7 +141,7 @@ export default function Dashboard() {
         setSalas([]);
         setLoading(false);
       });
-  }, [diaSelecionado, horaSelecionada, foraDeHoras]);
+  }, [diaSelecionado, horaSelecionada, foraDeHoras, fimDeSemana, feriado]);
 
   // --- FILTRAGEM ---
   const salasFiltradas = useMemo(() => {
@@ -129,31 +159,25 @@ export default function Dashboard() {
   const totalLivres = salasFiltradas.filter((s) => s.status === "Livre").length;
   const totalOcupadas = totalSalas - totalLivres;
 
-  // --- 3. FUNÇÃO TOGGLE (CORRIGIDO) ---
+  // --- TOGGLE FAVORITO ---
   const toggleFavorito = async (idDaSala) => {
-    // ✅ MUDANÇA: Verifica se temos o username
     if (!user || !user.username) {
       alert("Erro de autenticação: Faz login novamente.");
       return;
     }
 
-    // A. Atualização Visual (Imediata)
     setFavoritosIds((prevIds) => {
-      if (prevIds.includes(idDaSala)) {
-        return prevIds.filter((id) => id !== idDaSala);
-      } else {
-        return [...prevIds, idDaSala];
-      }
+      if (prevIds.includes(idDaSala)) return prevIds.filter((id) => id !== idDaSala);
+      return [...prevIds, idDaSala];
     });
 
-    // B. Envia para o servidor (Pelo Username)
     try {
       await fetch(`${API_BASE}/api/favoritos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          username: user.username, // ✅ Garante que envia o nome
-          salaId: idDaSala 
+        body: JSON.stringify({
+          username: user.username,
+          salaId: idDaSala,
         }),
       });
     } catch (error) {
@@ -169,19 +193,34 @@ export default function Dashboard() {
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Salas em Tempo Real</h1>
-             {user && <span style={{fontSize: "0.9rem", color: "#64748b"}}>Olá, {user.username} 👋</span>}
+            {user && (
+              <span style={{ fontSize: "0.9rem", color: "#64748b" }}>
+                Olá, {user.username} 👋
+              </span>
+            )}
           </div>
 
           <div className="filters">
             <div className="filtro-box">
               <label>Dia</label>
-              <input type="date" value={diaSelecionado} min={hoje} onChange={(e) => setDiaSelecionado(e.target.value)} />
+              <input
+                type="date"
+                value={diaSelecionado}
+                min={hoje}
+                onChange={(e) => setDiaSelecionado(e.target.value)}
+              />
             </div>
+
             <div className="filtro-box">
               <label>Hora</label>
-              <select value={horaSelecionada} onChange={(e) => setHoraSelecionada(e.target.value)}>
+              <select
+                value={horaSelecionada}
+                onChange={(e) => setHoraSelecionada(e.target.value)}
+              >
                 {listaHorariosFiltrada.map((horario) => (
-                  <option key={horario} value={horario}>{horario}</option>
+                  <option key={horario} value={horario}>
+                    {horario}
+                  </option>
                 ))}
               </select>
             </div>
@@ -190,12 +229,22 @@ export default function Dashboard() {
 
         <div className="controlsRow">
           <div className="search">
-            <input className="searchInput" placeholder="Procura o número de uma sala" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input
+              className="searchInput"
+              placeholder="Procura o número de uma sala"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
             <span className="searchIcon">🔎</span>
           </div>
+
           <div className="tabs">
             {["todas", "1", "2", "3"].map((piso) => (
-              <button key={piso} className={tab === piso ? "tab active" : "tab"} onClick={() => setTab(piso)}>
+              <button
+                key={piso}
+                className={tab === piso ? "tab active" : "tab"}
+                onClick={() => setTab(piso)}
+              >
                 {piso === "todas" ? "Todas as salas" : `Piso ${piso}`}
               </button>
             ))}
@@ -204,17 +253,38 @@ export default function Dashboard() {
 
         {loading ? (
           <p>⏳ A carregar dados...</p>
-        ) : foraDeHoras ? (
+        ) : foraDeHoras || fimDeSemana || feriado ? (
           <div className="fechado">
-            <h2>🌙 Escola Fechada</h2>
-            <p>Seleciona um horário entre 08:00 e 22:30.</p>
+            <h2>🚫 Reservas indisponíveis</h2>
+            {fimDeSemana ? (
+              <p>Não é possível reservar salas ao fim-de-semana.</p>
+            ) : feriado ? (
+              <p>Não é possível reservar salas em feriados.</p>
+            ) : (
+              <p>Seleciona um horário entre 08:00 e 22:30.</p>
+            )}
           </div>
         ) : (
           <>
             <div className="stats-container">
-              <div className="stat-card"><span className="stat-numero">{totalSalas}</span><span className="stat-label">Total de salas</span></div>
-              <div className="stat-card"><span className="stat-numero green">{totalLivres} <span className="dot greenDot" /></span><span className="stat-label">Disponíveis agora</span></div>
-              <div className="stat-card"><span className="stat-numero red">{totalOcupadas} <span className="dot redDot" /></span><span className="stat-label">Ocupadas agora</span></div>
+              <div className="stat-card">
+                <span className="stat-numero">{totalSalas}</span>
+                <span className="stat-label">Total de salas</span>
+              </div>
+
+              <div className="stat-card">
+                <span className="stat-numero green">
+                  {totalLivres} <span className="dot greenDot" />
+                </span>
+                <span className="stat-label">Disponíveis agora</span>
+              </div>
+
+              <div className="stat-card">
+                <span className="stat-numero red">
+                  {totalOcupadas} <span className="dot redDot" />
+                </span>
+                <span className="stat-label">Ocupadas agora</span>
+              </div>
             </div>
 
             <div className="grid-salas">
@@ -227,10 +297,19 @@ export default function Dashboard() {
                       <span className="statusDot" />
                       <span>{livre ? "Disponível" : "Ocupada"}</span>
                     </div>
+
                     <div className="card-body">
                       <div className="sala-nome">Sala {item.sala}</div>
-                      <div className="sala-meta">🏢 Piso {item.piso} • 👥 {item.lugares} lugares</div>
-                      <button className="btn-details" onClick={() => setSalaSelecionada(item)}>Ver detalhes</button>
+                      <div className="sala-meta">
+                        🏢 Piso {item.piso} • 👥 {item.lugares} lugares
+                      </div>
+
+                      <button
+                        className="btn-details"
+                        onClick={() => setSalaSelecionada(item)}
+                      >
+                        Ver detalhes
+                      </button>
                     </div>
                   </div>
                 );
@@ -245,6 +324,12 @@ export default function Dashboard() {
             onClose={() => setSalaSelecionada(null)}
             isFavorito={favoritosIds.includes(salaSelecionada.sala)}
             onToggleFavorito={() => toggleFavorito(salaSelecionada.sala)}
+            diaSelecionado={diaSelecionado}
+            horaSelecionada={horaSelecionada}
+            bloqueado={foraDeHoras || fimDeSemana || feriado}
+            motivoBloqueio={
+              fimDeSemana ? "fimDeSemana" : feriado ? "feriado" : foraDeHoras ? "foraDeHoras" : null
+            }
           />
         )}
       </main>

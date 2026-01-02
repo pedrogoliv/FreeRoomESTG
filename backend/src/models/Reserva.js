@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const ReservaSchema = new mongoose.Schema({
-    // Estamos a definir os nomes EXATOS que usaste no testar_reserva.js
     sala: String,
     dia: String,
     hora_inicio: String,
