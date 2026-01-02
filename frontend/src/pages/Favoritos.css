@@ -1,23 +1,63 @@
 /* src/pages/Favoritos.css */
 
-/* Wrapper para alinhar com a Sidebar (igual ao perfil) */
-.page-container {
-  display: flex;
-  min-height: 100vh;
-  background: #f6f7fb;
+.aviso-box {
+    background: #fffbeb;
+    color: #b45309;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #fcd34d;
+    font-weight: bold;
 }
 
-.content-container {
-  flex: 1;
-  padding: 40px; /* O mesmo padding do perfil */
-  display: flex;
-  flex-direction: column;
+.empty-state {
+    text-align: center;
+    padding: 50px;
+    color: #64748b;
+    background: white;
+    border-radius: 20px;
+    margin-top: 20px;
+    border: 2px dashed #e2e8f0;
 }
 
-/* O TÍTULO EXATO DO PERFIL */
-.titulo-pagina {
-  color: #E38B2C;      /* Laranja da marca */
-  margin: 0 0 30px 0;
-  font-size: 2rem;
-  font-weight: 900;   
+.empty-state h3 {
+    margin-bottom: 10px;
+    color: #1e293b;
+}
+
+/* Estilo específico para o card nos favoritos */
+.sala-info-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.btn-trash {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-trash:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
+}
+
+.ocupada-ate {
+    background: #f1f5f9;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #475569;
+    text-align: center;
+    margin-top: 5px;
 }

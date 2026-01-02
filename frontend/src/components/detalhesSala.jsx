@@ -43,27 +43,11 @@ export default function DetalhesSala({ sala, onClose, isFavorito, onToggleFavori
             <span className="tag">🪑 Quadros</span>
           </div>
 
-          {!isLivre && (
-            <div className="warning-box">
-              ⚠️ Sala ocupada
-              {sala.ate && (
-                <span>
-                  {" "}
-                  até às <strong>{sala.ate}</strong>.
-                </span>
-              )}
-            </div>
-          )}
 
           {/* ÁREA DE AÇÕES (Botões) */}
           <div className="modal-actions">
             {/* Botão Principal (Reservar/Notificar) */}
-            <button
-              className={`btn-main ${isLivre ? "btn-reservar" : "btn-notificar"}`}
-              onClick={() => alert("Funcionalidade em breve...")}
-            >
-              {isLivre ? "Reservar Sala Agora" : "Notificar quando libertar"}
-            </button>
+
 
             {/* ✅ NOVO BOTÃO: Adicionar aos Favoritos */}
             <button 
