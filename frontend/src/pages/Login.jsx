@@ -1,22 +1,18 @@
 // src/pages/Login.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import RegisterPopup from "../components/registerPopup"; // 👈 O TEU COMPONENTE NOVO
 import "./Login.css";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
-  
-  // Estado para controlar se o Pop-up está aberto
-  const [showRegister, setShowRegister] = useState(false);
 
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
-    e.preventDefault(); 
-    setMsg(""); 
+    e.preventDefault();
+    setMsg("");
 
     if (!username || !password) {
       setMsg("⚠️ Preenche username e password.");
@@ -33,7 +29,7 @@ export default function Login() {
       const data = await response.json();
 
       if (data.success) {
-        sessionStorage.setItem("user", JSON.stringify(data.user));       
+        sessionStorage.setItem("user", JSON.stringify(data.user));
         navigate("/dashboard");
       } else {
         setMsg(data.message || "Erro ao entrar.");
@@ -84,29 +80,32 @@ export default function Login() {
             {msg && <div className="msg">{msg}</div>}
           </form>
 
-          {/* 👇 AQUI ESTÁ A PARTE NOVA PARA ABRIR O POP-UP */}
-          <div style={{ marginTop: "20px", textAlign: "center", fontSize: "0.9rem", color: "#64748b" }}>
+          {/* ✅ Agora navega para a página /registar */}
+          <div
+            style={{
+              marginTop: "20px",
+              textAlign: "center",
+              fontSize: "0.9rem",
+              color: "#64748b",
+            }}
+          >
             Ainda não tens conta?{" "}
-            <button 
-              onClick={() => setShowRegister(true)}
-              style={{ 
-                background: "none", border: "none", color: "#E38B2C", 
-                fontWeight: "bold", cursor: "pointer", textDecoration: "underline" 
+            <button
+              onClick={() => navigate("/registar")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#E38B2C",
+                fontWeight: "bold",
+                cursor: "pointer",
+                textDecoration: "underline",
               }}
             >
               Criar agora
             </button>
           </div>
-          {/* 👆 FIM DA PARTE NOVA */}
-
         </div>
       </div>
-
-      {/* 👇 MOSTRAR O POP-UP SE O BOTÃO FOR CLICADO */}
-      {showRegister && (
-        <RegisterPopup onClose={() => setShowRegister(false)} />
-      )}
-      
     </div>
   );
 }

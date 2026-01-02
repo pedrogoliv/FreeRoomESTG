@@ -1,0 +1,139 @@
+.loginPage {
+  min-height: 100vh;
+  background: #f8fafc; /* Fundo cinza muito claro (igual ao dashboard) */
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Círculo Decorativo */
+.orangeCircle {
+  position: absolute;
+  left: -150px;
+  bottom: -150px;
+  width: 500px;
+  height: 500px;
+  background: linear-gradient(135deg, #E38B2C, #d35400);
+  border-radius: 50%;
+  opacity: 0.8;
+  z-index: 0;
+}
+
+/* Contentor Central */
+.loginContent {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Logótipo */
+.brand {
+  margin: 0 0 30px 0;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #1e293b;
+  letter-spacing: -1px;
+}
+
+.brand span {
+  color: #E38B2C;
+}
+
+/* Cartão Branco */
+.loginCard {
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+  border: 1px solid #f1f5f9;
+}
+
+.loginTitle {
+  margin: 0 0 24px 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #64748b;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Formulário */
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+  color: #1e293b;
+}
+
+.input:focus {
+  border-color: #E38B2C;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1);
+}
+
+/* Botão */
+.btn {
+  width: 100%;
+  border: none;
+  background: #E38B2C;
+  color: #fff;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.btn:hover {
+  background: #d35400;
+  transform: translateY(-2px);
+}
+
+.btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Mensagem */
+.msg {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #ef4444;
+  text-align: center;
+  background: #fef2f2;
+  padding: 10px;
+  border-radius: 8px;
+}

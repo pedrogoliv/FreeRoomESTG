@@ -1,11 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// --- IMPORTS ---
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Perfil from './pages/Perfil'; 
-import Favoritos from './pages/Favoritos';
-import MinhasReservas from './pages/minhasReservas';
+import Login from "./pages/Login";
+import Registar from "./pages/Registar"; 
+import Dashboard from "./pages/Dashboard";
+import Perfil from "./pages/Perfil";
+import Favoritos from "./pages/Favoritos";
+import MinhasReservas from "./pages/minhasReservas";
 
 function RotaProtegida({ children }) {
   const user = sessionStorage.getItem("user");
@@ -16,15 +16,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        
-        {/* --- ROTA DE LOGIN --- */}
+        {/* --- ROTAS PÚBLICAS --- */}
         <Route path="/login" element={<Login />} />
+        <Route path="/registar" element={<Registar />} /> 
 
-        {/* --- ROTAS PROTEGIDAS --- */}
-        {/* Agora usamos o componente <RotaProtegida> para embrulhar as páginas */}
-        
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
             <RotaProtegida>
               <Dashboard />
@@ -32,31 +29,31 @@ export default function App() {
           }
         />
 
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <RotaProtegida>
               <Dashboard />
             </RotaProtegida>
-          } 
+          }
         />
 
-        <Route 
-          path="/favoritos" 
+        <Route
+          path="/favoritos"
           element={
             <RotaProtegida>
               <Favoritos />
             </RotaProtegida>
-          } 
+          }
         />
 
-        <Route 
-          path="/minhas-reservas" 
+        <Route
+          path="/minhas-reservas"
           element={
             <RotaProtegida>
               <MinhasReservas />
             </RotaProtegida>
-          } 
+          }
         />
 
         <Route
@@ -68,9 +65,7 @@ export default function App() {
           }
         />
 
-        {/* Rota Curinga */}
         <Route path="*" element={<Navigate to="/login" />} />
-
       </Routes>
     </BrowserRouter>
   );
