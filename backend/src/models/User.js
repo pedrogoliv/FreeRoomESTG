@@ -4,7 +4,8 @@ const UserSchema = new mongoose.Schema({
   nome: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // hashed
-  curso: { type: String },
+  curso: { type: String, required: true },
+  numero: { type: String, required: true, unique: true, trim: true },
   tipo: { type: String, default: "aluno" }
 }, { timestamps: true });
 

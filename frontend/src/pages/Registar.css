@@ -1,139 +1,66 @@
-.loginPage {
-  min-height: 100vh;
-  background: #f8fafc; /* Fundo cinza muito claro (igual ao dashboard) */
-  position: relative;
-  overflow: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* ===========================
+   React-Select (Curso) - Estilo FreeRoom
+   =========================== */
 
-/* Círculo Decorativo */
-.orangeCircle {
-  position: absolute;
-  left: -150px;
-  bottom: -150px;
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #E38B2C, #d35400);
-  border-radius: 50%;
-  opacity: 0.8;
-  z-index: 0;
-}
-
-/* Contentor Central */
-.loginContent {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-}
-
-/* Logótipo */
-.brand {
-  margin: 0 0 30px 0;
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: #1e293b;
-  letter-spacing: -1px;
-}
-
-.brand span {
-  color: #E38B2C;
-}
-
-/* Cartão Branco */
-.loginCard {
-  background: white;
-  width: 100%;
-  max-width: 400px;
-  padding: 40px;
-  border-radius: 24px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-  border: 1px solid #f1f5f9;
-}
-
-.loginTitle {
-  margin: 0 0 24px 0;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #64748b;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Formulário */
-.loginForm {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #475569;
-  margin-bottom: 8px;
-}
-
-/* Inputs */
-.input {
-  width: 100%;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  padding: 14px;
-  border-radius: 12px;
+.select-container {
   font-size: 0.95rem;
-  outline: none;
-  transition: all 0.2s;
-  color: #1e293b;
 }
 
-.input:focus {
-  border-color: #E38B2C;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1);
+/* Control (a "caixa" principal) */
+.select__control {
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  border-radius: 12px !important;
+  min-height: 48px !important;
+  padding-left: 6px;
+  box-shadow: none !important;
+  transition: all 0.2s !important;
 }
 
-/* Botão */
-.btn {
-  width: 100%;
-  border: none;
-  background: #E38B2C;
-  color: #fff;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background 0.2s, transform 0.2s;
+/* Quando está focado */
+.select__control--is-focused {
+  border-color: #E38B2C !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1) !important;
 }
 
-.btn:hover {
-  background: #d35400;
-  transform: translateY(-2px);
+/* Texto placeholder */
+.select__placeholder {
+  color: #94a3b8 !important;
 }
 
-.btn:disabled {
-  opacity: 0.75;
-  cursor: not-allowed;
-  transform: none;
+/* Valor selecionado */
+.select__single-value {
+  color: #1e293b !important;
 }
 
-/* Mensagem */
-.msg {
-  margin-top: 15px;
-  font-size: 0.9rem;
-  color: #ef4444;
-  text-align: center;
-  background: #fef2f2;
-  padding: 10px;
-  border-radius: 8px;
+/* Setinha */
+.select__indicator {
+  color: #64748b !important;
+}
+
+.select__indicator:hover {
+  color: #1e293b !important;
+}
+
+/* Menu dropdown */
+.select__menu {
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* Opções */
+.select__option {
+  padding: 12px 14px !important;
+}
+
+.select__option--is-focused {
+  background: rgba(227, 139, 44, 0.12) !important;
+}
+
+.select__option--is-selected {
+  background: #E38B2C !important;
+  color: white !important;
 }

@@ -1,88 +1,80 @@
 // src/pages/Registar.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 import "./Registar.css";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function Registar() {
   const navigate = useNavigate();
 
-  const API_BASE =
-    (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) ||
-    process.env.REACT_APP_API_BASE_URL ||
-    "http://localhost:5000";
+  const [cursos, setCursos] = useState([]);
+  const [cursoOption, setCursoOption] = useState(null);
+  const [cursosLoading, setCursosLoading] = useState(true);
 
-  const [curso, setCurso] = useState("");
+  const [numero, setNumero] = useState(""); 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [cursos, setCursos] = useState([]);
-  const [loadingCursos, setLoadingCursos] = useState(true);
-
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Normaliza para comparar (case-insensitive + sem espaços extra)
-  const norm = (s) => (s || "").trim().toLowerCase();
-
-  // Cursos normalizados para validação rápida
-  const cursosNorm = useMemo(() => cursos.map((c) => norm(c)), [cursos]);
-
   useEffect(() => {
-    let cancelled = false;
+    let alive = true;
 
-    async function fetchCursos() {
-      setLoadingCursos(true);
+    async function loadCursos() {
+      setCursosLoading(true);
+      setMsg("");
+
       try {
         const res = await fetch(`${API_BASE}/api/cursos`);
         const data = await res.json().catch(() => ({}));
 
-        const lista = Array.isArray(data) ? data : data.cursos;
+        if (!alive) return;
 
-        if (!cancelled) {
-          setCursos(Array.isArray(lista) ? lista : []);
+        if (res.ok && data.success && Array.isArray(data.cursos)) {
+          setCursos(data.cursos);
+        } else {
+          setCursos([]);
+          setMsg("⚠️ Não foi possível carregar a lista de cursos.");
         }
       } catch (e) {
-        if (!cancelled) setCursos([]);
+        if (!alive) return;
+        setCursos([]);
+        setMsg("⚠️ Não foi possível ligar ao servidor para carregar os cursos.");
       } finally {
-        if (!cancelled) setLoadingCursos(false);
+        if (alive) setCursosLoading(false);
       }
     }
 
-    fetchCursos();
+    loadCursos();
     return () => {
-      cancelled = true;
+      alive = false;
     };
-  }, [API_BASE]);
+  }, []);
+
+  const cursoOptions = useMemo(
+    () => cursos.map((c) => ({ value: c, label: c })),
+    [cursos]
+  );
 
   async function handleRegistar(e) {
     e.preventDefault();
     setMsg("");
 
-    if (!curso || !username || !email || !password || !confirmPassword) {
+    if (!cursoOption || !numero || !username || !email || !password || !confirmPassword) {
       setMsg("⚠️ Preenche todos os campos.");
       return;
     }
 
-    if (loadingCursos) {
-      setMsg("⚠️ A carregar cursos... tenta de novo em 1s.");
+    const numeroTrim = numero.trim();
+    if (!/^\d+$/.test(numeroTrim)) {
+      setMsg("⚠️ O Nº aluno deve conter apenas dígitos.");
       return;
     }
-
-    if (!cursos.length) {
-      setMsg("❌ Não foi possível carregar a lista de cursos.");
-      return;
-    }
-
-    // Obrigar a escolher um curso da lista 
-    const idx = cursosNorm.indexOf(norm(curso));
-    if (idx === -1) {
-      setMsg("⚠️ Seleciona um curso válido da lista.");
-      return;
-    }
-
-    const cursoCanonico = cursos[idx]; // o texto exato como vem do backend
 
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
     if (!emailOk) {
@@ -106,7 +98,8 @@ export default function Registar() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          curso: cursoCanonico,
+          curso: cursoOption.value,
+          numero: numeroTrim,
           username: username.trim(),
           email: email.trim(),
           password,
@@ -143,21 +136,31 @@ export default function Registar() {
           <form onSubmit={handleRegistar} className="loginForm">
             <div>
               <label className="label">Curso</label>
+
+              <Select
+                className="select-container"
+                classNamePrefix="select"
+                placeholder={cursosLoading ? "A carregar cursos..." : "Seleciona o curso..."}
+                isLoading={cursosLoading}
+                isDisabled={cursosLoading}
+                options={cursoOptions}
+                value={cursoOption}
+                onChange={setCursoOption}
+                isSearchable
+                noOptionsMessage={() => "Sem resultados"}
+              />
+            </div>
+
+            <div>
+              <label className="label">Nº Aluno</label>
               <input
                 className="input"
                 type="text"
-                value={curso}
-                onChange={(e) => setCurso(e.target.value)}
-                placeholder={loadingCursos ? "A carregar cursos..." : "Escreve para pesquisar..."}
-                list="lista-cursos"
-                disabled={loadingCursos}
+                inputMode="numeric"
+                value={numero}
+                onChange={(e) => setNumero(e.target.value.replace(/\D/g, ""))}
+                placeholder="Ex: 47593"
               />
-
-              <datalist id="lista-cursos">
-                {cursos.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
             </div>
 
             <div>
@@ -167,6 +170,7 @@ export default function Registar() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
               />
             </div>
 
@@ -177,6 +181,7 @@ export default function Registar() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
               />
             </div>
 
@@ -187,6 +192,7 @@ export default function Registar() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
               />
             </div>
 
@@ -197,10 +203,11 @@ export default function Registar() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
               />
             </div>
 
-            <button className="btn" type="submit" disabled={loading || loadingCursos}>
+            <button className="btn" type="submit" disabled={loading || cursosLoading}>
               {loading ? "A criar..." : "Criar Conta"}
             </button>
 
@@ -217,6 +224,7 @@ export default function Registar() {
           >
             Já tens conta?{" "}
             <button
+              type="button"
               onClick={() => navigate("/login")}
               style={{
                 background: "none",

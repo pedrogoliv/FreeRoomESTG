@@ -8,23 +8,28 @@ app.use(cors());
 app.use(express.json());
 
 // --- 1. MODELOS ---
-// O teu modelo de ocupações existente
 const Ocupacao = require("./src/models/OcupacaoRaw");
 const Reserva = require("./src/models/Reserva");
 
-// ✅ NOVO: Modelo de Utilizador (com curso + email)
+// ✅ Modelo Curso (coleção "cursos")
+const Curso = require("./src/models/Curso");
+
+// ✅ Modelo User (com curso + email + numero)
 const UserSchema = new mongoose.Schema(
   {
     curso: { type: String, required: true },
+
+    // ✅ NOVO: número do aluno (string para não perder zeros)
+    numero: { type: String, required: true, unique: true, trim: true },
+
     username: { type: String, required: true, unique: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true }, // Em produção: bcrypt
-    favoritos: { type: [String], default: [] }, // Lista de IDs das salas (ex: ["A.1.1", "B.2.3"])
+    favoritos: { type: [String], default: [] },
   },
   { timestamps: true }
 );
 
-// Evita OverwriteModelError com nodemon/reloads
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 
 // --- 2. LIGAÇÃO À BD ---
@@ -34,39 +39,76 @@ mongoose
   .catch((err) => console.error("❌ Erro no Mongo:", err));
 
 // ==========================================
-//                 CURSOS
+//                 CURSOS (SEED)
 // ==========================================
-const CURSOS = [
+const CURSOS_SEED = [
+  "Design de Ambientes",
+  "Design do Produto",
+  "Engenharia Alimentar",
+  "Engenharia Civil e do Ambiente",
+  "Engenharia da Computação Gráfica e Multimédia",
+  "Engenharia de Redes e Sistemas de Computadores",
   "Engenharia Informática",
   "Engenharia Mecânica",
-  "Engenharia Civil",
-  "Engenharia Eletrotécnica e de Computadores",
+  "Engenharia Mecatrónica",
+  "Gastronomia e Artes Culinárias",
   "Gestão",
-  "Contabilidade",
-  "Marketing",
+  "Gestão (nocturno)",
+  "Tecnologia Alimentar e Nutrição",
   "Turismo",
 ];
 
-// Lista de cursos para o frontend (autocomplete)
-app.get("/api/cursos", (req, res) => {
-  res.json({ success: true, cursos: CURSOS });
+async function seedCursosIfEmpty() {
+  try {
+    const count = await Curso.countDocuments();
+    if (count === 0) {
+      await Curso.insertMany(CURSOS_SEED.map((nome) => ({ nome })));
+      console.log("✅ Cursos inseridos na BD (seed inicial).");
+    }
+  } catch (e) {
+    console.error("❌ Erro a seedar cursos:", e);
+  }
+}
+
+mongoose.connection.once("open", () => {
+  seedCursosIfEmpty();
+});
+
+// GET cursos para o frontend (react-select)
+app.get("/api/cursos", async (req, res) => {
+  try {
+    const cursos = await Curso.find().sort({ nome: 1 }).select("nome -_id");
+    res.json({ success: true, cursos: cursos.map((c) => c.nome) });
+  } catch (e) {
+    console.error("❌ Erro /api/cursos:", e);
+    res.status(500).json({ success: false, message: "Erro ao obter cursos" });
+  }
 });
 
 // ==========================================
-//                 ROTAS DE UTILIZADOR
+//            ROTAS DE UTILIZADOR
 // ==========================================
 
 async function registarHandler(req, res) {
-  const { curso, username, email, password } = req.body;
+  const { curso, numero, username, email, password } = req.body;
 
   try {
-    if (!curso || !username || !email || !password) {
+    if (!curso || !numero || !username || !email || !password) {
       return res.status(400).json({ success: false, message: "Faltam campos obrigatórios." });
     }
 
-    // Obriga a escolher um curso válido (mesmo que tentem bypass ao frontend)
-    if (!CURSOS.includes(curso)) {
+    // ✅ Valida no Mongo se o curso existe MESMO
+    const existeCurso = await Curso.exists({ nome: curso });
+    if (!existeCurso) {
       return res.status(400).json({ success: false, message: "Curso inválido." });
+    }
+
+    // ✅ Validação do número (só dígitos)
+    const numeroNorm = String(numero).trim();
+    if (!/^\d+$/.test(numeroNorm)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Número inválido (apenas dígitos)." });
     }
 
     const usernameTrim = String(username).trim();
@@ -84,8 +126,15 @@ async function registarHandler(req, res) {
       return res.status(400).json({ success: false, message: "Email já existe." });
     }
 
+    // ✅ Número único
+    const existingNumero = await User.findOne({ numero: numeroNorm });
+    if (existingNumero) {
+      return res.status(400).json({ success: false, message: "Esse número já está registado." });
+    }
+
     const newUser = new User({
       curso,
+      numero: numeroNorm,
       username: usernameTrim,
       email: emailNorm,
       password,
@@ -100,6 +149,7 @@ async function registarHandler(req, res) {
         username: newUser.username,
         email: newUser.email,
         curso: newUser.curso,
+        numero: newUser.numero,
       },
     });
   } catch (error) {
@@ -108,36 +158,25 @@ async function registarHandler(req, res) {
   }
 }
 
-// REGISTAR (Cria o user no MongoDB Compass)
+// compatível com /auth/registar e /auth/register
 app.post("/auth/registar", registarHandler);
+app.post("/auth/register", registarHandler);
 
-// LOGIN (COM DEBUG)
+// LOGIN
 app.post("/auth/login", async (req, res) => {
   const { username, password } = req.body;
 
-  console.log("------------------------------------------------");
-  console.log("🔍 TENTATIVA DE LOGIN:");
-  console.log("   📩 Recebi do Frontend:", { username, password });
-
   try {
-    // 1. Tenta encontrar SÓ pelo username primeiro para ver se o user existe
-    const user = await User.findOne({ username: username });
-
-    console.log("   🗄️  O que o MongoDB encontrou:", user);
+    const user = await User.findOne({ username });
 
     if (!user) {
-      console.log("   ❌ ERRO: Utilizador não encontrado na coleção 'users'.");
       return res.status(401).json({ success: false, message: "Utilizador não encontrado" });
     }
 
-    // 2. Se o user existe, verifica a password
     if (user.password !== password) {
-      console.log("   ❌ ERRO: A password não coincide.");
-      console.log(`      Esperada: '${user.password}' | Recebida: '${password}'`);
       return res.status(401).json({ success: false, message: "Password errada" });
     }
 
-    console.log("   ✅ SUCESSO: Login aceite!");
     res.json({
       success: true,
       user: {
@@ -145,20 +184,20 @@ app.post("/auth/login", async (req, res) => {
         username: user.username,
         email: user.email,
         curso: user.curso,
+        numero: user.numero, 
         favoritos: user.favoritos,
       },
     });
   } catch (error) {
-    console.error("   🔥 CRASH:", error);
+    console.error("🔥 CRASH:", error);
     res.status(500).json({ success: false, message: "Erro no servidor" });
   }
 });
 
 // ==========================================
-//                 PERFIL / UTILIZADOR
+//              PERFIL / UTILIZADOR
 // ==========================================
 
-// OBTER DADOS DO UTILIZADOR (para o Perfil)
 app.get("/api/users/:username", async (req, res) => {
   try {
     const user = await User.findOne({ username: req.params.username }).select("-password");
@@ -170,15 +209,20 @@ app.get("/api/users/:username", async (req, res) => {
   }
 });
 
-// ATUALIZAR DADOS DO UTILIZADOR (curso/email)
+// Agora também permite atualizar numero
 app.put("/api/users/:username", async (req, res) => {
   try {
-    const { curso, email } = req.body;
+    const { curso, email, numero } = req.body;
 
-    if (curso && !CURSOS.includes(curso)) {
-      return res.status(400).json({ success: false, message: "Curso inválido." });
+    // validar curso pela BD
+    if (curso) {
+      const existeCurso = await Curso.exists({ nome: curso });
+      if (!existeCurso) {
+        return res.status(400).json({ success: false, message: "Curso inválido." });
+      }
     }
 
+    // validar email se vier
     let emailUpdate = undefined;
     if (email) {
       const emailNorm = String(email).trim().toLowerCase();
@@ -192,11 +236,35 @@ app.put("/api/users/:username", async (req, res) => {
       emailUpdate = emailNorm;
     }
 
+    // validar numero se vier
+    let numeroUpdate = undefined;
+    if (numero !== undefined) {
+      const numeroNorm = String(numero).trim();
+      if (!/^\d+$/.test(numeroNorm)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Número inválido (apenas dígitos)." });
+      }
+
+      const existsNumero = await User.findOne({
+        numero: numeroNorm,
+        username: { $ne: req.params.username },
+      });
+      if (existsNumero) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Esse número já está registado." });
+      }
+
+      numeroUpdate = numeroNorm;
+    }
+
     const updated = await User.findOneAndUpdate(
       { username: req.params.username },
       {
         ...(curso ? { curso } : {}),
         ...(emailUpdate ? { email: emailUpdate } : {}),
+        ...(numeroUpdate ? { numero: numeroUpdate } : {}),
       },
       { new: true }
     ).select("-password");
@@ -210,10 +278,12 @@ app.put("/api/users/:username", async (req, res) => {
   }
 });
 
-// OBTER FAVORITOS
+// ==========================================
+//                 FAVORITOS
+// ==========================================
+
 app.get("/api/favoritos/:username", async (req, res) => {
   try {
-    // Busca pelo campo 'username' em vez do ID
     const user = await User.findOne({ username: req.params.username });
     res.json(user ? user.favoritos : []);
   } catch (error) {
@@ -221,44 +291,29 @@ app.get("/api/favoritos/:username", async (req, res) => {
   }
 });
 
-// FAVORITOS (Adicionar/Remover por nome)
 app.post("/api/favoritos", async (req, res) => {
-  const { username, salaId } = req.body; // 👈 Recebe username
-
-  console.log("---------------------------------------");
-  console.log("❤️ PEDIDO FAVORITO (VIA USERNAME)");
-  console.log("   👤 User:", username);
-  console.log("   🏫 Sala:", salaId);
+  const { username, salaId } = req.body;
 
   if (!username || !salaId) {
     return res.status(400).json({ success: false, message: "Faltam dados." });
   }
 
   try {
-    // 1. Procura o utilizador
     const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ success: false, message: "User não encontrado" });
 
-    if (!user) {
-      console.log("   ❌ ERRO: User não encontrado.");
-      return res.status(404).json({ success: false, message: "User não encontrado" });
-    }
-
-    // 2. Lógica de Adicionar/Remover
     const jaExiste = user.favoritos.includes(salaId);
 
     if (jaExiste) {
       await User.updateOne({ username }, { $pull: { favoritos: salaId } });
-      console.log("   🗑️  Removido.");
     } else {
       await User.updateOne({ username }, { $addToSet: { favoritos: salaId } });
-      console.log("   💾 Adicionado.");
     }
 
-    // 3. Devolve a lista atualizada
     const userAtualizado = await User.findOne({ username });
     res.json({ success: true, favoritos: userAtualizado.favoritos });
   } catch (error) {
-    console.error("   🔥 ERRO:", error);
+    console.error("🔥 ERRO:", error);
     res.status(500).json({ success: false, message: "Erro no servidor" });
   }
 });
@@ -267,10 +322,9 @@ app.post("/api/favoritos", async (req, res) => {
 //              ROTAS DE RESERVAS
 // ==========================================
 
-// Funções utilitárias
 const isWeekend = (isoDate) => {
   const d = new Date(`${isoDate}T00:00:00`);
-  const day = d.getDay(); // 0=Domingo, 6=Sábado
+  const day = d.getDay();
   return day === 0 || day === 6;
 };
 
@@ -278,7 +332,6 @@ const FERIADOS = require("./src/config/feriadosPT");
 const isFeriado = (isoDate) => FERIADOS.has(isoDate);
 
 const toMinutes = (t) => {
-  // aceita "HH:MM" ou "HH:MM:SS"
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 };
@@ -291,18 +344,14 @@ app.post("/api/reservar", async (req, res) => {
       return res.status(400).json({ erro: "Faltam campos obrigatórios." });
     }
 
-    // BLOQUEIO: fim-de-semana / feriados
     if (isWeekend(dia)) {
-      return res
-        .status(400)
-        .json({ erro: "Não é possível reservar salas ao fim-de-semana." });
+      return res.status(400).json({ erro: "Não é possível reservar salas ao fim-de-semana." });
     }
 
     if (isFeriado(dia)) {
       return res.status(400).json({ erro: "Não é possível reservar salas em feriados." });
     }
 
-    // validação de horas
     const novoIni = toMinutes(hora_inicio);
     const novoFim = toMinutes(hora_fim);
 
@@ -311,22 +360,17 @@ app.post("/api/reservar", async (req, res) => {
     }
 
     if (novoFim <= novoIni) {
-      return res
-        .status(400)
-        .json({ erro: "hora_fim tem de ser maior que hora_inicio." });
+      return res.status(400).json({ erro: "hora_fim tem de ser maior que hora_inicio." });
     }
 
-    // Buscar aulas e reservas existentes para a mesma sala/dia
     const aulas = await Ocupacao.find({ sala, dia });
     const reservas = await Reserva.find({ sala, dia });
 
-    // Normalizar tudo
     const ocupacoes = [
       ...aulas.map((a) => ({ inicio: a.hora_inicio, fim: a.hora_fim })),
       ...reservas.map((r) => ({ inicio: r.hora_inicio, fim: r.hora_fim })),
     ];
 
-    // Overlap
     const conflito = ocupacoes.some((o) => {
       const ini = toMinutes(o.inicio);
       const fim = toMinutes(o.fim);
@@ -337,7 +381,6 @@ app.post("/api/reservar", async (req, res) => {
       return res.status(409).json({ erro: "Sala já está ocupada nesse horário." });
     }
 
-    // Guardar reserva
     const novaReserva = await Reserva.create(req.body);
     return res.status(201).json({ mensagem: "Reserva criada!", dados: novaReserva });
   } catch (err) {
@@ -354,40 +397,28 @@ app.get("/api/salas-livres", async (req, res) => {
   try {
     const { dia, hora } = req.query;
 
+    if (!dia || !hora) return res.status(400).json({ error: "Falta dados." });
+
     if (isWeekend(dia) || isFeriado(dia)) {
       return res.json([]);
     }
 
-    if (!dia || !hora) return res.status(400).json({ error: "Falta dados." });
+    let dbSalas = [{ nome: "S.1.1", piso: 1, lugares: 30 }];
 
-    // 1. A TUA LISTA MANUAL
-    let dbSalas = [
-      { nome: "S.1.1", piso: 1, lugares: 30 },
-      // ... outras salas manuais ...
-    ];
-
-    // 2. BUSCAR TODAS AS SALAS QUE EXISTEM NA BD
     const todasSalasNaBD = await Ocupacao.distinct("sala");
 
-    // 3. ADICIONAR AS SALAS NOVAS (Lógica Inteligente)
     todasSalasNaBD.forEach((nomeDaSala) => {
       if (!dbSalas.find((s) => s.nome === nomeDaSala)) {
         let pisoAdivinhado = "?";
         const partes = nomeDaSala.split(".");
-        if (partes.length >= 2 && !isNaN(partes[1])) {
-          pisoAdivinhado = partes[1];
-        }
-        dbSalas.push({
-          nome: nomeDaSala,
-          piso: pisoAdivinhado,
-          lugares: "30",
-        });
+        if (partes.length >= 2 && !isNaN(partes[1])) pisoAdivinhado = partes[1];
+
+        dbSalas.push({ nome: nomeDaSala, piso: pisoAdivinhado, lugares: "30" });
       }
     });
 
-    // 4. VERIFICA OCUPAÇÃO (No Compass: collection 'ocupacoes')
     const ocupadasNomes = await Ocupacao.find({
-      dia: dia,
+      dia,
       hora_inicio: { $lte: hora },
       hora_fim: { $gt: hora },
     }).distinct("sala");
@@ -399,7 +430,6 @@ app.get("/api/salas-livres", async (req, res) => {
     }));
 
     resultado.sort((a, b) => a.nome.localeCompare(b.nome));
-
     res.json(resultado);
   } catch (err) {
     console.error(err);
