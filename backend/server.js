@@ -484,5 +484,148 @@ app.get("/api/salas-livres", async (req, res) => {
   }
 });
 
+// ==========================================
+//     STATUS DE UMA SALA (livre até / fica livre em)
+// ==========================================
+app.get("/api/salas/:sala/status", async (req, res) => {
+  try {
+    const { sala } = req.params;
+    const { dia, hora } = req.query;
+
+    if (!sala || !dia || !hora) {
+      return res.status(400).json({ success: false, message: "Falta sala/dia/hora." });
+    }
+
+    if (isWeekend(dia)) {
+      return res.json({
+        success: true,
+        bloqueado: true,
+        motivo: "fim-de-semana",
+        status: "Indisponível",
+        lugaresDisponiveis: 0,
+        mudaEm: null,
+      });
+    }
+
+    if (isFeriado(dia)) {
+      return res.json({
+        success: true,
+        bloqueado: true,
+        motivo: "feriado",
+        status: "Indisponível",
+        lugaresDisponiveis: 0,
+        mudaEm: null,
+      });
+    }
+
+    const hNow = toMinutes(hora);
+    if (Number.isNaN(hNow)) {
+      return res.status(400).json({ success: false, message: "Hora inválida." });
+    }
+
+    // --- 1) Aulas (bloqueiam sempre) ---
+    const aulasDia = await Ocupacao.find({ sala, dia });
+
+    const aulaAgora = aulasDia.find((a) => {
+      const ini = toMinutes(a.hora_inicio);
+      const fim = toMinutes(a.hora_fim);
+      return hNow >= ini && hNow < fim;
+    });
+
+    if (aulaAgora) {
+      // enquanto houver aula, sala está ocupada até hora_fim da aula
+      return res.json({
+        success: true,
+        bloqueado: false,
+        status: "Ocupada",
+        lugaresDisponiveis: 0,
+        mudaEm: aulaAgora.hora_fim, // quando "muda" para livre (se não houver reservas a seguir)
+        causa: "aula",
+      });
+    }
+
+    // --- 2) Reservas (ocupam por capacidade) ---
+    const reservasDia = await Reserva.find({ sala, dia });
+
+    // consumo agora
+    let consumoAgora = 0;
+    for (const r of reservasDia) {
+      const ini = toMinutes(r.hora_inicio);
+      const fim = toMinutes(r.hora_fim);
+      if (hNow >= ini && hNow < fim) {
+        const p = r.pessoas ?? 1;
+        consumoAgora += consumoReserva(p);
+      }
+    }
+
+    const livresAgora = Math.max(0, CAP_BASE - consumoAgora);
+    const statusAgora = livresAgora > 0 ? "Livre" : "Ocupada";
+
+    // calcular "mudaEm" (próxima mudança de estado) ---
+    // candidatos a momentos de mudança = inícios/fins de reservas e inícios/fins de aulas
+    const pontos = new Set();
+
+    for (const a of aulasDia) {
+      pontos.add(a.hora_inicio);
+      pontos.add(a.hora_fim);
+    }
+    for (const r of reservasDia) {
+      pontos.add(r.hora_inicio);
+      pontos.add(r.hora_fim);
+    }
+
+    const pontosOrdenados = Array.from(pontos)
+      .map((t) => ({ t, m: toMinutes(t) }))
+      .filter((x) => Number.isFinite(x.m))
+      .sort((a, b) => a.m - b.m);
+
+    // função para avaliar estado numa hora "t"
+    const avaliar = async (tMin) => {
+      // aula bloqueia
+      const aula = aulasDia.find((a) => {
+        const ini = toMinutes(a.hora_inicio);
+        const fim = toMinutes(a.hora_fim);
+        return tMin >= ini && tMin < fim;
+      });
+      if (aula) return { status: "Ocupada", livres: 0 };
+
+      let consumo = 0;
+      for (const r of reservasDia) {
+        const ini = toMinutes(r.hora_inicio);
+        const fim = toMinutes(r.hora_fim);
+        if (tMin >= ini && tMin < fim) {
+          const p = r.pessoas ?? 1;
+          consumo += consumoReserva(p);
+        }
+      }
+      const livres = Math.max(0, CAP_BASE - consumo);
+      return { status: livres > 0 ? "Livre" : "Ocupada", livres };
+    };
+
+    let mudaEm = null;
+    for (const p of pontosOrdenados) {
+      if (p.m <= hNow) continue;
+      const st = await avaliar(p.m);
+      if (st.status !== statusAgora) {
+        mudaEm = p.t;
+        break;
+      }
+    }
+
+    return res.json({
+      success: true,
+      bloqueado: false,
+      status: statusAgora,
+      lugaresDisponiveis: livresAgora,
+      mudaEm, // pode ser null se não mudar mais nesse dia
+      causa: "reservas",
+    });
+  } catch (err) {
+    console.error("❌ Erro /api/salas/:sala/status:", err);
+    return res.status(500).json({ success: false, message: "Erro no servidor" });
+  }
+});
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Servidor a correr na porta ${PORT}`));

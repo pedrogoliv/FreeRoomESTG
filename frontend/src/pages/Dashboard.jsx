@@ -369,7 +369,7 @@ export default function Dashboard() {
                         className="btn-details"
                         onClick={() => setSalaSelecionada(item)}
                       >
-                        Ver detalhes / Reservar
+                        Ver detalhes 
                       </button>
                     </div>
                   </div>

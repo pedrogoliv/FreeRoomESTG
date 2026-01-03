@@ -94,6 +94,18 @@
   color: #dc2626;
 }
 
+/* ✅ NOVO: hint "Livre até..." / "Fica livre daqui a..." */
+.status-hint {
+  margin-top: 8px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-weight: 700;
+  color: #1e293b;
+}
+
 /* Tags */
 .tags-container {
   display: flex;
@@ -117,7 +129,8 @@
   padding: 12px;
   border-radius: 10px;
   color: #be123c;
-  margin-bottom: 24px;
+  margin-top: 20px;
+  margin-bottom: 14px;
   font-size: 0.9rem;
   border: 1px solid #fecdd3;
 }
@@ -129,7 +142,62 @@
   gap: 12px;
 }
 
-/* ✅ NOVO: Labels dentro do modal (hora fim / nº pessoas) */
+/* ✅ NOVO: Grid para DIA/HORA no topo do modal */
+.reserva-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Em ecrãs pequenos, quebra para 1 coluna */
+@media (max-width: 420px) {
+  .reserva-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ✅ NOVO: labels e controls usados no DetalhesSala.jsx novo */
+.field-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #475569;
+  margin: 10px 0 6px;
+}
+
+/* campo base (inputs + selects) */
+.field-control {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+  color: #1e293b;
+}
+
+/* foco */
+.field-control:focus {
+  border-color: #E38B2C;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1);
+}
+
+/* disabled */
+.field-control:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ✅ garantir que date e select ficam iguais */
+.modal-content input[type="date"].field-control {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ✅ mantém compatibilidade com o teu CSS antigo (inputs legacy) */
 .modal-content .modal-actions label {
   display: block;
   font-size: 0.85rem;
@@ -138,7 +206,7 @@
   margin: 10px 0 6px;
 }
 
-/* ✅ NOVO: Inputs/Select dentro do modal (scoped) */
+/* inputs/select legacy (mantidos) */
 .modal-content .input,
 .modal-content select {
   width: 100%;
