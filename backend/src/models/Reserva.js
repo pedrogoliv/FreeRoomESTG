@@ -6,7 +6,8 @@ const ReservaSchema = new mongoose.Schema({
     hora_inicio: String,
     hora_fim: String,
     responsavel: String,
-    motivo: String
+    motivo: String,
+    pessoas: { type: Number, required: true, min: 1, default: 1 },
 }, {
     timestamps: true // Adiciona automaticamente data de criação
 });

@@ -7,19 +7,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- 1. MODELOS ---
+// ---  MODELOS ---
 const Ocupacao = require("./src/models/OcupacaoRaw");
 const Reserva = require("./src/models/Reserva");
 
-// ✅ Modelo Curso (coleção "cursos")
 const Curso = require("./src/models/Curso");
 
-// ✅ Modelo User (com curso + email + numero)
 const UserSchema = new mongoose.Schema(
   {
     curso: { type: String, required: true },
 
-    // ✅ NOVO: número do aluno (string para não perder zeros)
     numero: { type: String, required: true, unique: true, trim: true },
 
     username: { type: String, required: true, unique: true, trim: true },
@@ -32,7 +29,7 @@ const UserSchema = new mongoose.Schema(
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 
-// --- 2. LIGAÇÃO À BD ---
+// ---  LIGAÇÃO À BD ---
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Ligado!"))
@@ -88,7 +85,6 @@ app.get("/api/cursos", async (req, res) => {
 // ==========================================
 //            ROTAS DE UTILIZADOR
 // ==========================================
-
 async function registarHandler(req, res) {
   const { curso, numero, username, email, password } = req.body;
 
@@ -97,40 +93,28 @@ async function registarHandler(req, res) {
       return res.status(400).json({ success: false, message: "Faltam campos obrigatórios." });
     }
 
-    // ✅ Valida no Mongo se o curso existe MESMO
     const existeCurso = await Curso.exists({ nome: curso });
     if (!existeCurso) {
       return res.status(400).json({ success: false, message: "Curso inválido." });
     }
 
-    // ✅ Validação do número (só dígitos)
     const numeroNorm = String(numero).trim();
     if (!/^\d+$/.test(numeroNorm)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Número inválido (apenas dígitos)." });
+      return res.status(400).json({ success: false, message: "Número inválido (apenas dígitos)." });
     }
 
     const usernameTrim = String(username).trim();
     const emailNorm = String(email).trim().toLowerCase();
 
-    // Username único
     const existingUser = await User.findOne({ username: usernameTrim });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: "Username já existe." });
-    }
+    if (existingUser) return res.status(400).json({ success: false, message: "Username já existe." });
 
-    // Email único
     const existingEmail = await User.findOne({ email: emailNorm });
-    if (existingEmail) {
-      return res.status(400).json({ success: false, message: "Email já existe." });
-    }
+    if (existingEmail) return res.status(400).json({ success: false, message: "Email já existe." });
 
-    // ✅ Número único
     const existingNumero = await User.findOne({ numero: numeroNorm });
-    if (existingNumero) {
+    if (existingNumero)
       return res.status(400).json({ success: false, message: "Esse número já está registado." });
-    }
 
     const newUser = new User({
       curso,
@@ -158,11 +142,9 @@ async function registarHandler(req, res) {
   }
 }
 
-// compatível com /auth/registar e /auth/register
 app.post("/auth/registar", registarHandler);
 app.post("/auth/register", registarHandler);
 
-// LOGIN
 app.post("/auth/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -184,7 +166,7 @@ app.post("/auth/login", async (req, res) => {
         username: user.username,
         email: user.email,
         curso: user.curso,
-        numero: user.numero, 
+        numero: user.numero,
         favoritos: user.favoritos,
       },
     });
@@ -197,7 +179,6 @@ app.post("/auth/login", async (req, res) => {
 // ==========================================
 //              PERFIL / UTILIZADOR
 // ==========================================
-
 app.get("/api/users/:username", async (req, res) => {
   try {
     const user = await User.findOne({ username: req.params.username }).select("-password");
@@ -209,12 +190,10 @@ app.get("/api/users/:username", async (req, res) => {
   }
 });
 
-// Agora também permite atualizar numero
 app.put("/api/users/:username", async (req, res) => {
   try {
     const { curso, email, numero } = req.body;
 
-    // validar curso pela BD
     if (curso) {
       const existeCurso = await Curso.exists({ nome: curso });
       if (!existeCurso) {
@@ -222,7 +201,6 @@ app.put("/api/users/:username", async (req, res) => {
       }
     }
 
-    // validar email se vier
     let emailUpdate = undefined;
     if (email) {
       const emailNorm = String(email).trim().toLowerCase();
@@ -236,14 +214,11 @@ app.put("/api/users/:username", async (req, res) => {
       emailUpdate = emailNorm;
     }
 
-    // validar numero se vier
     let numeroUpdate = undefined;
     if (numero !== undefined) {
       const numeroNorm = String(numero).trim();
       if (!/^\d+$/.test(numeroNorm)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Número inválido (apenas dígitos)." });
+        return res.status(400).json({ success: false, message: "Número inválido (apenas dígitos)." });
       }
 
       const existsNumero = await User.findOne({
@@ -251,9 +226,7 @@ app.put("/api/users/:username", async (req, res) => {
         username: { $ne: req.params.username },
       });
       if (existsNumero) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Esse número já está registado." });
+        return res.status(400).json({ success: false, message: "Esse número já está registado." });
       }
 
       numeroUpdate = numeroNorm;
@@ -281,7 +254,6 @@ app.put("/api/users/:username", async (req, res) => {
 // ==========================================
 //                 FAVORITOS
 // ==========================================
-
 app.get("/api/favoritos/:username", async (req, res) => {
   try {
     const user = await User.findOne({ username: req.params.username });
@@ -321,7 +293,6 @@ app.post("/api/favoritos", async (req, res) => {
 // ==========================================
 //              ROTAS DE RESERVAS
 // ==========================================
-
 const isWeekend = (isoDate) => {
   const d = new Date(`${isoDate}T00:00:00`);
   const day = d.getDay();
@@ -331,14 +302,28 @@ const isWeekend = (isoDate) => {
 const FERIADOS = require("./src/config/feriadosPT");
 const isFeriado = (isoDate) => FERIADOS.has(isoDate);
 
+app.get("/api/feriados", (req, res) => {
+  res.json({ success: true, feriados: Array.from(FERIADOS) });
+});
+
 const toMinutes = (t) => {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 };
 
+// capacidade base (10–15 -> sugestão do prof)
+const CAP_BASE = 15;
+
+// grupos maiores gastam mais “capacidade”
+function consumoReserva(pessoas) {
+  const p = Number(pessoas) || 1;
+  const penalty = Math.floor((p - 1) / 3); // 1-3=>0, 4-6=>1, 7-9=>2...
+  return p + penalty;
+}
+
 app.post("/api/reservar", async (req, res) => {
   try {
-    const { sala, dia, hora_inicio, hora_fim } = req.body;
+    const { sala, dia, hora_inicio, hora_fim, pessoas } = req.body;
 
     if (!sala || !dia || !hora_inicio || !hora_fim) {
       return res.status(400).json({ erro: "Faltam campos obrigatórios." });
@@ -363,25 +348,53 @@ app.post("/api/reservar", async (req, res) => {
       return res.status(400).json({ erro: "hora_fim tem de ser maior que hora_inicio." });
     }
 
+    // valida pessoas (default 1)
+    const nPessoas = Number(pessoas ?? 1);
+    if (!Number.isInteger(nPessoas) || nPessoas < 1) {
+      return res.status(400).json({ erro: "Campo 'pessoas' inválido." });
+    }
+
+    // AULAS BLOQUEIAM SEMPRE
     const aulas = await Ocupacao.find({ sala, dia });
-    const reservas = await Reserva.find({ sala, dia });
-
-    const ocupacoes = [
-      ...aulas.map((a) => ({ inicio: a.hora_inicio, fim: a.hora_fim })),
-      ...reservas.map((r) => ({ inicio: r.hora_inicio, fim: r.hora_fim })),
-    ];
-
-    const conflito = ocupacoes.some((o) => {
-      const ini = toMinutes(o.inicio);
-      const fim = toMinutes(o.fim);
+    const aulaConflito = aulas.some((a) => {
+      const ini = toMinutes(a.hora_inicio);
+      const fim = toMinutes(a.hora_fim);
       return novoIni < fim && novoFim > ini;
     });
 
-    if (conflito) {
-      return res.status(409).json({ erro: "Sala já está ocupada nesse horário." });
+    if (aulaConflito) {
+      return res.status(409).json({ erro: "Sala tem aula nesse horário." });
     }
 
-    const novaReserva = await Reserva.create(req.body);
+    // RESERVAS EXISTENTES (permitir sobreposição até ao limite)
+    const reservas = await Reserva.find({ sala, dia });
+
+    const reservasOverlap = reservas.filter((r) => {
+      const ini = toMinutes(r.hora_inicio);
+      const fim = toMinutes(r.hora_fim);
+      return novoIni < fim && novoFim > ini;
+    });
+
+    const consumoOcupado = reservasOverlap.reduce((sum, r) => {
+      const p = r.pessoas ?? 1; // reservas antigas sem 'pessoas' contam como 1
+      return sum + consumoReserva(p);
+    }, 0);
+
+    const consumoNovo = consumoReserva(nPessoas);
+    const sobra = CAP_BASE - consumoOcupado;
+
+    if (consumoNovo > sobra) {
+      return res.status(409).json({
+        erro: `Capacidade excedida. Espaço disponível (com regra de grupos): ${Math.max(0, sobra)}.`,
+      });
+    }
+
+    // Criar reserva (guarda pessoas)
+    const novaReserva = await Reserva.create({
+      ...req.body,
+      pessoas: nPessoas,
+    });
+
     return res.status(201).json({ mensagem: "Reserva criada!", dados: novaReserva });
   } catch (err) {
     console.error("❌ Erro ao criar reserva:", err);
@@ -392,7 +405,6 @@ app.post("/api/reservar", async (req, res) => {
 // ==========================================
 //                 ROTAS DE SALAS
 // ==========================================
-
 app.get("/api/salas-livres", async (req, res) => {
   try {
     const { dia, hora } = req.query;
@@ -403,31 +415,66 @@ app.get("/api/salas-livres", async (req, res) => {
       return res.json([]);
     }
 
-    let dbSalas = [{ nome: "S.1.1", piso: 1, lugares: 30 }];
+    // capacidade base em vez de 30
+    let dbSalas = [{ nome: "S.1.1", piso: 1, lugares: CAP_BASE }];
 
+    // adicionar salas descobertas na BD
     const todasSalasNaBD = await Ocupacao.distinct("sala");
-
     todasSalasNaBD.forEach((nomeDaSala) => {
       if (!dbSalas.find((s) => s.nome === nomeDaSala)) {
         let pisoAdivinhado = "?";
         const partes = nomeDaSala.split(".");
         if (partes.length >= 2 && !isNaN(partes[1])) pisoAdivinhado = partes[1];
 
-        dbSalas.push({ nome: nomeDaSala, piso: pisoAdivinhado, lugares: "30" });
+        dbSalas.push({ nome: nomeDaSala, piso: pisoAdivinhado, lugares: CAP_BASE });
       }
     });
 
-    const ocupadasNomes = await Ocupacao.find({
+    // salas com aulas nessa hora (bloqueia)
+    const ocupadasAula = await Ocupacao.find({
       dia,
       hora_inicio: { $lte: hora },
       hora_fim: { $gt: hora },
     }).distinct("sala");
 
-    const resultado = dbSalas.map((sala) => ({
-      ...sala,
-      sala: sala.nome,
-      status: ocupadasNomes.includes(sala.nome) ? "Ocupada" : "Livre",
-    }));
+    // reservas do dia (filtrar em JS pelo intervalo)
+    const reservasDia = await Reserva.find({ dia });
+
+    // consumo por sala nessa hora
+    const consumoPorSala = {};
+    for (const r of reservasDia) {
+      const ini = toMinutes(r.hora_inicio);
+      const fim = toMinutes(r.hora_fim);
+      const h = toMinutes(hora);
+
+      if (h >= ini && h < fim) {
+        const p = r.pessoas ?? 1;
+        consumoPorSala[r.sala] = (consumoPorSala[r.sala] || 0) + consumoReserva(p);
+      }
+    }
+
+    const resultado = dbSalas.map((s) => {
+      const salaNome = s.nome;
+
+      if (ocupadasAula.includes(salaNome)) {
+        return {
+          ...s,
+          sala: salaNome,
+          status: "Ocupada",
+          lugaresDisponiveis: 0,
+        };
+      }
+
+      const consumo = consumoPorSala[salaNome] || 0;
+      const livres = Math.max(0, CAP_BASE - consumo);
+
+      return {
+        ...s,
+        sala: salaNome,
+        status: livres > 0 ? "Livre" : "Ocupada",
+        lugaresDisponiveis: livres,
+      };
+    });
 
     resultado.sort((a, b) => a.nome.localeCompare(b.nome));
     res.json(resultado);

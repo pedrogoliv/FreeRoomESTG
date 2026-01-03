@@ -1,5 +1,4 @@
-// src/pages/Dashboard.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
 import "./Dashboard.css";
@@ -21,17 +20,17 @@ export default function Dashboard() {
   const [salaSelecionada, setSalaSelecionada] = useState(null);
   const [favoritosIds, setFavoritosIds] = useState([]);
 
-  const API_BASE = "http://localhost:5000";
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   // ---  CARREGAR FAVORITOS DA BD ---
   useEffect(() => {
     if (user && user.username) {
       fetch(`${API_BASE}/api/favoritos/${user.username}`)
         .then((res) => res.json())
-        .then((data) => setFavoritosIds(data))
-        .catch((err) => console.error("Erro ao buscar favoritos:", err));
+        .then((data) => setFavoritosIds(Array.isArray(data) ? data : []))
+        .catch(() => {});
     }
-  }, [user]);
+  }, [user, API_BASE]);
 
   // --- LÓGICA DE DATAS E HORAS ---
   const [diaSelecionado, setDiaSelecionado] = useState(
@@ -59,30 +58,49 @@ export default function Dashboard() {
   const hoje = hojeISO();
   const minHoraHoje = nextHalfHour();
 
-  // Fim-de-semana e estrutura para feriados
+  // Fim-de-semana
   const isWeekend = (isoDate) => {
     const d = new Date(`${isoDate}T00:00:00`);
     const day = d.getDay(); // 0=Domingo, 6=Sábado
     return day === 0 || day === 6;
   };
 
-  //lista de feriados 
-  const FERIADOS = useMemo(
-    () =>
-      new Set([
-        // "2026-01-01",
-        // "2026-04-25",
-        // ...
-      ]),
-    []
-  );
+  // Feriados vêm do backend
+  const [FERIADOS, setFERIADOS] = useState(new Set());
+  const [feriadosLoading, setFeriadosLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    setFeriadosLoading(true);
+
+    fetch(`${API_BASE}/api/feriados`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!alive) return;
+        if (data?.success && Array.isArray(data.feriados)) {
+          setFERIADOS(new Set(data.feriados));
+        } else {
+          setFERIADOS(new Set());
+        }
+      })
+      .catch(() => {
+        if (alive) setFERIADOS(new Set());
+      })
+      .finally(() => {
+        if (alive) setFeriadosLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [API_BASE]);
 
   const isFeriado = (isoDate) => FERIADOS.has(isoDate);
 
   const fimDeSemana = isWeekend(diaSelecionado);
-  const feriado = isFeriado(diaSelecionado);
+  const feriado = !feriadosLoading && isFeriado(diaSelecionado);
 
-  // UI: Pesquisa e Tabs
+  // Pesquisa e Tabs
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState("todas");
 
@@ -111,15 +129,14 @@ export default function Dashboard() {
 
   const foraDeHoras = horaSelecionada < "08:00" || horaSelecionada > "22:30";
 
-  // se escolher fim-de-semana/feriado, fecha o modal (para não reservar)
+  // se escolher fim-de-semana/feriado, fecha o modal
   useEffect(() => {
     if (fimDeSemana || feriado) setSalaSelecionada(null);
   }, [fimDeSemana, feriado]);
 
-  // --- API FETCH SALAS ---
-  useEffect(() => {
-    // não faz fetch ao fim-de-semana/feriado
-    if (foraDeHoras || fimDeSemana || feriado) {
+  // --- FUNÇÃO PARA BUSCAR SALAS  ---
+  const refetchSalas = useCallback(() => {
+    if (feriadosLoading || foraDeHoras || fimDeSemana || feriado) {
       setLoading(false);
       setSalas([]);
       return;
@@ -136,12 +153,23 @@ export default function Dashboard() {
         setSalas(Array.isArray(dados) ? dados : []);
         setLoading(false);
       })
-      .catch((erro) => {
-        console.error("Erro:", erro);
+      .catch(() => {
         setSalas([]);
         setLoading(false);
       });
-  }, [diaSelecionado, horaSelecionada, foraDeHoras, fimDeSemana, feriado]);
+  }, [
+    API_BASE,
+    diaSelecionado,
+    horaSelecionada,
+    feriadosLoading,
+    foraDeHoras,
+    fimDeSemana,
+    feriado,
+  ]);
+
+  useEffect(() => {
+    refetchSalas();
+  }, [refetchSalas]);
 
   // --- FILTRAGEM ---
   const salasFiltradas = useMemo(() => {
@@ -251,7 +279,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {loading ? (
+        {loading || feriadosLoading ? (
           <p>⏳ A carregar dados...</p>
         ) : foraDeHoras || fimDeSemana || feriado ? (
           <div className="fechado">
@@ -289,8 +317,29 @@ export default function Dashboard() {
 
             <div className="grid-salas">
               {salasFiltradas.map((item) => {
+                const capacidade = Number(item.lugares ?? 15) || 15;
+
+                const livresAgora = Math.max(
+                  0,
+                  Math.min(capacidade, Number(item.lugaresDisponiveis ?? 0))
+                );
+
+                const ocupadas = Math.max(
+                  0,
+                  Math.min(capacidade, capacidade - livresAgora)
+                );
+
+                // cor da barra com base nas OCUPADAS (0-6 verde, 7-10 amarelo, 11-15 vermelho)
+                let ocupClass = "ocup-green";
+                if (ocupadas >= 7 && ocupadas <= 10) ocupClass = "ocup-yellow";
+                if (ocupadas >= 11) ocupClass = "ocup-red";
+
+                const pct =
+                  capacidade > 0 ? Math.round((ocupadas / capacidade) * 100) : 0;
+
                 const livre = item.status === "Livre";
-                const key = `${item.sala}-${item.piso}-${item.status}`;
+                const key = `${item.sala}-${item.piso}`;
+
                 return (
                   <div key={key} className="card-sala">
                     <div className={`card-top ${livre ? "livre" : "ocupada"}`}>
@@ -300,15 +349,27 @@ export default function Dashboard() {
 
                     <div className="card-body">
                       <div className="sala-nome">Sala {item.sala}</div>
+
                       <div className="sala-meta">
-                        🏢 Piso {item.piso} • 👥 {item.lugares} lugares
+                        🏢 Piso {item.piso} • 👥 {ocupadas}/{capacidade} ocupadas
+                      </div>
+
+                      <div className="ocup-bar" aria-hidden="true">
+                        <div
+                          className={`ocup-fill ${ocupClass}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+
+                      <div className="ocup-hint">
+                        {livresAgora}/{capacidade} livres
                       </div>
 
                       <button
                         className="btn-details"
                         onClick={() => setSalaSelecionada(item)}
                       >
-                        Ver detalhes
+                        Ver detalhes / Reservar
                       </button>
                     </div>
                   </div>
@@ -321,15 +382,17 @@ export default function Dashboard() {
         {salaSelecionada && (
           <DetalhesSala
             sala={salaSelecionada}
+            user={user}
             onClose={() => setSalaSelecionada(null)}
             isFavorito={favoritosIds.includes(salaSelecionada.sala)}
             onToggleFavorito={() => toggleFavorito(salaSelecionada.sala)}
             diaSelecionado={diaSelecionado}
             horaSelecionada={horaSelecionada}
             bloqueado={foraDeHoras || fimDeSemana || feriado}
-            motivoBloqueio={
-              fimDeSemana ? "fimDeSemana" : feriado ? "feriado" : foraDeHoras ? "foraDeHoras" : null
-            }
+            onReservaSucesso={() => {
+              refetchSalas();
+              setSalaSelecionada(null);
+            }}
           />
         )}
       </main>
