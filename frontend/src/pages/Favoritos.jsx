@@ -1,81 +1,117 @@
 // src/pages/Favoritos.jsx
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import DetalhesSala from "../components/detalhesSala"; // Opcional, se quiseres abrir detalhes aqui também
-import { FaTrash } from "react-icons/fa"; // Ícone de lixo
+import DetalhesSala from "../components/detalhesSala";
+import { FaTrash } from "react-icons/fa";
 import "./Favoritos.css";
 
 export default function Favoritos() {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
   const [user, setUser] = useState(null);
+
+  // Lista de IDs das salas favoritas (ex: ["B106", "A203"])
   const [favoritosIds, setFavoritosIds] = useState([]);
-  const [salasDetalhadas, setSalasDetalhadas] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingFav, setLoadingFav] = useState(true);
 
-  // Data e Hora atuais para ver o estado em tempo real
-  const hoje = new Date().toISOString().split("T")[0];
-  const agora = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+  // Dia/hora para reservar (não bloqueia fins-de-semana)
+  const [diaSelecionado, setDiaSelecionado] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [horaSelecionada, setHoraSelecionada] = useState("19:00");
 
-  const API_BASE = "http://localhost:5000";
+  // Modal
+  const [salaSelecionada, setSalaSelecionada] = useState(null);
+  const [loadingSala, setLoadingSala] = useState(false);
+  const [msg, setMsg] = useState("");
 
-  // 1. Ler User do LocalStorage
+  // horários (08:00–22:30)
+  const listaHorarios = useMemo(() => {
+    const slots = [];
+    for (let h = 8; h <= 22; h++) {
+      const hh = String(h).padStart(2, "0");
+      slots.push(`${hh}:00`);
+      if (h < 22) slots.push(`${hh}:30`);
+    }
+    return slots;
+  }, []);
+
+  // 1) ler user do storage
   useEffect(() => {
     const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  // 2. Carregar Favoritos + Estado das Salas
+  // 2) buscar favoritos SEMPRE (independente do dia/hora)
   useEffect(() => {
-    if (user && user.username) {
-      setLoading(true);
+    if (!user?.username) return;
 
-      // A. Buscar lista de IDs favoritos do user
-      fetch(`${API_BASE}/api/favoritos/${user.username}`)
-        .then((res) => res.json())
-        .then((ids) => {
-          setFavoritosIds(ids);
+    setLoadingFav(true);
+    fetch(`${API_BASE}/api/favoritos/${user.username}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const arr = Array.isArray(data) ? data : [];
+        setFavoritosIds(arr.map((x) => String(x)));
+      })
+      .catch(() => setFavoritosIds([]))
+      .finally(() => setLoadingFav(false));
+  }, [user, API_BASE]);
 
-          if (ids.length === 0) {
-            setLoading(false);
-            return;
-          }
+  // Remover favorito (toggle no backend)
+  async function removerFavorito(salaId) {
+    if (!user?.username) return;
 
-          // B. Buscar estado ATUAL de todas as salas
-          // (Reutilizamos a API que alimenta o Dashboard)
-          fetch(`${API_BASE}/api/salas-livres?dia=${hoje}&hora=${agora}`)
-            .then((res) => res.json())
-            .then((todasSalas) => {
-              
-              // C. FILTRAR: Ficar apenas com as salas que são favoritas
-              const minhasSalas = todasSalas.filter((sala) => 
-                ids.includes(sala.sala) || ids.includes(sala.nome)
-              );
-              
-              setSalasDetalhadas(minhasSalas);
-              setLoading(false);
-            });
-        })
-        .catch((err) => {
-          console.error(err);
-          setLoading(false);
-        });
+    const sid = String(salaId);
+
+    // UI otimista
+    setFavoritosIds((prev) => prev.filter((id) => String(id) !== sid));
+
+    try {
+      await fetch(`${API_BASE}/api/favoritos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: user.username, salaId: sid }),
+      });
+    } catch (e) {
+      setFavoritosIds((prev) => (prev.includes(sid) ? prev : [...prev, sid]));
     }
-  }, [user]);
+  }
 
-  // Função para remover favorito diretamente nesta página
-  const removerFavorito = async (salaId) => {
-    if (!user) return;
+  // Ao clicar numa sala favorita: buscar detalhes para o dia/hora escolhidos e abrir modal
+  async function abrirDetalhes(idSala) {
+    setMsg("");
+    setLoadingSala(true);
 
-    // Atualização Visual Imediata
-    setFavoritosIds((prev) => prev.filter((id) => id !== salaId));
-    setSalasDetalhadas((prev) => prev.filter((s) => s.sala !== salaId));
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(
+          diaSelecionado
+        )}&hora=${encodeURIComponent(horaSelecionada)}`
+      );
 
-    // Atualização no Backend
-    await fetch(`${API_BASE}/api/favoritos`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: user.username, salaId }),
-    });
-  };
+      const data = await res.json().catch(() => []);
+      const arr = Array.isArray(data) ? data : [];
+
+      const salaObj = arr.find((s) => String(s.sala) === String(idSala));
+
+      if (!salaObj) {
+        setSalaSelecionada({
+          sala: String(idSala),
+          piso: "-",
+          lugares: 15,
+          status: "Livre",
+          lugaresDisponiveis: 15,
+        });
+        setMsg("⚠️ Não consegui obter detalhes desta sala para esse horário.");
+      } else {
+        setSalaSelecionada(salaObj);
+      }
+    } catch (e) {
+      setMsg("❌ Erro ao ligar ao servidor.");
+    } finally {
+      setLoadingSala(false);
+    }
+  }
 
   return (
     <div className="dashboard-container">
@@ -85,65 +121,118 @@ export default function Favoritos() {
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Meus Favoritos</h1>
-            <p style={{ color: "#64748b" }}>O estado das tuas salas preferidas agora mesmo.</p>
+            <p style={{ color: "#64748b" }}>
+              Clica numa sala favorita para reservar no dia/hora selecionados.
+            </p>
+          </div>
+
+          <div className="filters">
+            <div className="filtro-box">
+              <label>DIA</label>
+              <input
+                type="date"
+                value={diaSelecionado}
+                onChange={(e) => setDiaSelecionado(e.target.value)}
+              />
+            </div>
+
+            <div className="filtro-box">
+              <label>HORA</label>
+              <select
+                value={horaSelecionada}
+                onChange={(e) => setHoraSelecionada(e.target.value)}
+              >
+                {listaHorarios.map((h) => (
+                  <option key={h} value={h}>
+                    {h}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </header>
 
-        {/* MENSAGENS DE ESTADO */}
-        {!user && <div className="aviso-box">⚠️ Precisas de fazer login.</div>}
-        
-        {loading && <p>⏳ A carregar os teus favoritos...</p>}
-
-        {!loading && user && favoritosIds.length === 0 && (
-          <div className="empty-state">
-            <h3>Ainda não tens favoritos.</h3>
-            <p>Vai ao Dashboard e clica no ❤️ nas salas que mais usas!</p>
+        {msg && (
+          <div style={{ marginBottom: 14, color: "#b91c1c" }}>
+            {msg}
           </div>
         )}
 
-        {/* GRID DE SALAS FAVORITAS */}
-        <div className="grid-salas">
-          {salasDetalhadas.map((item) => {
-            const isLivre = item.status === "Livre";
-            
-            return (
-              <div key={item.sala} className="card-sala fav-card">
-                {/* Cabeçalho do Card */}
-                <div className={`card-top ${isLivre ? "livre" : "ocupada"}`}>
+        {loadingFav ? (
+          <p>⏳ A carregar favoritos...</p>
+        ) : favoritosIds.length === 0 ? (
+          <div className="empty-state">
+            <h3>⭐ Ainda não tens favoritos</h3>
+            <p>Vai ao Dashboard e adiciona salas aos favoritos.</p>
+          </div>
+        ) : (
+          <div className="grid-salas">
+            {favoritosIds.map((id) => (
+              <div
+                key={id}
+                className="card-sala fav-card"
+                onClick={() => abrirDetalhes(id)}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="card-top livre">
                   <span className="statusDot" />
-                  <span>{isLivre ? "Disponível" : "Ocupada"}</span>
+                  <span>Favorito</span>
                 </div>
 
-                {/* Corpo do Card */}
                 <div className="card-body">
                   <div className="sala-info-flex">
                     <div>
-                        <div className="sala-nome">Sala {item.sala}</div>
-                        <div className="sala-meta"> Piso {item.piso} • {item.lugares} lug.</div>
+                      <div className="sala-nome">Sala {id}</div>
+                      <div className="sala-meta">
+                        Reservar para {diaSelecionado} • {horaSelecionada}
+                      </div>
                     </div>
-                    
-                    {/* Botão de Remover Rápido */}
-                    <button 
-                        className="btn-trash" 
-                        title="Remover dos favoritos"
-                        onClick={() => removerFavorito(item.sala)}
+
+                    <button
+                      className="btn-trash"
+                      title="Remover dos favoritos"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removerFavorito(id);
+                      }}
                     >
-                        <FaTrash />
+                      <FaTrash />
                     </button>
                   </div>
-                  
-                  {/* Se estiver ocupada, mostra até quando (se houver essa info) */}
-                  {!isLivre && item.ate && (
-                      <div className="ocupada-ate">
-                          Livre às: <strong>{item.ate}</strong>
-                      </div>
-                  )}
 
+                  <button
+                    className="btn-details"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      abrirDetalhes(id);
+                    }}
+                    disabled={loadingSala}
+                  >
+                    {loadingSala ? "A abrir..." : "Abrir / Reservar"}
+                  </button>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {salaSelecionada && (
+          <DetalhesSala
+            sala={salaSelecionada}
+            onClose={() => setSalaSelecionada(null)}
+            isFavorito={favoritosIds.includes(String(salaSelecionada.sala))}
+            onToggleFavorito={() => removerFavorito(salaSelecionada.sala)}
+            user={user}
+            diaSelecionado={diaSelecionado}
+            horaSelecionada={horaSelecionada}
+            bloqueado={false} 
+            onReservaSucesso={() => {
+              setSalaSelecionada(null);
+            }}
+          />
+        )}
       </main>
     </div>
   );
