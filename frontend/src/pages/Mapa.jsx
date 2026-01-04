@@ -1,33 +1,33 @@
-// src/pages/Mapa.jsx
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { coordenadas } from "../data/mapaCoords"; // Importa as posições
+import { coordenadas } from "../data/mapaCoords";
 import "./Mapa.css";
 
 export default function Mapa() {
-  const [pisoAtivo, setPisoAtivo] = useState(1);
-  const [statusSalas, setStatusSalas] = useState({}); // Vai guardar { "S.1.1": "Livre", "S.1.2": "Ocupada" }
+  const location = useLocation();
+
+  const [pisoAtivo, setPisoAtivo] = useState(Number(location.state?.pisoDestino) || 1);
+
+  const [statusSalas, setStatusSalas] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // Data/Hora atuais para a API
   const hoje = new Date().toISOString().split("T")[0];
   const agora = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
 
-  const API_BASE = "http://localhost:5000";
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-  // 1. Carregar estado das salas da API
   useEffect(() => {
     setLoading(true);
     fetch(`${API_BASE}/api/salas-livres?dia=${hoje}&hora=${agora}`)
       .then((res) => res.json())
       .then((dados) => {
-        // Transformar o array da API num Objeto simples para ser rápido pesquisar
-        // Ex: De [{sala: "S.1.1", status: "Livre"}] para { "S.1.1": "Livre" }
         const mapaStatus = {};
-        dados.forEach((sala) => {
-          mapaStatus[sala.sala] = sala.status; // "Livre" ou "Ocupada"
-        });
-        
+        if (Array.isArray(dados)) {
+          dados.forEach((sala) => {
+            mapaStatus[sala.sala] = sala.status;
+          });
+        }
         setStatusSalas(mapaStatus);
         setLoading(false);
       })
@@ -45,7 +45,6 @@ export default function Mapa() {
         <header className="dashboard-header">
           <h1 className="dashboard-title">Planta da Escola</h1>
           
-          {/* Tabs de Pisos */}
           <div className="tabs">
             {[1, 2, 3].map((num) => (
               <button
@@ -59,20 +58,19 @@ export default function Mapa() {
           </div>
         </header>
 
-        {/* ÁREA DO MAPA */}
         <div className="mapa-wrapper">
+          {/* Certifica-te que as imagens estão em /public/assets/piso1.svg, etc. */}
           <img 
             src={`/assets/piso${pisoAtivo}.svg`} 
             alt={`Mapa Piso ${pisoAtivo}`} 
             className="mapa-imagem"
           />
 
-          {/* Renderizar os Pontos (Dots) */}
           {!loading && coordenadas.map((ponto) => {
-            // Só mostra os pontos do piso selecionado
-            if (ponto.piso !== pisoAtivo) return null;
+            // Filtra pelo piso ativo
+            if (Number(ponto.piso) !== pisoAtivo) return null;
 
-            const estado = statusSalas[ponto.sala] || "Desconhecido"; // Livre, Ocupada ou ?
+            const estado = statusSalas[ponto.sala] || "Desconhecido";
             const classeCor = estado === "Livre" ? "dot-livre" : estado === "Ocupada" ? "dot-ocupada" : "dot-neutro";
 
             return (
@@ -81,7 +79,6 @@ export default function Mapa() {
                 className={`mapa-dot ${classeCor}`}
                 style={{ top: ponto.top, left: ponto.left }}
               >
-                {/* Tooltip que aparece ao passar o rato */}
                 <div className="dot-tooltip">
                   <strong>{ponto.sala}</strong>
                   <br />

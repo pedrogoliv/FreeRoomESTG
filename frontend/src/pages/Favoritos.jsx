@@ -1,16 +1,13 @@
-// src/pages/Favoritos.jsx
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
-import { FaTrash } from "react-icons/fa";
+// Removi FaTrash pois já não vamos usar no cartão
 import "./Favoritos.css";
 
 export default function Favoritos() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   const [user, setUser] = useState(null);
-
-  // Lista de IDs das salas favoritas
   const [favoritosIds, setFavoritosIds] = useState([]);
   const [loadingFav, setLoadingFav] = useState(true);
 
@@ -19,17 +16,13 @@ export default function Favoritos() {
   const [loadingSala, setLoadingSala] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // ler user do storage
   useEffect(() => {
-    const stored =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
+    const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  // buscar favoritos
   useEffect(() => {
     if (!user?.username) return;
-
     setLoadingFav(true);
     fetch(`${API_BASE}/api/favoritos/${user.username}`)
       .then((r) => r.json())
@@ -41,12 +34,19 @@ export default function Favoritos() {
       .finally(() => setLoadingFav(false));
   }, [user, API_BASE]);
 
+  // Função para descobrir o piso pelo nome (ex: A.2.1 -> 2)
+  function getPisoFromNome(nomeSala) {
+    if (!nomeSala) return "1";
+    const match = nomeSala.match(/\.(\d+)\./);
+    if (match && match[1]) return match[1];
+    return "1";
+  }
+
   async function removerFavorito(salaId) {
     if (!user?.username) return;
-
     const sid = String(salaId);
-
-    // UI otimista
+    
+    // UI Otimista
     setFavoritosIds((prev) => prev.filter((id) => String(id) !== sid));
 
     try {
@@ -56,57 +56,47 @@ export default function Favoritos() {
         body: JSON.stringify({ username: user.username, salaId: sid }),
       });
     } catch (e) {
-      setFavoritosIds((prev) => (prev.includes(sid) ? prev : [...prev, sid]));
-      setMsg("❌ Erro ao atualizar favoritos.");
+      setFavoritosIds((prev) => [...prev, sid]);
+      setMsg("❌ Erro ao remover favorito.");
     }
   }
 
   function getNowDiaHoraSlot() {
     const now = new Date();
     const dia = now.toISOString().split("T")[0];
-
     const hh = String(now.getHours()).padStart(2, "0");
-    const mm = now.getMinutes() < 30 ? "00" : "30"; // arredonda para slots
+    const mm = now.getMinutes() < 30 ? "00" : "30";
     const hora = `${hh}:${mm}`;
-
     return { dia, hora };
   }
 
-  // Ao clicar numa sala favorita: abrir modal (dia/hora passam para dentro do DetalhesSala)
   async function abrirDetalhes(idSala) {
     setMsg("");
     setLoadingSala(true);
 
-    try {
-      // buscar piso/lugares reais usando o endpoint da dashboard (com data/hora atuais)
-      const { dia, hora } = getNowDiaHoraSlot();
+    const pisoCalculado = getPisoFromNome(idSala);
 
+    try {
+      const { dia, hora } = getNowDiaHoraSlot();
       const res = await fetch(
-        `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(
-          dia
-        )}&hora=${encodeURIComponent(hora)}`
+        `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(dia)}&hora=${encodeURIComponent(hora)}`
       );
       const data = await res.json().catch(() => []);
       const arr = Array.isArray(data) ? data : [];
-
       const salaObj = arr.find((s) => String(s.sala) === String(idSala));
 
-      console.log("DEBUG salaObj:", salaObj);
-      console.log("DEBUG keys:", salaObj ? Object.keys(salaObj) : null);
-
       setSalaSelecionada({
         sala: String(idSala),
-        piso: salaObj?.piso ?? salaObj?.andar ?? salaObj?.floor ?? "-",
-        lugares: salaObj?.lugares ?? salaObj?.capacidade ?? salaObj?.lotacao ?? 15,
+        piso: salaObj?.piso || pisoCalculado,
+        lugares: salaObj?.lugares ?? 15,
       });
     } catch (e) {
-      // fallback (não bloqueia o modal)
       setSalaSelecionada({
         sala: String(idSala),
-        piso: "-",
+        piso: pisoCalculado,
         lugares: 15,
       });
-      setMsg("⚠️ Não consegui carregar piso/capacidade desta sala.");
+      setMsg("⚠️ Info atualizada indisponível, a usar dados locais.");
     } finally {
       setLoadingSala(false);
     }
@@ -118,14 +108,10 @@ export default function Favoritos() {
 
       <main className="main-content">
         <header className="dashboard-header">
-          <div>
-            <h1 className="dashboard-title">Meus Favoritos</h1>
-          </div>
+          <div><h1 className="dashboard-title">Meus Favoritos</h1></div>
         </header>
 
-        {msg && (
-          <div style={{ marginBottom: 14, color: "#b91c1c" }}>{msg}</div>
-        )}
+        {msg && <div style={{ marginBottom: 14, color: "#b91c1c" }}>{msg}</div>}
 
         {loadingFav ? (
           <p>⏳ A carregar favoritos...</p>
@@ -136,54 +122,39 @@ export default function Favoritos() {
           </div>
         ) : (
           <div className="grid-salas">
-            {favoritosIds.map((id) => (
-              <div
-                key={id}
-                className="card-sala fav-card"
-                onClick={() => abrirDetalhes(id)}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="card-top livre">
-                  <span className="statusDot" />
-                  <span>Favorito</span>
-                </div>
+            {favoritosIds.map((id) => {
+              const pisoVisual = getPisoFromNome(id); 
 
-                <div className="card-body">
-                  <div className="sala-info-flex">
-                    <div>
-                      <div className="sala-nome">Sala {id}</div>
-                      <div className="sala-meta">
-                        Clique para reservar (data/hora no detalhe)
-                      </div>
-                    </div>
-
-                    <button
-                      className="btn-trash"
-                      title="Remover dos favoritos"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removerFavorito(id);
-                      }}
-                    >
-                      <FaTrash />
-                    </button>
+              return (
+                <div key={id} className="card-sala fav-card" onClick={() => abrirDetalhes(id)}>
+                  {/* Topo Verde */}
+                  <div className="card-top livre">
+                    <span className="statusDot" />
+                    <span>Favorito</span>
                   </div>
 
-                  <button
-                    className="btn-details"
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      abrirDetalhes(id);
-                    }}
-                    disabled={loadingSala}
-                  >
-                    {loadingSala ? "A abrir..." : "Ver detalhes"}
-                  </button>
+                  <div className="card-body">
+                    
+                    {/* ✅ MUDANÇA AQUI: Nome à esquerda, Piso à direita */}
+                    <div className="card-header-row">
+                      <div className="sala-nome">Sala {id}</div>
+                      <span className="sala-piso-badge">🏢 Piso {pisoVisual}</span>
+                    </div>
+                    
+                    {/* Espaçamento extra antes do botão */}
+                    <div style={{ marginTop: "15px" }}>
+                      <button
+                        className="btn-details"
+                        disabled={loadingSala}
+                      >
+                        {loadingSala ? "A carregar..." : "Ver detalhes"}
+                      </button>
+                    </div>
+
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

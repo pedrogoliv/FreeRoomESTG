@@ -1,12 +1,12 @@
 // src/pages/Login.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState(""); // A tua variável original de erro
 
   const navigate = useNavigate();
 
@@ -45,9 +45,21 @@ export default function Login() {
       <div className="orangeCircle" aria-hidden="true" />
 
       <div className="loginContent">
-        <h1 className="brand">
-          FreeRoom <span>ESTG</span>
-        </h1>
+        
+        <div className="brand">
+          <div className="logo-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 3V21" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M15 10V14" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          
+          <div className="brandTitle">
+            <span>FreeRoom</span>
+            <span className="highlight">ESTG</span>
+          </div>
+        </div>
 
         <div className="loginCard">
           <h2 className="loginTitle">Bem-vindo</h2>
@@ -73,36 +85,22 @@ export default function Login() {
               />
             </div>
 
+            {/* ✅ CORREÇÃO AQUI: A mensagem agora está num div centrado */}
+            {msg && <div className="error-msg">{msg}</div>}
+
             <button className="btn" type="submit">
               Entrar
             </button>
-
-            {msg && <div className="msg">{msg}</div>}
           </form>
 
-          {/* ✅ Agora navega para a página /registar */}
-          <div
-            style={{
-              marginTop: "20px",
-              textAlign: "center",
-              fontSize: "0.9rem",
-              color: "#64748b",
-            }}
-          >
+          <div className="card-footer">
             Ainda não tens conta?{" "}
-            <button
-              onClick={() => navigate("/registar")}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#E38B2C",
-                fontWeight: "bold",
-                cursor: "pointer",
-                textDecoration: "underline",
-              }}
+            <span 
+              onClick={() => navigate("/registar")} 
+              style={{ color: "#E38B2C", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}
             >
-              Criar agora
-            </button>
+              Criar conta
+            </span>
           </div>
         </div>
       </div>

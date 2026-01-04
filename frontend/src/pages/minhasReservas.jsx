@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import "./Favoritos.css"; // reaproveita o mesmo estilo dos Favoritos (cards/grid/modal)
+import { FaMapMarkedAlt, FaChevronRight } from "react-icons/fa";
+import "./Favoritos.css"; // reaproveita o estilo dos Favoritos
 
 export default function MinhasReservas() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
 
@@ -14,16 +17,16 @@ export default function MinhasReservas() {
   // Modal
   const [reservaSelecionada, setReservaSelecionada] = useState(null);
 
-  // Para forçar refetch (ex: depois de cancelar)
+  // Para forçar refetch (ex: depois de cancelar/atualizar)
   const [reloadKey, setReloadKey] = useState(0);
 
-  // ler user do storage (igual Favoritos)
+  // ===== ler user do storage =====
   useEffect(() => {
     const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  // ======== helpers alinhados com o teu model Reserva ========
+  // ===== helpers alinhados com o teu model Reserva =====
   function getSalaId(r) {
     return String(r?.sala ?? "-");
   }
@@ -38,12 +41,6 @@ export default function MinhasReservas() {
   }
   function getPessoas(r) {
     return Number(r?.pessoas ?? 1);
-  }
-  function getMotivo(r) {
-    return String(r?.motivo ?? "");
-  }
-  function getResponsavel(r) {
-    return String(r?.responsavel ?? "");
   }
 
   function formatDiaBR(iso) {
@@ -61,9 +58,12 @@ export default function MinhasReservas() {
     return dt.getTime() < Date.now();
   }
 
-  function abrirDetalhes(reserva) {
-    setMsg("");
-    setReservaSelecionada(reserva);
+  // Extrai piso do nome (ex: "A.2.1" -> "2")
+  function getPisoFromNome(nomeSala) {
+    if (!nomeSala) return "1";
+    const match = nomeSala.match(/\.(\d+)\./);
+    if (match && match[1]) return match[1];
+    return "1";
   }
 
   // slots 30 em 30
@@ -76,7 +76,7 @@ export default function MinhasReservas() {
     return out;
   }, []);
 
-  // Buscar reservas (e filtrar só as ativas)
+  // ===== Buscar reservas (e filtrar só as ativas) =====
   useEffect(() => {
     if (!user?.username) return;
 
@@ -86,13 +86,12 @@ export default function MinhasReservas() {
     fetch(`${API_BASE}/api/reservas/${user.username}`)
       .then((r) => r.json())
       .then((data) => {
-        // backend devolve { success: true, reservas }
         const arr = Array.isArray(data) ? data : data?.reservas;
         const lista = Array.isArray(arr) ? arr : [];
 
-        // ✅ MUITO IMPORTANTE:
-        // Mesmo que o backend devolva canceladas por engano,
-        // aqui só mostramos ativas.
+        // ✅ chave do teu bug:
+        // Mesmo que o backend devolva reservas canceladas,
+        // aqui só mostramos as "ativas".
         const ativas = lista.filter((r) => (r?.status ?? "ativa") === "ativa");
         setReservas(ativas);
       })
@@ -103,20 +102,16 @@ export default function MinhasReservas() {
       .finally(() => setLoading(false));
   }, [user, API_BASE, reloadKey]);
 
-  // Atualiza reserva na lista (helper)
   function updateReservaLocal(updated) {
-    // se por algum motivo vier "cancelada", não fica visível
     if ((updated?.status ?? "ativa") !== "ativa") {
       setReservas((prev) => prev.filter((r) => String(r._id) !== String(updated?._id)));
       return;
     }
-
     setReservas((prev) =>
       prev.map((r) => (String(r._id) === String(updated._id) ? updated : r))
     );
   }
 
-  // Remove reserva da lista (helper)
   function removeReservaLocal(id) {
     setReservas((prev) => prev.filter((r) => String(r._id) !== String(id)));
   }
@@ -129,8 +124,6 @@ export default function MinhasReservas() {
     removeReservaLocal(reserva._id);
 
     try {
-      // Mantém DELETE porque tu já tens isso a funcionar do lado do backend.
-      // (E o teu backend está a marcar como "cancelada" em vez de apagar)
       const res = await fetch(`${API_BASE}/api/reservas/${reserva._id}`, {
         method: "DELETE",
       });
@@ -152,7 +145,6 @@ export default function MinhasReservas() {
   }
 
   async function verificarSalaLivre(salaId, dia, horaInicio) {
-    // endpoint existente para salas livres naquele slot
     const res = await fetch(
       `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(dia)}&hora=${encodeURIComponent(
         horaInicio
@@ -175,13 +167,12 @@ export default function MinhasReservas() {
       throw new Error(data?.message || "Erro ao atualizar.");
     }
 
-    // backend devolve { success:true, reserva }
     return data?.reserva ?? data;
   }
 
-  // Modal (com estado interno)
   function ModalDetalhesReserva({ reserva, onClose }) {
     const salaId = getSalaId(reserva);
+    const piso = getPisoFromNome(salaId);
 
     const [pessoas, setPessoas] = useState(getPessoas(reserva));
     const [dia, setDia] = useState(getDia(reserva));
@@ -196,6 +187,7 @@ export default function MinhasReservas() {
 
       if (!dia) return setLocalMsg("⚠️ Escolhe uma data.");
       if (!horaInicio) return setLocalMsg("⚠️ Escolhe uma hora.");
+
       const p = Number(pessoas);
       if (!Number.isFinite(p) || p < 1 || p > 300) {
         return setLocalMsg("⚠️ Nº de pessoas inválido.");
@@ -215,17 +207,12 @@ export default function MinhasReservas() {
           }
         }
 
-        const patch = {
-          pessoas: Number(pessoas),
-          dia,
-          hora_inicio: horaInicio,
-        };
-
+        const patch = { pessoas: Number(pessoas), dia, hora_inicio: horaInicio };
         const updated = await atualizarReserva(reserva._id, patch);
+
         updateReservaLocal(updated);
         setLocalMsg("✅ Alterações guardadas.");
 
-        // garante consistência se backend fizer alguma normalização
         setReloadKey((k) => k + 1);
       } catch (e) {
         setLocalMsg(`❌ ${e.message || "Erro ao guardar."}`);
@@ -256,24 +243,29 @@ export default function MinhasReservas() {
               ) : null}
             </p>
 
-            {getMotivo(reserva) && (
-              <p style={{ marginTop: 8, color: "#475569", fontWeight: 650 }}>
-                Motivo: <span style={{ fontWeight: 600 }}>{getMotivo(reserva)}</span>
-              </p>
-            )}
-
-            {getResponsavel(reserva) && (
-              <p style={{ marginTop: 6, color: "#475569", fontWeight: 650 }}>
-                Responsável:{" "}
-                <span style={{ fontWeight: 600 }}>{getResponsavel(reserva)}</span>
-              </p>
-            )}
-
             {isPast && (
               <div className="warning-box" style={{ marginBottom: 12, marginTop: 12 }}>
                 ⚠️ Esta reserva já passou. Podes ver detalhes, mas não editar/cancelar.
               </div>
             )}
+
+            {/* ✅ Link para a Planta */}
+            <div
+              className="map-link-card small"
+              onClick={() => navigate("/mapa", { state: { pisoDestino: piso } })}
+              style={{ marginTop: 10 }}
+              role="button"
+              tabIndex={0}
+            >
+              <div className="map-icon-box">
+                <FaMapMarkedAlt />
+              </div>
+              <div className="map-link-text">
+                <strong>Ver na Planta</strong>
+                <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>Piso {piso}</div>
+              </div>
+              <FaChevronRight className="chevron-icon" />
+            </div>
 
             <div className="form-stack" style={{ marginTop: 12 }}>
               <label className="field-label">Nº de pessoas</label>
@@ -340,7 +332,7 @@ export default function MinhasReservas() {
                   {saving ? "A guardar..." : "Guardar alterações"}
                 </button>
 
-                {/* ✅ mesmo design do botão Fechar (btn-secondary) */}
+                {/* mesmo estilo do Fechar (btn-secondary) */}
                 <button
                   className="btn-secondary"
                   type="button"
@@ -394,7 +386,7 @@ export default function MinhasReservas() {
                 <div
                   key={r._id || `${salaId}-${dia}-${horaIni}`}
                   className="card-sala fav-card"
-                  onClick={() => abrirDetalhes(r)}
+                  onClick={() => setReservaSelecionada(r)}
                   role="button"
                   tabIndex={0}
                 >
@@ -419,7 +411,7 @@ export default function MinhasReservas() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        abrirDetalhes(r);
+                        setReservaSelecionada(r);
                       }}
                     >
                       Ver detalhes

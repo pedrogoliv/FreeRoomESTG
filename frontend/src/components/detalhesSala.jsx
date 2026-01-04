@@ -1,24 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaMapMarkedAlt, FaChevronRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import "./detalhesSala.css";
-import MapaSala from "./MapaSala";
 import { useFiltros } from "../context/FiltrosContext.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-/**
- * Se já tens feriados na dashboard, depois trocamos isto por:
- * import { FERIADOS } from "../utils/feriados";
- */
-const FERIADOS = [
-  // exemplos (YYYY-MM-DD) — mete os teus aqui ou tratamos no backend depois
-  // "2026-01-01",
-];
+const FERIADOS = [];
 
 function isWeekend(dateStr) {
   if (!dateStr) return false;
   const d = new Date(`${dateStr}T00:00:00`);
-  const day = d.getDay(); // 0=Dom, 6=Sáb
+  const day = d.getDay();
   return day === 0 || day === 6;
 }
 
@@ -27,33 +20,19 @@ function isHoliday(dateStr) {
   return FERIADOS.includes(dateStr);
 }
 
-function toMinutes(hhmm) {
-  if (!hhmm || typeof hhmm !== "string") return null;
-  const [h, m] = hhmm.split(":").map((x) => Number(x));
-  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
-  return h * 60 + m;
-}
-
-function formatDiffMinutes(mins) {
-  if (!Number.isFinite(mins) || mins < 0) return "";
-  if (mins < 60) return `${mins} min`;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return m === 0 ? `${h} h` : `${h} h ${m} min`;
-}
-
 export default function DetalhesSala({
   sala,
   onClose,
   isFavorito,
   onToggleFavorito,
   user,
-  bloqueado, // continua a existir se tu quiseres bloquear por outros motivos
+  bloqueado,
   onReservaSucesso,
 }) {
+  const navigate = useNavigate();
+
   if (!sala) return null;
 
-  // ✅ ir buscar dia/hora globais ao Context
   const {
     diaSelecionado: diaCtx,
     setDiaSelecionado: setDiaCtx,
@@ -62,23 +41,16 @@ export default function DetalhesSala({
   } = useFiltros();
 
   const capacidade = Number(sala.lugares ?? 0);
-
-  // ✅ Dia/Hora locais (para o modal), inicializados pelo Context
   const [diaSelecionado, setDiaSelecionado] = useState(diaCtx);
   const [horaSelecionada, setHoraSelecionada] = useState(horaCtx);
 
-  // ✅ sempre que muda a sala ou o Context, sincroniza o modal
   useEffect(() => {
     if (diaCtx) setDiaSelecionado(diaCtx);
     if (horaCtx) setHoraSelecionada(horaCtx);
   }, [sala?.sala, diaCtx, horaCtx]);
 
-  // Status via /api/salas-livres
-  const [status, setStatus] = useState("A carregar"); // "Livre" | "Ocupada" | "A carregar"
+  const [status, setStatus] = useState("A carregar");
   const [lugaresDisp, setLugaresDisp] = useState(null);
-
-  // Mensagem “Livre até / Ocupada…”
-  const [statusHint, setStatusHint] = useState("");
 
   const [pessoas, setPessoas] = useState("1");
   const [horaFim, setHoraFim] = useState("");
@@ -86,7 +58,6 @@ export default function DetalhesSala({
   const [loading, setLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
 
-  // Horários (08:00–22:30)
   const horarios = useMemo(() => {
     const slots = [];
     for (let h = 8; h <= 22; h++) {
@@ -97,23 +68,35 @@ export default function DetalhesSala({
     return slots;
   }, []);
 
+  // ✅ ALTERAÇÃO AQUI: Limitar a 2 horas (120 min)
   const opcoesHoraFim = useMemo(() => {
     if (!horaSelecionada) return [];
-    return horarios.filter((h) => h > horaSelecionada);
+
+    // Helper interno para converter "08:30" em minutos
+    const toMins = (t) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+
+    const startMins = toMins(horaSelecionada);
+
+    return horarios.filter((h) => {
+      const endMins = toMins(h);
+      const diff = endMins - startMins;
+      // Só mostra se for depois do início E durar no máximo 120 min (2h)
+      return h > horaSelecionada && diff <= 120;
+    });
   }, [horarios, horaSelecionada]);
 
   useEffect(() => {
+    // Seleciona automaticamente a primeira opção válida (ex: 30 min depois)
     setHoraFim(opcoesHoraFim[0] || "");
   }, [opcoesHoraFim]);
 
-  // ✅ Bloqueio por fim-de-semana / feriado
   const bloqueadoDia = isWeekend(diaSelecionado) || isHoliday(diaSelecionado);
   const bloqueadoFinal = Boolean(bloqueado) || bloqueadoDia;
 
-  // Reset mensagens ao mudar sala/dia/hora
-  useEffect(() => {
-    setMsg("");
-  }, [sala?.sala, diaSelecionado, horaSelecionada]);
+  useEffect(() => { setMsg(""); }, [sala?.sala, diaSelecionado, horaSelecionada]);
 
   async function fetchStatus(dia, hora) {
     const res = await fetch(
@@ -124,80 +107,26 @@ export default function DetalhesSala({
 
     const data = await res.json().catch(() => []);
     const arr = Array.isArray(data) ? data : [];
-
     const salaObj = arr.find((s) => String(s.sala) === String(sala.sala));
-
     const lugares = Number(salaObj?.lugaresDisponiveis ?? 0);
-    const isLivre =
-      String(salaObj?.status).toLowerCase() === "livre" && lugares > 0;
-
+    const isLivre = String(salaObj?.status).toLowerCase() === "livre" && lugares > 0;
     return { isLivre, lugaresDisponiveis: lugares };
   }
 
-  async function calcularHint(dia, hora) {
-    setStatusHint("");
-
-    const idx = horarios.findIndex((h) => h === hora);
-    if (idx === -1) return;
-
-    const now = await fetchStatus(dia, hora);
-
-    if (now.isLivre) {
-      let livreAte = null;
-      for (let i = idx + 1; i < horarios.length; i++) {
-        const checkHora = horarios[i];
-        const st = await fetchStatus(dia, checkHora);
-        if (!st.isLivre) {
-          livreAte = checkHora;
-          break;
-        }
-      }
-      if (!livreAte) livreAte = horarios[horarios.length - 1];
-      setStatusHint(`✅ Livre até às ${livreAte}`);
-      return;
-    }
-
-    let ficaLivreEm = null;
-    for (let i = idx + 1; i < horarios.length; i++) {
-      const checkHora = horarios[i];
-      const st = await fetchStatus(dia, checkHora);
-      if (st.isLivre) {
-        ficaLivreEm = checkHora;
-        break;
-      }
-    }
-
-    if (!ficaLivreEm) {
-      setStatusHint("⛔ Ocupada (sem janelas livres até ao fim do dia)");
-      return;
-    }
-
-    const diff = toMinutes(ficaLivreEm) - toMinutes(hora);
-    const human = formatDiffMinutes(diff);
-    setStatusHint(`⛔ Ocupada — fica livre daqui a ${human} (às ${ficaLivreEm})`);
-  }
-
-  // Atualizar status/hint quando muda dia/hora/sala
   useEffect(() => {
     let cancelled = false;
-
     async function run() {
       if (!diaSelecionado || !horaSelecionada) return;
-
-      // se for fim-de-semana/feriado: não faz sentido chamar API de salas-livres
       if (bloqueadoDia) {
         setStatus("A carregar");
         setLugaresDisp(null);
-        setStatusHint("");
         setLoadingStatus(false);
         return;
       }
-
       setLoadingStatus(true);
       try {
         const st = await fetchStatus(diaSelecionado, horaSelecionada);
         if (cancelled) return;
-
         if (st.isLivre) {
           setStatus("Livre");
           setLugaresDisp(st.lugaresDisponiveis);
@@ -205,56 +134,30 @@ export default function DetalhesSala({
           setStatus("Ocupada");
           setLugaresDisp(0);
         }
-
-        await calcularHint(diaSelecionado, horaSelecionada);
       } catch (e) {
         if (!cancelled) {
           setStatus("A carregar");
           setLugaresDisp(null);
-          setStatusHint("⚠️ Não consegui obter disponibilidade.");
         }
       } finally {
         if (!cancelled) setLoadingStatus(false);
       }
     }
-
     run();
-    return () => {
-      cancelled = true;
-    };
-  }, [diaSelecionado, horaSelecionada, sala?.sala, bloqueadoDia, horarios]);
+    return () => { cancelled = true; };
+  }, [diaSelecionado, horaSelecionada, sala?.sala, bloqueadoDia]);
 
   const isLivre = status === "Livre";
   const livresAgora = Number(lugaresDisp ?? 0);
 
   async function reservar() {
     setMsg("");
-
-    if (!diaSelecionado || !horaSelecionada) {
-      setMsg("⚠️ Escolhe o dia e a hora.");
-      return;
-    }
-
-    if (bloqueadoFinal) {
-      setMsg("🚫 Reservas indisponíveis para este dia.");
-      return;
-    }
-
+    if (!diaSelecionado || !horaSelecionada) { setMsg("⚠️ Escolhe o dia e a hora."); return; }
+    if (bloqueadoFinal) { setMsg("🚫 Reservas indisponíveis para este dia."); return; }
     const n = Number(String(pessoas).trim());
-    if (!Number.isInteger(n) || n < 1) {
-      setMsg("⚠️ Nº de pessoas inválido.");
-      return;
-    }
-
-    if (!horaFim) {
-      setMsg("⚠️ Escolhe a hora de fim.");
-      return;
-    }
-
-    if (!isLivre) {
-      setMsg("⚠️ Esta sala não está disponível nesse horário.");
-      return;
-    }
+    if (!Number.isInteger(n) || n < 1) { setMsg("⚠️ Nº de pessoas inválido."); return; }
+    if (!horaFim) { setMsg("⚠️ Escolhe a hora de fim."); return; }
+    if (!isLivre) { setMsg("⚠️ Esta sala não está disponível nesse horário."); return; }
 
     setLoading(true);
     try {
@@ -270,134 +173,68 @@ export default function DetalhesSala({
           responsavel: user?.username,
         }),
       });
-
       const data = await res.json().catch(() => ({}));
-
-      if (res.ok) {
-        onReservaSucesso?.();
-      } else {
-        setMsg(data.erro || data.message || "❌ Não foi possível reservar.");
-      }
-    } catch (e) {
-      setMsg("❌ O servidor está desligado?");
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) { onReservaSucesso?.(); }
+      else { setMsg(data.erro || data.message || "❌ Não foi possível reservar."); }
+    } catch (e) { setMsg("❌ O servidor está desligado?"); }
+    finally { setLoading(false); }
   }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        
+        {/* HEADER */}
         <div className="modal-header">
-          <h2>Sala {sala.sala}</h2>
-          <button className="btn-close" onClick={onClose}>
-            &times;
-          </button>
+          <div className="header-title-group">
+            <h2>Sala {sala.sala}</h2>
+            
+            {!bloqueadoDia && (
+              <>
+                {loadingStatus ? (
+                  <span className="status-badge">...</span>
+                ) : isLivre ? (
+                  <span className="status-badge livre">Disponível</span>
+                ) : (
+                  <span className="status-badge ocupada">Ocupada</span>
+                )}
+              </>
+            )}
+            {bloqueadoDia && <span className="status-badge ocupada">Indisponível</span>}
+          </div>
+          
+          <button className="btn-close" onClick={onClose}>&times;</button>
         </div>
 
         <div className="modal-body">
-          {/* DIA / HORA */}
+          
+          {bloqueadoDia && (
+            <div className="warning-box">
+              <strong>Fim-de-semana/Feriado</strong>
+              <div>Não é possível reservar.</div>
+            </div>
+          )}
+
+          {/* INPUTS 1: DIA e PESSOAS */}
           <div className="reserva-grid">
             <div>
               <label className="field-label">Dia</label>
+              
+              {/* ✅ INPUT DATA SIMPLES E NATIVO */}
               <input
                 className="field-control"
                 type="date"
                 value={diaSelecionado || ""}
                 onChange={(e) => {
                   const v = e.target.value;
-                  setDiaSelecionado(v); // modal
-                  setDiaCtx(v); // ✅ global (Dashboard/Favoritos/etc.)
+                  if (v) { setDiaSelecionado(v); setDiaCtx(v); }
                 }}
               />
-            </div>
 
+            </div>
+            
             <div>
-              <label className="field-label">Hora</label>
-              <select
-                className="field-control"
-                value={horaSelecionada || ""}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setHoraSelecionada(v); // modal
-                  setHoraCtx(v); // ✅ global
-                }}
-              >
-                {horarios.map((h) => (
-                  <option key={h} value={h}>
-                    {h}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {bloqueadoDia && (
-            <div className="warning-box">
-              <strong>🚫 Reservas indisponíveis</strong>
-              <div>Não é possível reservar salas ao fim-de-semana.</div>
-            </div>
-          )}
-
-          {!bloqueadoDia && (
-            <>
-              <div className="info-row" style={{ marginTop: 10 }}>
-                <span className="info-label">Estado:</span>
-                {loadingStatus ? (
-                  <span className="status-badge">A verificar...</span>
-                ) : isLivre ? (
-                  <span className="status-badge livre">Disponível</span>
-                ) : (
-                  <span className="status-badge ocupada">Ocupada</span>
-                )}
-              </div>
-
-              {statusHint && <div className="status-hint">{statusHint}</div>}
-
-              <p>
-                <strong>Localização:</strong> Piso {sala.piso}
-              </p>
-
-              <p>
-                <strong>Capacidade:</strong> {capacidade} pessoas
-              </p>
-
-              <p>
-                <strong>Lugares disponíveis agora:</strong>{" "}
-                {loadingStatus ? "..." : livresAgora}
-              </p>
-
-              <MapaSala sala={sala} />
-            </>
-          )}
-
-          <div className="modal-actions" style={{ marginTop: 16 }}>
-            <div style={{ width: "100%" }}>
-              <label className="field-label">Hora fim</label>
-              <select
-                className="field-control"
-                value={horaFim}
-                onChange={(e) => setHoraFim(e.target.value)}
-                disabled={
-                  bloqueadoFinal ||
-                  !horaSelecionada ||
-                  opcoesHoraFim.length === 0
-                }
-              >
-                {opcoesHoraFim.length === 0 ? (
-                  <option value="">Sem opções</option>
-                ) : (
-                  opcoesHoraFim.map((h) => (
-                    <option key={h} value={h}>
-                      {h}
-                    </option>
-                  ))
-                )}
-              </select>
-
-              <label className="field-label" style={{ marginTop: 10 }}>
-                Nº pessoas
-              </label>
+              <label className="field-label">Nº Pessoas</label>
               <input
                 className="field-control"
                 type="text"
@@ -405,50 +242,94 @@ export default function DetalhesSala({
                 value={pessoas}
                 onChange={(e) => setPessoas(e.target.value.replace(/\D/g, ""))}
                 onBlur={() => {
-                  const n = Number(pessoas || "1");
-                  if (!Number.isInteger(n) || n < 1) setPessoas("1");
+                   const n = Number(pessoas || "1");
+                   if (!Number.isInteger(n) || n < 1) setPessoas("1");
                 }}
                 placeholder="1"
                 disabled={bloqueadoFinal}
               />
+            </div>
+          </div>
 
+          {/* INPUTS 2: HORAS */}
+          <div className="reserva-grid">
+            <div>
+              <label className="field-label">Das</label>
+              <select
+                className="field-control"
+                value={horaSelecionada || ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setHoraSelecionada(v);
+                  setHoraCtx(v);
+                }}
+              >
+                {horarios.map((h) => (
+                  <option key={h} value={h}>{h}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="field-label">Até às</label>
+              <select
+                className="field-control"
+                value={horaFim}
+                onChange={(e) => setHoraFim(e.target.value)}
+                disabled={bloqueadoFinal || !horaSelecionada || opcoesHoraFim.length === 0}
+              >
+                {opcoesHoraFim.length === 0 ? <option value="">-</option> : opcoesHoraFim.map((h) => <option key={h} value={h}>{h}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* INFO COMPACTA */}
+          {!bloqueadoDia && (
+            <div className="compact-info-section">
+              <div className="info-grid-row">
+                <p><strong>Piso:</strong> {sala.piso}</p>
+                <p><strong>Capacidade:</strong> {capacidade}</p>
+                <p><strong>Livres:</strong> {loadingStatus ? "..." : livresAgora}</p>
+              </div>
+
+              <div 
+                className="map-link-card small" 
+                onClick={() => {
+                  navigate("/mapa", { state: { pisoDestino: sala.piso } });
+                }}
+              >
+                <div className="map-icon-box"><FaMapMarkedAlt /></div>
+                <div className="map-link-text">
+                  <strong>Ver planta da escola</strong>
+                </div>
+                <FaChevronRight className="chevron-icon" />
+              </div>
+            </div>
+          )}
+
+          {/* BOTÕES */}
+          <div className="modal-actions" style={{ marginTop: 10 }}>
               <button
-                style={{ marginTop: 12 }}
                 className="btn-action"
                 onClick={reservar}
-                disabled={
-                  loading ||
-                  loadingStatus ||
-                  bloqueadoFinal ||
-                  !isLivre ||
-                  livresAgora <= 0 ||
-                  !diaSelecionado ||
-                  !horaSelecionada ||
-                  !horaFim
-                }
+                disabled={loading || loadingStatus || bloqueadoFinal || !isLivre || livresAgora <= 0 || !diaSelecionado || !horaSelecionada || !horaFim}
               >
                 {loading ? "A reservar..." : "Reservar"}
               </button>
 
               {msg && <div className="msg-box error">{msg}</div>}
-            </div>
 
-            <button
-              className={`btn-fav ${isFavorito ? "active" : ""}`}
-              onClick={onToggleFavorito}
-              type="button"
-            >
-              {isFavorito ? (
-                <>
-                  <FaHeart className="icon-heart filled" /> Favorito
-                </>
-              ) : (
-                <>
-                  <FaRegHeart className="icon-heart outline" /> Adicionar aos
-                  Favoritos
-                </>
-              )}
-            </button>
+              <button
+                className={`btn-fav ${isFavorito ? "active" : ""}`}
+                onClick={onToggleFavorito}
+                type="button"
+              >
+                {isFavorito ? (
+                  <> <FaHeart className="icon-heart filled" /> Favorito </>
+                ) : (
+                  <> <FaRegHeart className="icon-heart outline" /> Favorito </>
+                )}
+              </button>
           </div>
         </div>
       </div>

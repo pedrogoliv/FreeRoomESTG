@@ -350,31 +350,36 @@ export default function Dashboard() {
                       <span>{livre ? "Disponível" : "Ocupada"}</span>
                     </div>
 
-                    <div className="card-body">
+                  <div className="card-body">
+                    
+                    {/* Linha de cima: Nome + Piso */}
+                    <div className="card-header-row">
                       <div className="sala-nome">Sala {item.sala}</div>
-
-                      <div className="sala-meta">
-                        🏢 Piso {item.piso} • 👥 {ocupadas}/{capacidade} ocupadas
-                      </div>
-
-                      <div className="ocup-bar" aria-hidden="true">
-                        <div
-                          className={`ocup-fill ${ocupClass}`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-
-                      <div className="ocup-hint">
-                        {livresAgora}/{capacidade} livres
-                      </div>
-
-                      <button
-                        className="btn-details"
-                        onClick={() => setSalaSelecionada(item)}
-                      >
-                        Ver detalhes
-                      </button>
+                      <span className="sala-piso-badge">🏢 Piso {item.piso}</span>
                     </div>
+
+                    {/* ❌ AQUI: Removi a linha "👥 X/Y ocupadas" pois era redundante */}
+
+                    {/* Barra de Progresso */}
+                    <div className="ocup-bar" aria-hidden="true">
+                      <div
+                        className={`ocup-fill ${ocupClass}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+
+                    {/* Texto de baixo (Livres) - Mantido */}
+                    <div className="ocup-hint">
+                      {livresAgora}/{capacidade} livres
+                    </div>
+
+                    <button
+                      className="btn-details"
+                      onClick={() => setSalaSelecionada(item)}
+                    >
+                      Ver detalhes
+                    </button>
+                  </div>
                   </div>
                 );
               })}
