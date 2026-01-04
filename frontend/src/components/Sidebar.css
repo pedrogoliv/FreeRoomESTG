@@ -1,14 +1,14 @@
 /* --- CONTENTOR PRINCIPAL --- */
 .sidebar {
-  width: 280px;            /* Largura confortável */
-  height: 100vh;           /* Ocupa a altura total */
-  background: #1e293b;     /* Azul Slate Escuro (Premium) */
-  color: #e2e8f0;          /* Branco sujo para ler melhor */
+  width: 280px;
+  height: 100vh;
+  background: #1e293b;
+  color: #e2e8f0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 24px 20px;      /* Espaçamento interno */
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15); /* Sombra suave à direita */
+  padding: 24px 20px;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
   font-family: 'Inter', sans-serif;
   z-index: 10;
 }
@@ -17,52 +17,70 @@
 .sidebarTop {
   display: flex;
   flex-direction: column;
-  gap: 40px; /* Espaço entre o Logo e o Menu */
+  gap: 40px;
 }
 
-/* --- LOGÓTIPO --- */
+/* --- LOGÓTIPO  --- */
 .brand {
-  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Alinha à esquerda com o menu */
+  width: 100%;
+  gap: 14px; /* O mesmo espaço que existe entre ícone e texto nos botões */
+  
+  /* IMPORTANTE: Padding igual aos botões do menu (.navItem) para alinhar tudo */
+  padding: 12px 16px; 
+  margin-bottom: 20px;
+}
+
+/* Caixa do ícone */
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  /* Removemos o fundo escuro para ficar mais limpo, ou usamos um muito subtil */
+  background: linear-gradient(135deg, rgba(227, 139, 44, 0.15), rgba(227, 139, 44, 0.05));
+  border: 1px solid rgba(227, 139, 44, 0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #E38B2C; /* Cor do ícone SVG */
 }
 
 .brandTitle {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.5px;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1;
+  /* Garante que usa a mesma fonte do resto da app */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
 }
 
-.brandTitle span {
-  color: #E38B2C; /* Laranja da marca */
-  position: relative;
+/* "FreeRoom" - Estilo igual a "Meu Perfil" */
+.brandTitle span:first-child {
+  font-size: 1.4rem;      /* Tamanho generoso */
+  font-weight: 900;       /* ✅ O SEGREDO: Peso máximo (Black/ExtraBold) */
+  color: #ffffff;
+  letter-spacing: -1px;   /* ✅ Letras mais juntas (Típico de títulos modernos) */
+  margin-bottom: 2px;
 }
 
-.brandTitle span::after {
-  content: "✦";
-  position: absolute;
-  top: -5px;
-  right: -15px;
-  font-size: 1.2rem;
-  color: #f59e0b;
-  background-color: transparent; 
-  width: auto;
-  height: auto;
+/* "ESTG" */
+.brandTitle .highlight {
+  color: #E38B2C;
+  font-size: 0.85rem; 
+  font-weight: 800;       /* Também muito grosso para combinar */
+  letter-spacing: 0.5px;  /* Ligeiramente mais aberto para legibilidade */
+  text-transform: uppercase;
+  margin-left: 1px;       /* Alinhamento visual fino */
 }
 
-/* Adiciona isto no fim do ficheiro para ele piscar */
-@keyframes piscar {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-/* --- NAVEGAÇÃO --- */
+/* --- NAVEGAÇÃO (MANTIDA IGUAL) --- */
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* Espaço entre botões */
+  gap: 8px;
 }
 
 .navItem {
@@ -70,13 +88,13 @@
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border-radius: 12px;     /* Cantos bem redondos */
-  color: #94a3b8;          /* Cinza inativo */
+  border-radius: 12px;
+  color: #94a3b8;
   text-decoration: none;
   font-weight: 600;
   font-size: 0.95rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid transparent; /* Evita saltos no hover */
+  border: 1px solid transparent;
 }
 
 .navItem .icon {
@@ -87,22 +105,20 @@
   transition: transform 0.2s;
 }
 
-/* Efeito Hover (Passar o rato) */
 .navItem:hover {
-  background: rgba(255, 255, 255, 0.05); /* Fundo clarinho */
-  color: #f8fafc;          /* Texto branco */
-  transform: translateX(4px); /* Desliza para a direita */
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  transform: translateX(4px);
 }
 
 .navItem:hover .icon {
-  transform: scale(1.1);   /* Ícone cresce um pouco */
+  transform: scale(1.1);
 }
 
-/* --- ESTADO ATIVO (Página Atual) --- */
 .navItem.active {
-  background: #E38B2C;     /* Laranja Sólido */
+  background: #E38B2C;
   color: #ffffff;
-  box-shadow: 0 8px 20px rgba(227, 139, 44, 0.3); /* Brilho Laranja */
+  box-shadow: 0 8px 20px rgba(227, 139, 44, 0.3);
   font-weight: 700;
 }
 
@@ -110,9 +126,9 @@
   color: #fff;
 }
 
-/* --- RODAPÉ (Botão Sair) --- */
+/* --- RODAPÉ (Botão Sair) (MANTIDO IGUAL) --- */
 .sidebarBottom {
-  border-top: 1px solid #334155; /* Linha separadora subtil */
+  border-top: 1px solid #334155;
   padding-top: 20px;
 }
 
@@ -125,7 +141,7 @@
   padding: 14px;
   border-radius: 12px;
   background: transparent;
-  border: 1px solid #334155; /* Borda discreta */
+  border: 1px solid #334155;
   color: #cbd5e1;
   font-weight: 600;
   cursor: pointer;
@@ -133,11 +149,10 @@
   font-size: 0.9rem;
 }
 
-/* Efeito Hover no Sair (Vermelho Perigo) */
 .logoutBtn:hover {
-  background: rgba(239, 68, 68, 0.15); /* Fundo vermelho transparente */
-  border-color: #ef4444;               /* Borda vermelha */
-  color: #ef4444;                      /* Texto vermelho */
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #ef4444;
   transform: translateY(-2px);
 }
 
