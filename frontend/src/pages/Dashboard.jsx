@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
 import "./Dashboard.css"; // ⚠️ Vê a nota em baixo sobre este ficheiro
+import { useFiltros } from "../context/FiltrosContext";
 
 export default function Dashboard() {
   const [salas, setSalas] = useState([]);
