@@ -10,14 +10,15 @@ app.use(express.json());
 // ---  MODELOS ---
 const Ocupacao = require("./src/models/OcupacaoRaw");
 const Reserva = require("./src/models/Reserva");
-
 const Curso = require("./src/models/Curso");
 
+// --- USER ( inline ) ---
 const UserSchema = new mongoose.Schema(
   {
     curso: { type: String, required: true },
 
-    numero: { type: String, required: true, unique: true, trim: true },
+    // permite null + unique com sparse
+    numero: { type: String, required: false, unique: true, sparse: true, trim: true },
 
     username: { type: String, required: true, unique: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -83,19 +84,24 @@ app.get("/api/cursos", async (req, res) => {
 });
 
 // ==========================================
-//            ROTAS DE UTILIZADOR
+//            ROTAS DE UTILIZADOR (AUTH)
 // ==========================================
 async function registarHandler(req, res) {
   const { curso, numero, username, email, password } = req.body;
 
   try {
-    if (!curso || !numero || !username || !email || !password) {
+    if (!curso || !username || !email || !password) {
       return res.status(400).json({ success: false, message: "Faltam campos obrigatórios." });
     }
 
-    const existeCurso = await Curso.exists({ nome: curso });
+    // curso válido
+    const existeCurso = await Curso.exists({ nome: String(curso).trim() });
     if (!existeCurso) {
       return res.status(400).json({ success: false, message: "Curso inválido." });
+    }
+
+    if (numero === undefined || numero === null || String(numero).trim() === "") {
+      return res.status(400).json({ success: false, message: "Número é obrigatório." });
     }
 
     const numeroNorm = String(numero).trim();
@@ -105,6 +111,7 @@ async function registarHandler(req, res) {
 
     const usernameTrim = String(username).trim();
     const emailNorm = String(email).trim().toLowerCase();
+    const cursoNorm = String(curso).trim();
 
     const existingUser = await User.findOne({ username: usernameTrim });
     if (existingUser) return res.status(400).json({ success: false, message: "Username já existe." });
@@ -117,7 +124,7 @@ async function registarHandler(req, res) {
       return res.status(400).json({ success: false, message: "Esse número já está registado." });
 
     const newUser = new User({
-      curso,
+      curso: cursoNorm,
       numero: numeroNorm,
       username: usernameTrim,
       email: emailNorm,
@@ -134,6 +141,7 @@ async function registarHandler(req, res) {
         email: newUser.email,
         curso: newUser.curso,
         numero: newUser.numero,
+        favoritos: newUser.favoritos,
       },
     });
   } catch (error) {
@@ -179,12 +187,26 @@ app.post("/auth/login", async (req, res) => {
 // ==========================================
 //              PERFIL / UTILIZADOR
 // ==========================================
+
+// GET user 
+app.get("/api/users/:username", async (req, res) => {
+  try {
+    const u = await User.findOne({ username: req.params.username }).select("-password");
+    if (!u) return res.status(404).json({ success: false, message: "User não encontrado" });
+    return res.json({ success: true, user: u });
+  } catch (err) {
+    console.error("❌ Erro GET user:", err);
+    return res.status(500).json({ success: false, message: "Erro no servidor" });
+  }
+});
+
 app.put("/api/users/:username", async (req, res) => {
   try {
     const { curso, email, numero } = req.body;
 
     const updates = {};
 
+    // curso: se vier no body, valida e atualiza
     if (curso !== undefined) {
       const cursoNorm = String(curso).trim();
       if (!cursoNorm) {
@@ -199,6 +221,7 @@ app.put("/api/users/:username", async (req, res) => {
       updates.curso = cursoNorm;
     }
 
+    // email (permitir editar)
     if (email !== undefined) {
       const emailNorm = String(email).trim().toLowerCase();
       if (!emailNorm) {
@@ -216,6 +239,7 @@ app.put("/api/users/:username", async (req, res) => {
       updates.email = emailNorm;
     }
 
+    // numero: pode ser null/"" para limpar
     if (numero !== undefined) {
       if (numero === null || String(numero).trim() === "") {
         updates.numero = null;
@@ -258,110 +282,54 @@ app.put("/api/users/:username", async (req, res) => {
   }
 });
 
-
-app.put("/api/users/:username", async (req, res) => {
+// stats (para o modal no Perfil)
+app.get("/api/users/:username/stats", async (req, res) => {
   try {
-    const { curso, email, numero } = req.body;
+    const { username } = req.params;
 
-    // ---- CURSO (se vier no body, valida se existe) ----
-    if (curso !== undefined) {
-      const cursoNorm = String(curso).trim();
-      if (!cursoNorm) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Curso é obrigatório." });
-      }
+    const reservas = await Reserva.find({ responsavel: username });
 
-      const existeCurso = await Curso.exists({ nome: cursoNorm });
-      if (!existeCurso) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Curso inválido." });
+    const totalReservas = reservas.length;
+
+    // soma minutos (hora_fim - hora_inicio)
+    const toMinutes = (t) => {
+      const [h, m] = String(t).split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    let totalMin = 0;
+    const salaCount = {};
+    const diaCount = {};
+
+    for (const r of reservas) {
+      if (r?.hora_inicio && r?.hora_fim) {
+        const diff = toMinutes(r.hora_fim) - toMinutes(r.hora_inicio);
+        if (diff > 0) totalMin += diff;
       }
+      const sala = String(r.sala || "");
+      if (sala) salaCount[sala] = (salaCount[sala] || 0) + 1;
+
+      const dia = String(r.dia || "");
+      if (dia) diaCount[dia] = (diaCount[dia] || 0) + 1;
     }
 
-    // ---- EMAIL (opcional) ----
-    let emailUpdate = undefined;
-    if (email !== undefined) {
-      const emailNorm = String(email).trim().toLowerCase();
-      if (!emailNorm) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Email inválido." });
-      }
+    const totalHoras = Math.round((totalMin / 60) * 10) / 10;
 
-      const exists = await User.findOne({
-        email: emailNorm,
-        username: { $ne: req.params.username },
-      });
+    const salaTop =
+      Object.entries(salaCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
 
-      if (exists) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Email já está a ser usado." });
-      }
+    const diaTop =
+      Object.entries(diaCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
 
-      emailUpdate = emailNorm;
-    }
-
-    // ---- NUMERO (pode ser null/"" para limpar) ----
-    let numeroUpdate = undefined;
-
-    if (numero !== undefined) {
-      // permitir limpar
-      if (numero === null || String(numero).trim() === "") {
-        numeroUpdate = null;
-      } else {
-        const numeroNorm = String(numero).trim();
-
-        if (!/^\d+$/.test(numeroNorm)) {
-          return res.status(400).json({
-            success: false,
-            message: "Número inválido (apenas dígitos).",
-          });
-        }
-
-        const existsNumero = await User.findOne({
-          numero: numeroNorm,
-          username: { $ne: req.params.username },
-        });
-
-        if (existsNumero) {
-          return res.status(400).json({
-            success: false,
-            message: "Esse número já está registado.",
-          });
-        }
-
-        numeroUpdate = numeroNorm;
-      }
-    }
-
-    const updated = await User.findOneAndUpdate(
-      { username: req.params.username },
-      {
-        ...(curso !== undefined ? { curso: String(curso).trim() } : {}),
-        ...(email !== undefined ? { email: emailUpdate } : {}),
-        ...(numero !== undefined ? { numero: numeroUpdate } : {}),
-      },
-      { new: true }
-    ).select("-password");
-
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User não encontrado" });
-    }
-
-    return res.json({ success: true, user: updated });
+    return res.json({
+      success: true,
+      stats: { totalReservas, totalHoras, salaTop, diaTop },
+    });
   } catch (err) {
-    console.error("❌ Erro ao atualizar user:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Erro no servidor" });
+    console.error("❌ Erro stats:", err);
+    return res.status(500).json({ success: false, message: "Erro no servidor" });
   }
 });
-
 
 // ==========================================
 //                 FAVORITOS
@@ -403,7 +371,7 @@ app.post("/api/favoritos", async (req, res) => {
 });
 
 // ==========================================
-//              ROTAS DE RESERVAS
+//              ROTAS DE RESERVAS (CORE)
 // ==========================================
 const isWeekend = (isoDate) => {
   const d = new Date(`${isoDate}T00:00:00`);
@@ -419,11 +387,11 @@ app.get("/api/feriados", (req, res) => {
 });
 
 const toMinutes = (t) => {
-  const [h, m] = t.split(":").map(Number);
+  const [h, m] = String(t).split(":").map(Number);
   return h * 60 + m;
 };
 
-// capacidade base (10–15 -> sugestão do prof)
+// capacidade base
 const CAP_BASE = 15;
 
 // grupos maiores gastam mais “capacidade”
@@ -433,84 +401,188 @@ function consumoReserva(pessoas) {
   return p + penalty;
 }
 
+function isValidTimeHHMM(t) {
+  return typeof t === "string" && /^\d{2}:\d{2}$/.test(t);
+}
+
+function addMinutesHHMM(hhmm, minutesToAdd) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const total = h * 60 + m + minutesToAdd;
+  const nh = Math.floor(total / 60);
+  const nm = total % 60;
+  return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
+}
+
+// criar reserva
 app.post("/api/reservar", async (req, res) => {
   try {
-    const { sala, dia, hora_inicio, hora_fim, pessoas } = req.body;
+    const { sala, dia, hora_inicio, hora_fim, pessoas, responsavel, motivo } = req.body;
 
-    if (!sala || !dia || !hora_inicio || !hora_fim) {
-      return res.status(400).json({ erro: "Faltam campos obrigatórios." });
+    if (!responsavel || String(responsavel).trim() === "") {
+      return res.status(400).json({ erro: "Falta o responsável (username)." });
     }
 
-    if (isWeekend(dia)) {
-      return res.status(400).json({ erro: "Não é possível reservar salas ao fim-de-semana." });
-    }
-
-    if (isFeriado(dia)) {
-      return res.status(400).json({ erro: "Não é possível reservar salas em feriados." });
-    }
-
-    const novoIni = toMinutes(hora_inicio);
-    const novoFim = toMinutes(hora_fim);
-
-    if (Number.isNaN(novoIni) || Number.isNaN(novoFim)) {
-      return res.status(400).json({ erro: "Hora inválida." });
-    }
-
-    if (novoFim <= novoIni) {
-      return res.status(400).json({ erro: "hora_fim tem de ser maior que hora_inicio." });
-    }
-
-    // valida pessoas (default 1)
     const nPessoas = Number(pessoas ?? 1);
-    if (!Number.isInteger(nPessoas) || nPessoas < 1) {
-      return res.status(400).json({ erro: "Campo 'pessoas' inválido." });
-    }
 
-    // AULAS BLOQUEIAM SEMPRE
-    const aulas = await Ocupacao.find({ sala, dia });
-    const aulaConflito = aulas.some((a) => {
-      const ini = toMinutes(a.hora_inicio);
-      const fim = toMinutes(a.hora_fim);
-      return novoIni < fim && novoFim > ini;
-    });
-
-    if (aulaConflito) {
-      return res.status(409).json({ erro: "Sala tem aula nesse horário." });
-    }
-
-    // RESERVAS EXISTENTES (permitir sobreposição até ao limite)
-    const reservas = await Reserva.find({ sala, dia });
-
-    const reservasOverlap = reservas.filter((r) => {
-      const ini = toMinutes(r.hora_inicio);
-      const fim = toMinutes(r.hora_fim);
-      return novoIni < fim && novoFim > ini;
-    });
-
-    const consumoOcupado = reservasOverlap.reduce((sum, r) => {
-      const p = r.pessoas ?? 1; // reservas antigas sem 'pessoas' contam como 1
-      return sum + consumoReserva(p);
-    }, 0);
-
-    const consumoNovo = consumoReserva(nPessoas);
-    const sobra = CAP_BASE - consumoOcupado;
-
-    if (consumoNovo > sobra) {
-      return res.status(409).json({
-        erro: `Capacidade excedida. Espaço disponível (com regra de grupos): ${Math.max(0, sobra)}.`,
-      });
-    }
-
-    // Criar reserva (guarda pessoas)
     const novaReserva = await Reserva.create({
-      ...req.body,
+      sala,
+      dia,
+      hora_inicio,
+      hora_fim,
       pessoas: nPessoas,
+      responsavel: String(responsavel).trim(),
+      motivo: motivo ? String(motivo).trim() : "",
     });
 
-    return res.status(201).json({ mensagem: "Reserva criada!", dados: novaReserva });
+    return res.status(201).json({
+      success: true,
+      mensagem: "Reserva criada!",
+      dados: novaReserva,
+    });
   } catch (err) {
     console.error("❌ Erro ao criar reserva:", err);
-    return res.status(500).json({ erro: "Erro no servidor: " + err.message });
+    return res.status(500).json({ erro: "Erro no servidor" });
+  }
+});
+
+// ==========================================
+//     MINHAS RESERVAS (GET / PUT / DELETE)
+// ==========================================
+
+// listar reservas do user
+app.get("/api/reservas/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const reservas = await Reserva.find({ responsavel: username })
+      .sort({ dia: 1, hora_inicio: 1 });
+
+    return res.json({ success: true, reservas });
+  } catch (err) {
+    console.error("❌ Erro ao buscar reservas:", err);
+    return res.status(500).json({ success: false, message: "Erro no servidor" });
+  }
+});
+
+// editar reserva (pessoas + mover slot mantendo duração)
+app.put("/api/reservas/:reservaId", async (req, res) => {
+  try {
+    const { reservaId } = req.params;
+    const { pessoas, dia, hora_inicio } = req.body;
+
+    const reserva = await Reserva.findById(reservaId);
+    if (!reserva) {
+      return res.status(404).json({ success: false, message: "Reserva não encontrada." });
+    }
+
+    // pessoas
+    if (pessoas !== undefined) {
+      const p = Number(pessoas);
+      if (!Number.isFinite(p) || p < 1) {
+        return res.status(400).json({ success: false, message: "Número de pessoas inválido." });
+      }
+      reserva.pessoas = p;
+    }
+
+    const querMudarDia = dia !== undefined;
+    const querMudarHora = hora_inicio !== undefined;
+
+    if (querMudarDia) {
+      const diaNorm = String(dia).trim();
+      if (!diaNorm) {
+        return res.status(400).json({ success: false, message: "Dia inválido." });
+      }
+      if (isWeekend(diaNorm)) {
+        return res.status(400).json({ success: false, message: "Não é possível reservar ao fim-de-semana." });
+      }
+      if (isFeriado(diaNorm)) {
+        return res.status(400).json({ success: false, message: "Não é possível reservar em feriados." });
+      }
+      reserva.dia = diaNorm;
+    }
+
+    if (querMudarHora) {
+      const horaNorm = String(hora_inicio).trim();
+      if (!isValidTimeHHMM(horaNorm)) {
+        return res.status(400).json({ success: false, message: "Hora início inválida (HH:MM)." });
+      }
+      reserva.hora_inicio = horaNorm;
+    }
+
+    if (querMudarDia || querMudarHora) {
+      // duração (mantém a original se der)
+      let duracaoMin = 30;
+      if (isValidTimeHHMM(reserva.hora_inicio) && isValidTimeHHMM(reserva.hora_fim)) {
+        const diff = toMinutes(reserva.hora_fim) - toMinutes(reserva.hora_inicio);
+        if (diff > 0) duracaoMin = diff;
+      }
+
+      const novaHoraFim = addMinutesHHMM(reserva.hora_inicio, duracaoMin);
+
+      // aulas bloqueiam sempre
+      const aulas = await Ocupacao.find({ sala: reserva.sala, dia: reserva.dia });
+      const iniNovo = toMinutes(reserva.hora_inicio);
+      const fimNovo = toMinutes(novaHoraFim);
+
+      const aulaConflito = aulas.some((a) => {
+        const ini = toMinutes(a.hora_inicio);
+        const fim = toMinutes(a.hora_fim);
+        return iniNovo < fim && fimNovo > ini;
+      });
+
+      if (aulaConflito) {
+        return res.status(409).json({ success: false, message: "Sala tem aula nesse horário." });
+      }
+
+      // capacidade por overlap (exclui a própria reserva)
+      const reservas = await Reserva.find({
+        _id: { $ne: reserva._id },
+        sala: reserva.sala,
+        dia: reserva.dia,
+      });
+
+      const overlap = reservas.filter((r) => {
+        const ini = toMinutes(r.hora_inicio);
+        const fim = toMinutes(r.hora_fim);
+        return iniNovo < fim && fimNovo > ini;
+      });
+
+      const consumoOcupado = overlap.reduce((sum, r) => sum + consumoReserva(r.pessoas ?? 1), 0);
+      const consumoNovo = consumoReserva(reserva.pessoas ?? 1);
+      const sobra = CAP_BASE - consumoOcupado;
+
+      if (consumoNovo > sobra) {
+        return res.status(409).json({
+          success: false,
+          message: `Capacidade excedida. Espaço disponível (com regra de grupos): ${Math.max(0, sobra)}.`,
+        });
+      }
+
+      reserva.hora_fim = novaHoraFim;
+    }
+
+    await reserva.save();
+    return res.json({ success: true, reserva });
+  } catch (err) {
+    console.error("❌ Erro ao atualizar reserva:", err);
+    return res.status(500).json({ success: false, message: "Erro no servidor" });
+  }
+});
+
+// cancelar reserva
+app.delete("/api/reservas/:reservaId", async (req, res) => {
+  try {
+    const { reservaId } = req.params;
+
+    const deleted = await Reserva.findByIdAndDelete(reservaId);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "Reserva não encontrada." });
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Erro ao cancelar reserva:", err);
+    return res.status(500).json({ success: false, message: "Erro no servidor" });
   }
 });
 
@@ -527,7 +599,7 @@ app.get("/api/salas-livres", async (req, res) => {
       return res.json([]);
     }
 
-    // capacidade base em vez de 30
+    // capacidade base
     let dbSalas = [{ nome: "S.1.1", piso: 1, lugares: CAP_BASE }];
 
     // adicionar salas descobertas na BD
@@ -549,7 +621,7 @@ app.get("/api/salas-livres", async (req, res) => {
       hora_fim: { $gt: hora },
     }).distinct("sala");
 
-    // reservas do dia (filtrar em JS pelo intervalo)
+    // reservas do dia
     const reservasDia = await Reserva.find({ dia });
 
     // consumo por sala nessa hora
@@ -569,12 +641,7 @@ app.get("/api/salas-livres", async (req, res) => {
       const salaNome = s.nome;
 
       if (ocupadasAula.includes(salaNome)) {
-        return {
-          ...s,
-          sala: salaNome,
-          status: "Ocupada",
-          lugaresDisponiveis: 0,
-        };
+        return { ...s, sala: salaNome, status: "Ocupada", lugaresDisponiveis: 0 };
       }
 
       const consumo = consumoPorSala[salaNome] || 0;
@@ -596,9 +663,7 @@ app.get("/api/salas-livres", async (req, res) => {
   }
 });
 
-// ==========================================
-//            LISTA FIXA DE SALAS (METADADOS)
-// ==========================================
+// lista fixa de salas (metadados)
 app.get("/api/salas", async (req, res) => {
   try {
     const salasOcup = await Ocupacao.distinct("sala");
@@ -609,7 +674,7 @@ app.get("/api/salas", async (req, res) => {
       .sort((a, b) => String(a).localeCompare(String(b)));
 
     const parsePiso = (nome) => {
-      const m = String(nome).match(/\.(\d+)\./); // A.2.1 -> 2
+      const m = String(nome).match(/\.(\d+)\./);
       return m ? Number(m[1]) : "?";
     };
 
@@ -626,9 +691,7 @@ app.get("/api/salas", async (req, res) => {
   }
 });
 
-// ==========================================
-//     STATUS DE UMA SALA (livre até / fica livre em)
-// ==========================================
+// status de uma sala
 app.get("/api/salas/:sala/status", async (req, res) => {
   try {
     const { sala } = req.params;
@@ -665,7 +728,7 @@ app.get("/api/salas/:sala/status", async (req, res) => {
       return res.status(400).json({ success: false, message: "Hora inválida." });
     }
 
-    // --- 1) Aulas (bloqueiam sempre) ---
+    // Aulas (bloqueiam sempre)
     const aulasDia = await Ocupacao.find({ sala, dia });
 
     const aulaAgora = aulasDia.find((a) => {
@@ -675,21 +738,19 @@ app.get("/api/salas/:sala/status", async (req, res) => {
     });
 
     if (aulaAgora) {
-      // enquanto houver aula, sala está ocupada até hora_fim da aula
       return res.json({
         success: true,
         bloqueado: false,
         status: "Ocupada",
         lugaresDisponiveis: 0,
-        mudaEm: aulaAgora.hora_fim, // quando "muda" para livre (se não houver reservas a seguir)
+        mudaEm: aulaAgora.hora_fim,
         causa: "aula",
       });
     }
 
-    // --- 2) Reservas (ocupam por capacidade) ---
+    // Reservas (ocupam por capacidade)
     const reservasDia = await Reserva.find({ sala, dia });
 
-    // consumo agora
     let consumoAgora = 0;
     for (const r of reservasDia) {
       const ini = toMinutes(r.hora_inicio);
@@ -703,10 +764,8 @@ app.get("/api/salas/:sala/status", async (req, res) => {
     const livresAgora = Math.max(0, CAP_BASE - consumoAgora);
     const statusAgora = livresAgora > 0 ? "Livre" : "Ocupada";
 
-    // calcular "mudaEm" (próxima mudança de estado) ---
-    // candidatos a momentos de mudança = inícios/fins de reservas e inícios/fins de aulas
+    // pontos de mudança
     const pontos = new Set();
-
     for (const a of aulasDia) {
       pontos.add(a.hora_inicio);
       pontos.add(a.hora_fim);
@@ -721,9 +780,7 @@ app.get("/api/salas/:sala/status", async (req, res) => {
       .filter((x) => Number.isFinite(x.m))
       .sort((a, b) => a.m - b.m);
 
-    // função para avaliar estado numa hora "t"
     const avaliar = async (tMin) => {
-      // aula bloqueia
       const aula = aulasDia.find((a) => {
         const ini = toMinutes(a.hora_inicio);
         const fim = toMinutes(a.hora_fim);
@@ -759,7 +816,7 @@ app.get("/api/salas/:sala/status", async (req, res) => {
       bloqueado: false,
       status: statusAgora,
       lugaresDisponiveis: livresAgora,
-      mudaEm, // pode ser null se não mudar mais nesse dia
+      mudaEm,
       causa: "reservas",
     });
   } catch (err) {
@@ -767,7 +824,6 @@ app.get("/api/salas/:sala/status", async (req, res) => {
     return res.status(500).json({ success: false, message: "Erro no servidor" });
   }
 });
-
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Servidor a correr na porta ${PORT}`));

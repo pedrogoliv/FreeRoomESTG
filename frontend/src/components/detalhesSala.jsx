@@ -251,7 +251,7 @@ export default function DetalhesSala({
           hora_inicio: horaSelecionada,
           hora_fim: horaFim,
           pessoas: n,
-          username: user?.username,
+          responsavel: user.username
         }),
       });
 
