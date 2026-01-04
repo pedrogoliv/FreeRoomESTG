@@ -74,7 +74,6 @@ export default function MinhasReservas() {
 
   async function cancelarReserva(reserva) {
     if (!reserva?._id) return;
-    if (!window.confirm("Tens a certeza que queres cancelar esta reserva?")) return;
 
     const backup = reservas;
     // UI Otimista: remove logo da lista
