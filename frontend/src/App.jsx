@@ -8,6 +8,8 @@ import Favoritos from "./pages/Favoritos";
 import MinhasReservas from "./pages/minhasReservas";
 import Mapa from "./pages/Mapa";
 
+// ✅ 1. IMPORTAR O PROVIDER
+import { FiltrosProvider } from "./context/FiltrosContext"; 
 
 function RotaProtegida({ children }) {
   const user = sessionStorage.getItem("user");
@@ -17,67 +19,70 @@ function RotaProtegida({ children }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* --- ROTAS PÚBLICAS --- */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/registar" element={<Registar />} /> 
+      {/* ✅ 2. ENVOLVER AS ROTAS COM O PROVIDER */}
+      <FiltrosProvider>
+        <Routes>
+          {/* --- ROTAS PÚBLICAS --- */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/registar" element={<Registar />} /> 
 
-        <Route
-          path="/"
-          element={
-            <RotaProtegida>
-              <Dashboard />
-            </RotaProtegida>
-          }
-        />
+          <Route
+            path="/"
+            element={
+              <RotaProtegida>
+                <Dashboard />
+              </RotaProtegida>
+            }
+          />
 
-        <Route
-          path="/dashboard"
-          element={
-            <RotaProtegida>
-              <Dashboard />
-            </RotaProtegida>
-          }
-        />
+          <Route
+            path="/dashboard"
+            element={
+              <RotaProtegida>
+                <Dashboard />
+              </RotaProtegida>
+            }
+          />
 
-        <Route
-          path="/favoritos"
-          element={
-            <RotaProtegida>
-              <Favoritos />
-            </RotaProtegida>
-          }
-        />
+          <Route
+            path="/favoritos"
+            element={
+              <RotaProtegida>
+                <Favoritos />
+              </RotaProtegida>
+            }
+          />
 
-        <Route
-          path="/minhas-reservas"
-          element={
-            <RotaProtegida>
-              <MinhasReservas />
-            </RotaProtegida>
-          }
-        />
+          <Route
+            path="/minhas-reservas"
+            element={
+              <RotaProtegida>
+                <MinhasReservas />
+              </RotaProtegida>
+            }
+          />
 
-        <Route
-          path="/perfil"
-          element={
-            <RotaProtegida>
-              <Perfil />
-            </RotaProtegida>
-          }
-        />
+          <Route
+            path="/perfil"
+            element={
+              <RotaProtegida>
+                <Perfil />
+              </RotaProtegida>
+            }
+          />
 
-        <Route 
-          path="/mapa" 
-          element={
-            <RotaProtegida>
-              <Mapa />
-            </RotaProtegida>
-          } 
-        />
+          <Route 
+            path="/mapa" 
+            element={
+              <RotaProtegida>
+                <Mapa />
+              </RotaProtegida>
+            } 
+          />
 
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </FiltrosProvider>
     </BrowserRouter>
   );
 }

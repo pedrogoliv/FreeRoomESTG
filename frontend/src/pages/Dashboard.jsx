@@ -3,6 +3,9 @@ import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
 import "./Dashboard.css";
 
+// ✅ 1. IMPORTAR O CONTEXTO (Confirma se o caminho está certo)
+import { useFiltros } from "../context/FiltrosContext"; 
+
 export default function Dashboard() {
   const [salas, setSalas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +25,7 @@ export default function Dashboard() {
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-  // ---  CARREGAR FAVORITOS DA BD ---
+  // --- CARREGAR FAVORITOS DA BD ---
   useEffect(() => {
     if (user && user.username) {
       fetch(`${API_BASE}/api/favoritos/${user.username}`)
@@ -32,9 +35,16 @@ export default function Dashboard() {
     }
   }, [user, API_BASE]);
 
-  // --- LÓGICA DE DATAS E HORAS ---
-const { diaSelecionado, setDiaSelecionado, horaSelecionada, setHoraSelecionada } = useFiltros();
+  // --- LÓGICA DE DATAS E HORAS (VIA CONTEXTO) ---
+  // ✅ 2. Usar o hook do contexto em vez de useState
+  const { 
+    diaSelecionado, 
+    setDiaSelecionado, 
+    horaSelecionada, 
+    setHoraSelecionada 
+  } = useFiltros(); 
 
+  // (Mantemos as funções auxiliares aqui para a lógica de validação)
   function pad2(n) {
     return String(n).padStart(2, "0");
   }
@@ -117,12 +127,14 @@ const { diaSelecionado, setDiaSelecionado, horaSelecionada, setHoraSelecionada }
     return listaHorarios.filter((h) => h >= minHoraHoje);
   }, [diaSelecionado, hoje, listaHorarios, minHoraHoje]);
 
+  // Atualiza a hora automaticamente se for o dia de hoje e a hora estiver no passado
   useEffect(() => {
     if (diaSelecionado === hoje && horaSelecionada < minHoraHoje) {
       const primeiraValida = listaHorariosFiltrada[0] || minHoraHoje;
-      setHoraSelecionada(primeiraValida);
+      // Só atualiza se houver uma hora válida, senão mantém
+      if (primeiraValida) setHoraSelecionada(primeiraValida);
     }
-  }, [diaSelecionado, hoje, horaSelecionada, minHoraHoje, listaHorariosFiltrada]);
+  }, [diaSelecionado, hoje, horaSelecionada, minHoraHoje, listaHorariosFiltrada, setHoraSelecionada]);
 
   const foraDeHoras = horaSelecionada < "08:00" || horaSelecionada > "22:30";
 
