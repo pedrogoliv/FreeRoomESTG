@@ -14,7 +14,7 @@ export default function Perfil() {
   const [draft, setDraft] = useState({ numero: "", curso: "" });
   const [saving, setSaving] = useState(false);
 
-  // cursos (vêm do backend)
+  // cursos
   const [cursos, setCursos] = useState([]);
   const [cursosLoading, setCursosLoading] = useState(false);
   const [cursosErr, setCursosErr] = useState("");
@@ -26,14 +26,12 @@ export default function Perfil() {
   const [statsErr, setStatsErr] = useState("");
 
   useEffect(() => {
-    // ler do sessionStorage
     const stored = sessionStorage.getItem("user");
     if (!stored) return;
 
     const sessionUser = JSON.parse(stored);
     setUser(sessionUser);
 
-    // buscar do backend
     fetch(`${API_BASE}/api/users/${sessionUser.username}`)
       .then((r) => r.json())
       .then((data) => {
@@ -48,7 +46,6 @@ export default function Perfil() {
       .catch(() => {});
   }, []);
 
-  // carregar cursos do backend
   useEffect(() => {
     setCursosLoading(true);
     setCursosErr("");
@@ -56,7 +53,6 @@ export default function Perfil() {
     fetch(`${API_BASE}/api/cursos`)
       .then((r) => r.json())
       .then((data) => {
-        // aceita ["EI", ...] ou { cursos: ["EI", ...] } ou [{nome:"EI"}, ...]
         const arr = Array.isArray(data) ? data : data?.cursos;
         const normalized = (Array.isArray(arr) ? arr : [])
           .map((x) => (typeof x === "string" ? x : x?.nome))
@@ -76,7 +72,6 @@ export default function Perfil() {
     });
   }, [user]);
 
-  // Options do React-Select
   const cursoOptions = useMemo(
     () => (cursos || []).map((c) => ({ value: c, label: c })),
     [cursos]
@@ -90,10 +85,8 @@ export default function Perfil() {
 
   const canSave = useMemo(() => {
     if (!user) return false;
-
     const numeroOk =
       draft.numero === "" || /^[0-9]{4,12}$/.test(String(draft.numero));
-
     const cursoOk =
       String(draft.curso ?? "").trim().length > 0 &&
       (cursos.length === 0 ? true : cursos.includes(draft.curso));
@@ -195,11 +188,12 @@ export default function Perfil() {
     }
   }
 
+  // --- RETURN 1: LOADING ---
   if (!user) {
     return (
-      <div className="perfil-page">
+      <div className="dashboard-container">
         <Sidebar />
-        <main className="perfil-container">
+        <main className="main-content">
           <header className="dashboard-header">
             <div>
               <h1 className="dashboard-title">Meu Perfil</h1>
@@ -211,20 +205,21 @@ export default function Perfil() {
     );
   }
 
+  // --- RETURN 2: CONTEÚDO PRINCIPAL ---
   return (
-    <div className="perfil-page">
+    <div className="dashboard-container">
       <Sidebar />
 
-      <main className="perfil-container">
+      <main className="main-content">
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Meu Perfil</h1>
             <p style={{ color: "#64748b" }}>
-              Edita os teus dados e vê as tuas estatísticas.
             </p>
           </div>
         </header>
 
+        {/* Mantivemos as classes internas iguais */}
         <div className="cards-grid">
           {/* PERFIL */}
           <div className="card">

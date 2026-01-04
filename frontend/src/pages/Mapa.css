@@ -1,0 +1,69 @@
+
+
+.mapa-wrapper {
+  position: relative;
+  width: 95%;
+  max-width: 900px;   
+  background: #1e293b;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  margin: 20px auto;
+}
+
+.mapa-imagem {
+  width: 100%;
+  height: auto;
+  display: block;
+  opacity: 0.9;
+}
+
+/* --- PONTINHOS (DOTS) --- */
+.mapa-dot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  transition: transform 0.2s;
+  z-index: 10;
+}
+
+.mapa-dot:hover {
+  transform: translate(-50%, -50%) scale(1.5);
+  z-index: 20;
+}
+
+.dot-livre { background-color: #22c55e; box-shadow: 0 0 10px #22c55e; }
+.dot-ocupada { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }
+.dot-neutro { background-color: #94a3b8; }
+
+.dot-tooltip {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.mapa-dot:hover .dot-tooltip {
+  opacity: 1;
+}
+
+.dot-status {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  opacity: 0.8;
+}
