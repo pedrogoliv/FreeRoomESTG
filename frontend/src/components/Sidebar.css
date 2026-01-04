@@ -57,12 +57,12 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
 }
 
-/* "FreeRoom" - Estilo igual a "Meu Perfil" */
+
 .brandTitle span:first-child {
-  font-size: 1.4rem;      /* Tamanho generoso */
-  font-weight: 900;       /* ✅ O SEGREDO: Peso máximo (Black/ExtraBold) */
+  font-size: 1.4rem;
+  font-weight: 800;
   color: #ffffff;
-  letter-spacing: -1px;   /* ✅ Letras mais juntas (Típico de títulos modernos) */
+  letter-spacing: -1px;
   margin-bottom: 2px;
 }
 
@@ -70,10 +70,10 @@
 .brandTitle .highlight {
   color: #E38B2C;
   font-size: 0.85rem; 
-  font-weight: 800;       /* Também muito grosso para combinar */
-  letter-spacing: 0.5px;  /* Ligeiramente mais aberto para legibilidade */
+  font-weight: 800;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
-  margin-left: 1px;       /* Alinhamento visual fino */
+  margin-left: 1px; 
 }
 
 /* --- NAVEGAÇÃO (MANTIDA IGUAL) --- */
