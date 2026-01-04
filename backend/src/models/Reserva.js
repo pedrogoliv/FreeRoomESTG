@@ -10,13 +10,13 @@ const ReservaSchema = new mongoose.Schema(
     motivo: { type: String, default: "", trim: true },
     pessoas: { type: Number, required: true, min: 1, default: 1 },
 
-    // ✅ NOVO: para não apagar reservas, só marcar como canceladas
+    // para não apagar reservas, só marcar como canceladas
     status: {
       type: String,
       enum: ["ativa", "cancelada"],
       default: "ativa",
     },
-    // ✅ NOVO: quando foi cancelada (opcional, mas útil)
+    // quando foi cancelada 
     canceledAt: {
       type: Date,
       default: null,
