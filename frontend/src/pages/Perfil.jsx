@@ -1,3 +1,4 @@
+// src/pages/Perfil.jsx
 import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import Sidebar from "../components/Sidebar";
@@ -157,7 +158,6 @@ export default function Perfil() {
       setUser(updated);
       sessionStorage.setItem("user", JSON.stringify(updated));
       setIsEditing(false);
-      setMsg("✅ Perfil atualizado!");
     } catch (e) {
       setMsg("❌ Erro ao ligar ao servidor.");
     } finally {
@@ -214,12 +214,9 @@ export default function Perfil() {
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Meu Perfil</h1>
-            <p style={{ color: "#64748b" }}>
-            </p>
           </div>
         </header>
 
-        {/* Mantivemos as classes internas iguais */}
         <div className="cards-grid">
           {/* PERFIL */}
           <div className="card">
@@ -228,6 +225,7 @@ export default function Perfil() {
                 ✏️ Editar
               </button>
             ) : (
+              // Os botões de ação ficam no topo, ocupando o seu espaço natural
               <div className="edit-actions">
                 <button
                   className="btn-secondary"
@@ -248,7 +246,12 @@ export default function Perfil() {
               </div>
             )}
 
-            <div className="icon-circle">👤</div>
+            {/* ✅ CORREÇÃO: Removida a margem dinâmica. O ícone fica normal. 
+                 Se o CSS estiver com height: auto, o cartão cresce e nada fica achatado. */}
+            <div className="icon-circle">
+              👤
+            </div>
+            
             <div className="separator"></div>
 
             <h3>{user.username}</h3>
@@ -273,7 +276,6 @@ export default function Perfil() {
                       numero: e.target.value.replace(/\D/g, ""),
                     }))
                   }
-                  placeholder="Ex: 12345"
                   disabled={saving}
                 />
 
@@ -310,11 +312,11 @@ export default function Perfil() {
               </div>
             )}
 
-            {msg && (
+            {msg && !msg.startsWith("✅") && (
               <p
                 style={{
                   marginTop: 10,
-                  color: msg.startsWith("✅") ? "#16a34a" : "#ef4444",
+                  color: "#ef4444",
                   fontWeight: 700,
                 }}
               >

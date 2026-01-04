@@ -354,11 +354,6 @@ useEffect(() => {
                 {loadingStatus ? "..." : livresAgora}
               </p>
 
-              <div className="tags-container">
-                <span className="tag">📽️ Projetor</span>
-                <span className="tag">❄️ Ar Condicionado</span>
-                <span className="tag">🪑 Quadros</span>
-              </div>
               <MapaSala sala={sala} />
             </>
           )}

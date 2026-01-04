@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
-import "./Dashboard.css";
+import "./Dashboard.css"; // ⚠️ Vê a nota em baixo sobre este ficheiro
 
 export default function Dashboard() {
   const [salas, setSalas] = useState([]);
@@ -221,11 +221,6 @@ export default function Dashboard() {
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Salas em Tempo Real</h1>
-            {user && (
-              <span style={{ fontSize: "0.9rem", color: "#64748b" }}>
-                Olá, {user.username} 👋
-              </span>
-            )}
           </div>
 
           <div className="filters">
@@ -329,7 +324,6 @@ export default function Dashboard() {
                   Math.min(capacidade, capacidade - livresAgora)
                 );
 
-                // cor da barra com base nas OCUPADAS (0-6 verde, 7-10 amarelo, 11-15 vermelho)
                 let ocupClass = "ocup-green";
                 if (ocupadas >= 7 && ocupadas <= 10) ocupClass = "ocup-yellow";
                 if (ocupadas >= 11) ocupClass = "ocup-red";
@@ -369,7 +363,7 @@ export default function Dashboard() {
                         className="btn-details"
                         onClick={() => setSalaSelecionada(item)}
                       >
-                        Ver detalhes 
+                        Ver detalhes
                       </button>
                     </div>
                   </div>

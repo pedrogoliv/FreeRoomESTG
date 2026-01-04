@@ -120,9 +120,6 @@ export default function Favoritos() {
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Meus Favoritos</h1>
-            <p style={{ color: "#64748b" }}>
-              Clica numa sala favorita para ver detalhes e reservar.
-            </p>
           </div>
         </header>
 
