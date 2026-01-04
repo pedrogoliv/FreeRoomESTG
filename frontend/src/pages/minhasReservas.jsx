@@ -326,7 +326,7 @@ export default function MinhasReservas() {
                 </button>
 
                 <button
-                  className="btn-danger"
+                  className="btn-secondary"
                   type="button"
                   onClick={() => cancelarReserva(reserva)}
                   disabled={saving || isPast}
@@ -335,11 +335,6 @@ export default function MinhasReservas() {
                   Cancelar reserva
                 </button>
               </div>
-
-              <p style={{ marginTop: 10, color: "#64748b", fontSize: "0.9rem" }}>
-                * A mudança de hora verifica disponibilidade via{" "}
-                <code>/api/salas-livres</code> (slot de 30min).
-              </p>
             </div>
           </div>
         </div>

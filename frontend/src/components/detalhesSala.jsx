@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import "./detalhesSala.css";
+import MapaSala from "./MapaSala";
+
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -48,16 +50,25 @@ export default function DetalhesSala({
   user,
   bloqueado, // continua a existir se tu quiseres bloquear por outros motivos
   onReservaSucesso,
+  diaSelecionado: diaSelecionadoDashboard,
+  horaSelecionada: horaSelecionadaDashboard,
 }) {
   if (!sala) return null;
 
   const capacidade = Number(sala.lugares ?? 0);
 
   // Dia/Hora dentro do modal
-  const [diaSelecionado, setDiaSelecionado] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [horaSelecionada, setHoraSelecionada] = useState("19:00");
+const [diaSelecionado, setDiaSelecionado] = useState(
+  diaSelecionadoDashboard || new Date().toISOString().split("T")[0]
+);
+const [horaSelecionada, setHoraSelecionada] = useState(
+  horaSelecionadaDashboard || "10:00"
+);
+
+useEffect(() => {
+  if (diaSelecionadoDashboard) setDiaSelecionado(diaSelecionadoDashboard);
+  if (horaSelecionadaDashboard) setHoraSelecionada(horaSelecionadaDashboard);
+}, [sala?.sala, diaSelecionadoDashboard, horaSelecionadaDashboard]);
 
   // Status via /api/salas-livres
   const [status, setStatus] = useState("A carregar"); // "Livre" | "Ocupada" | "A carregar"
@@ -348,6 +359,7 @@ export default function DetalhesSala({
                 <span className="tag">❄️ Ar Condicionado</span>
                 <span className="tag">🪑 Quadros</span>
               </div>
+              <MapaSala sala={sala} />
             </>
           )}
 

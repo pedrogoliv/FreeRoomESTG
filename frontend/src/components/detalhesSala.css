@@ -327,6 +327,48 @@
   background: #fff7ed;
 }
 
+.map-section {
+  margin-top: 14px;
+}
+
+.map-card {
+  width: 100%;
+  height: 220px;            /* ajusta se no Figma for mais alto/baixo */
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e6e8ef;
+  background: #f3f4f6;
+}
+
+.map-card .leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+.map-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.btn-map {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+
+.btn-map:hover {
+  background: #f6f7fb;
+}
+
+.leaflet-control-attribution {
+  display: none !important;
+}
+
 .icon-heart { font-size: 1.1rem; }
 .icon-heart.filled { color: #E38B2C; animation: pop 0.3s ease-out; }
 
