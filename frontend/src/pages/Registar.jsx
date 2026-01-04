@@ -14,9 +14,7 @@ export default function Registar() {
 
   const [numero, setNumero] = useState(""); 
   const [username, setUsername] = useState("");
-  // ❌ REMOVIDO: const [email, setEmail]...
   const [password, setPassword] = useState("");
-  // ❌ REMOVIDO: const [confirmPassword, setConfirmPassword]...
 
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -90,7 +88,6 @@ export default function Registar() {
           curso: cursoOption.value,
           numero: numeroTrim,
           username: username.trim(),
-          // ❌ REMOVIDO: email
           password,
         }),
       });
@@ -174,8 +171,6 @@ export default function Registar() {
               />
             </div>
 
-            {/* ❌ REMOVIDO CAMPO EMAIL */}
-            {/* ❌ REMOVIDO CAMPO CONFIRMAR PASSWORD */}
 
             <div>
               <label className="label">Password</label>
@@ -198,7 +193,7 @@ export default function Registar() {
 
           <div
             style={{
-              marginTop: "20px",
+              marginTop: "10px",
               textAlign: "center",
               fontSize: "0.9rem",
               color: "#64748b",
