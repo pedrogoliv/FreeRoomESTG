@@ -350,9 +350,6 @@ export default function MinhasReservas() {
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Minhas Reservas</h1>
-            <p style={{ color: "#64748b" }}>
-              Vê as tuas reservas e faz alterações quando necessário.
-            </p>
           </div>
         </header>
 

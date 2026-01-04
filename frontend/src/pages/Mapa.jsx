@@ -43,7 +43,7 @@ export default function Mapa() {
 
       <main className="main-content">
         <header className="dashboard-header">
-          <h1 className="dashboard-title">Mapa da Escola</h1>
+          <h1 className="dashboard-title">Planta da Escola</h1>
           
           {/* Tabs de Pisos */}
           <div className="tabs">
@@ -61,10 +61,8 @@ export default function Mapa() {
 
         {/* ÁREA DO MAPA */}
         <div className="mapa-wrapper">
-          {/* Imagem de Fundo (Muda conforme o piso) */}
-          {/* Tens de ter as imagens piso1.png, piso2.png na pasta public/assets */}
           <img 
-            src={`/assets/piso${pisoAtivo}.png`} 
+            src={`/assets/piso${pisoAtivo}.svg`} 
             alt={`Mapa Piso ${pisoAtivo}`} 
             className="mapa-imagem"
           />

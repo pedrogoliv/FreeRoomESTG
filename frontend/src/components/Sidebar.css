@@ -40,16 +40,22 @@
   position: relative;
 }
 
-/* Pequeno ponto laranja decorativo */
 .brandTitle span::after {
-  content: '';
+  content: "✦";
   position: absolute;
-  top: 0;
-  right: -8px;
-  width: 6px;
-  height: 6px;
-  background: #E38B2C;
-  border-radius: 50%;
+  top: -5px;
+  right: -15px;
+  font-size: 1.2rem;
+  color: #f59e0b;
+  background-color: transparent; 
+  width: auto;
+  height: auto;
+}
+
+/* Adiciona isto no fim do ficheiro para ele piscar */
+@keyframes piscar {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 /* --- NAVEGAÇÃO --- */

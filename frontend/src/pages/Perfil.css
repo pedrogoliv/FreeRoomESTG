@@ -1,3 +1,5 @@
+/* src/pages/Perfil.css */
+
 .perfil-page {
   display: flex;
   min-height: 100vh;
@@ -42,24 +44,31 @@
   gap: 30px;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
-  align-content: center;
+  align-items: flex-start; /* Altera de 'center' para 'flex-start' para evitar problemas de altura */
+  align-content: flex-start;
   width: 100%;
+  padding-top: 20px;
 }
 
-/* card */
+/* --- CARD (CORRIGIDO) --- */
 .card {
   background: #ffffff;
   width: 340px;
-  height: 440px;
+  
+  /* ✅ CORREÇÃO DE ALTURA */
+  min-height: 380px; /* Altura base mínima */
+  height: auto;      /* Permite crescer se necessário */
+  
   border-radius: 18px;
   box-shadow: 0 6px 18px rgba(17, 24, 39, 0.08);
   border: 1px solid #eef0f4;
+  
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 26px;
+  /* justify-content: center; <-- Remove isto para os elementos não ficarem a saltar */
+  padding: 30px 26px; /* Mais padding vertical */
+  
   position: relative;
   text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -82,6 +91,9 @@
   margin-bottom: 26px;
   font-size: 2rem;
   color: white;
+  
+  /* Garante transição suave se precisarmos de mexer na margem */
+  transition: margin-top 0.3s ease;
 }
 
 /* separator */
@@ -116,7 +128,8 @@
   border-radius: 12px;
   font-weight: 900;
   cursor: pointer;
-  margin-top: 28px;
+  margin-top: auto; /* Empurra o botão para o fundo do cartão */
+  margin-bottom: 10px; /* Pequena margem do fundo */
   transition: 0.15s ease;
 }
 
@@ -144,6 +157,7 @@
   cursor: pointer;
   font-weight: 800;
   transition: 0.15s ease;
+  z-index: 10;
 }
 
 .btn-edit:hover {
@@ -153,11 +167,13 @@
 
 /* Ações de edição (Cancelar / Guardar) */
 .edit-actions {
-  position: absolute;
+  /* Em vez de position: absolute, deixamos relativo para ocupar espaço no topo */
+  position: absolute; /* Mantemos absoluto para ficar no topo */
   top: 14px;
   right: 14px;
   display: flex;
   gap: 8px;
+  z-index: 10;
 }
 
 .btn-secondary,
@@ -237,49 +253,65 @@
   cursor: not-allowed;
 }
 
-select.field-control {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
+/* =========================
+   React Select Styles
+   ========================= */
 
-  /* espaço para a seta */
-  padding-right: 44px;
-
-  /* comportamento */
-  cursor: pointer;
-
-  /* seta custom (chevron) */
-  background-image:
-    linear-gradient(45deg, transparent 50%, #64748b 50%),
-    linear-gradient(135deg, #64748b 50%, transparent 50%),
-    linear-gradient(to right, transparent, transparent);
-  background-position:
-    calc(100% - 22px) calc(50% - 2px),
-    calc(100% - 16px) calc(50% - 2px),
-    0 0;
-  background-size:
-    6px 6px,
-    6px 6px,
-    100% 100%;
-  background-repeat: no-repeat;
+.select-container {
+  font-size: 0.95rem;
 }
 
-select.field-control:hover {
-  border-color: #cbd5e1;
-  background-color: #ffffff;
+.select__control {
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  border-radius: 12px !important;
+  min-height: 48px !important;
+  padding-left: 6px;
+  box-shadow: none !important;
+  transition: all 0.2s !important;
 }
 
-select.field-control:disabled {
-  cursor: not-allowed;
-  background-image:
-    linear-gradient(45deg, transparent 50%, #94a3b8 50%),
-    linear-gradient(135deg, #94a3b8 50%, transparent 50%),
-    linear-gradient(to right, transparent, transparent);
+.select__control--is-focused {
+  border-color: #E38B2C !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1) !important;
 }
 
-/* remove seta no IE antigo */
-select.field-control::-ms-expand {
-  display: none;
+.select__placeholder {
+  color: #94a3b8 !important;
+}
+
+.select__single-value {
+  color: #1e293b !important;
+}
+
+.select__indicator {
+  color: #64748b !important;
+}
+
+.select__indicator:hover {
+  color: #1e293b !important;
+}
+
+.select__menu {
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important;
+  border: 1px solid #e2e8f0 !important;
+  z-index: 100 !important; /* Importante para passar por cima de outros cards */
+}
+
+.select__option {
+  padding: 12px 14px !important;
+}
+
+.select__option--is-focused {
+  background: rgba(227, 139, 44, 0.12) !important;
+}
+
+.select__option--is-selected {
+  background: #E38B2C !important;
+  color: white !important;
 }
 
 /* =========================
@@ -409,67 +441,4 @@ select.field-control::-ms-expand {
   .stats-grid {
     grid-template-columns: 1fr;
   }
-}
-
-.select-container {
-  font-size: 0.95rem;
-}
-
-/* Control (a "caixa" principal) */
-.select__control {
-  border: 1px solid #e2e8f0 !important;
-  background: #f8fafc !important;
-  border-radius: 12px !important;
-  min-height: 48px !important;
-  padding-left: 6px;
-  box-shadow: none !important;
-  transition: all 0.2s !important;
-}
-
-/* Quando está focado */
-.select__control--is-focused {
-  border-color: #E38B2C !important;
-  background: #ffffff !important;
-  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1) !important;
-}
-
-/* Texto placeholder */
-.select__placeholder {
-  color: #94a3b8 !important;
-}
-
-/* Valor selecionado */
-.select__single-value {
-  color: #1e293b !important;
-}
-
-/* Setinha */
-.select__indicator {
-  color: #64748b !important;
-}
-
-.select__indicator:hover {
-  color: #1e293b !important;
-}
-
-/* Menu dropdown */
-.select__menu {
-  border-radius: 12px !important;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important;
-  border: 1px solid #e2e8f0 !important;
-}
-
-/* Opções */
-.select__option {
-  padding: 12px 14px !important;
-}
-
-.select__option--is-focused {
-  background: rgba(227, 139, 44, 0.12) !important;
-}
-
-.select__option--is-selected {
-  background: #E38B2C !important;
-  color: white !important;
 }
