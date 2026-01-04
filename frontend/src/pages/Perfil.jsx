@@ -246,11 +246,16 @@ export default function Perfil() {
               </div>
             )}
 
-            {/* ✅ CORREÇÃO: Removida a margem dinâmica. O ícone fica normal. 
-                 Se o CSS estiver com height: auto, o cartão cresce e nada fica achatado. */}
-            <div className="icon-circle">
-              👤
-            </div>
+
+          <div 
+            className="icon-circle"
+            style={{
+              marginTop: isEditing ? "60px" : "0",  
+              transition: "margin-top 0.3s ease"   
+            }}
+          >
+            👤
+          </div>
             
             <div className="separator"></div>
 
