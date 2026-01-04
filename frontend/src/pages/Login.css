@@ -1,6 +1,8 @@
+/* src/pages/Login.css */
+
 .loginPage {
   min-height: 100vh;
-  background: #f8fafc; /* Fundo cinza muito claro (igual ao dashboard) */
+  background: #1e293b; /* Fundo Azul Escuro */
   position: relative;
   overflow: hidden;
   font-family: 'Inter', system-ui, sans-serif;
@@ -9,65 +11,101 @@
   justify-content: center;
 }
 
-/* Círculo Decorativo (Mantive, mas ajustei a posição) */
+/* --- BOLA DECORATIVA --- */
 .orangeCircle {
   position: absolute;
   left: -150px;
-  bottom: -150px; /* Mudei para baixo para não tapar o logo */
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #E38B2C, #d35400); /* Degradê subtil */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, #E38B2C 0%, #d35400 100%);
   border-radius: 50%;
-  opacity: 0.8;
+  opacity: 0.5;
+  filter: blur(80px);
   z-index: 0;
 }
 
-/* Contentor Central */
+/* --- CONTENTOR CENTRAL --- */
 .loginContent {
   position: relative;
   z-index: 10;
   width: 100%;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
 }
 
-/* Logótipo */
-.brand {
-  margin: 0 0 30px 0;
-  font-size: 2.5rem;
+/* --- LOGÓTIPO (FORÇADO) --- */
+.loginPage .brand {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 15px;
+  margin-bottom: 35px;
+  width: 100%;
+}
+
+/* Ícone */
+.loginPage .logo-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Texto */
+.loginPage .brandTitle {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  text-align: left;
+}
+
+/* "FreeRoom" -> BRANCO E GRANDE */
+.loginPage .brandTitle span:first-child {
+  font-size: 2rem;
   font-weight: 900;
-  color: #1e293b; /* Azul escuro (FreeRoom) */
+  color: #ffffff !important; /* Cor Branca Obrigatória */
   letter-spacing: -1px;
+  margin-bottom: 2px;
 }
 
-.brand span {
-  color: #E38B2C; /* Laranja (ESTG) */
+/* "ESTG" -> LARANJA E ESPAÇADO */
+.loginPage .brandTitle .highlight {
+  color: #E38B2C !important; /* Cor Laranja Obrigatória */
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
-/* O Cartão Branco (A grande mudança) */
+/* --- CARTÃO --- */
 .loginCard {
   background: white;
   width: 100%;
-  max-width: 400px;
   padding: 40px;
-  border-radius: 24px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.08); /* Sombra suave */
-  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
 .loginTitle {
-  margin: 0 0 24px 0;
-  font-size: 1.2rem;
-  font-weight: 700;
+  margin: 0 0 30px 0;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: #64748b;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-/* Formulário */
+/* --- FORMULÁRIO --- */
 .loginForm {
   display: flex;
   flex-direction: column;
@@ -77,20 +115,19 @@
 .label {
   display: block;
   font-size: 0.85rem;
-  font-weight: 600;
-  color: #475569;
+  font-weight: 700;
+  color: #334155;
   margin-bottom: 8px;
 }
 
-/* Inputs Modernos (Caixas em vez de linhas) */
 .input {
   width: 100%;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
   padding: 14px;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
   outline: none;
+  background: #f8fafc;
   transition: all 0.2s;
   color: #1e293b;
 }
@@ -101,19 +138,18 @@
   box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1);
 }
 
-/* Botão */
 .btn {
   width: 100%;
-  border: none;
-  background: #E38B2C;
-  color: #fff;
   padding: 14px;
-  border-radius: 12px;
+  background: #E38B2C;
+  color: white;
+  border: none;
+  border-radius: 10px;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   margin-top: 10px;
-  transition: background 0.2s, transform 0.2s;
+  transition: all 0.2s;
 }
 
 .btn:hover {
@@ -121,12 +157,15 @@
   transform: translateY(-2px);
 }
 
-.msg {
-  margin-top: 15px;
-  font-size: 0.9rem;
-  color: #ef4444;
+.card-footer {
+  margin-top: 20px;
   text-align: center;
-  background: #fef2f2;
-  padding: 10px;
-  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.card-footer a {
+  color: #E38B2C;
+  text-decoration: none;
+  font-weight: 700;
 }

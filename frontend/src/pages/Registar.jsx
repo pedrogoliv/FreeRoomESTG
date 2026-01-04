@@ -1,4 +1,3 @@
-// src/pages/Registar.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
@@ -15,9 +14,9 @@ export default function Registar() {
 
   const [numero, setNumero] = useState(""); 
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  // ❌ REMOVIDO: const [email, setEmail]...
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  // ❌ REMOVIDO: const [confirmPassword, setConfirmPassword]...
 
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -65,7 +64,8 @@ export default function Registar() {
     e.preventDefault();
     setMsg("");
 
-    if (!cursoOption || !numero || !username || !email || !password || !confirmPassword) {
+    // ✅ Validação Simplificada (sem email e confirmPassword)
+    if (!cursoOption || !numero || !username || !password) {
       setMsg("⚠️ Preenche todos os campos.");
       return;
     }
@@ -76,19 +76,8 @@ export default function Registar() {
       return;
     }
 
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-    if (!emailOk) {
-      setMsg("⚠️ Email inválido.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setMsg("⚠️ A password deve ter pelo menos 6 caracteres.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setMsg("❌ As passwords não coincidem.");
+    if (password.length < 3) {
+      setMsg("⚠️ A password deve ter pelo menos 3 caracteres.");
       return;
     }
 
@@ -101,7 +90,7 @@ export default function Registar() {
           curso: cursoOption.value,
           numero: numeroTrim,
           username: username.trim(),
-          email: email.trim(),
+          // ❌ REMOVIDO: email
           password,
         }),
       });
@@ -126,9 +115,22 @@ export default function Registar() {
       <div className="orangeCircle" aria-hidden="true" />
 
       <div className="loginContent">
-        <h1 className="brand">
-          FreeRoom <span>ESTG</span>
-        </h1>
+        
+        {/* LOGÓTIPO */}
+        <div className="brand">
+          <div className="logo-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 3V21" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M15 10V14" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          
+          <div className="brandTitle">
+            <span>FreeRoom</span>
+            <span className="highlight">ESTG</span>
+          </div>
+        </div>
 
         <div className="loginCard">
           <h2 className="loginTitle">Criar Conta</h2>
@@ -136,7 +138,6 @@ export default function Registar() {
           <form onSubmit={handleRegistar} className="loginForm">
             <div>
               <label className="label">Curso</label>
-
               <Select
                 className="select-container"
                 classNamePrefix="select"
@@ -159,7 +160,6 @@ export default function Registar() {
                 inputMode="numeric"
                 value={numero}
                 onChange={(e) => setNumero(e.target.value.replace(/\D/g, ""))}
-                placeholder="Ex: 47593"
               />
             </div>
 
@@ -174,16 +174,8 @@ export default function Registar() {
               />
             </div>
 
-            <div>
-              <label className="label">Email</label>
-              <input
-                className="input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
-            </div>
+            {/* ❌ REMOVIDO CAMPO EMAIL */}
+            {/* ❌ REMOVIDO CAMPO CONFIRMAR PASSWORD */}
 
             <div>
               <label className="label">Password</label>
@@ -196,22 +188,12 @@ export default function Registar() {
               />
             </div>
 
-            <div>
-              <label className="label">Confirmar Password</label>
-              <input
-                className="input"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-            </div>
+            {/* Mensagem de Erro */}
+            {msg && <div className="error-msg">{msg}</div>}
 
             <button className="btn" type="submit" disabled={loading || cursosLoading}>
               {loading ? "A criar..." : "Criar Conta"}
             </button>
-
-            {msg && <div className="msg">{msg}</div>}
           </form>
 
           <div
@@ -235,7 +217,7 @@ export default function Registar() {
                 textDecoration: "underline",
               }}
             >
-              Entrar
+              Ir para Login
             </button>
           </div>
         </div>

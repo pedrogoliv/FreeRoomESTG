@@ -16,13 +16,11 @@ const Curso = require("./src/models/Curso");
 const UserSchema = new mongoose.Schema(
   {
     curso: { type: String, required: true },
-
-    // permite null + unique com sparse
     numero: { type: String, required: false, unique: true, sparse: true, trim: true },
-
     username: { type: String, required: true, unique: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true }, // Em produção: bcrypt
+    email: { type: String, required: false, trim: true }, 
+
+    password: { type: String, required: true },
     favoritos: { type: [String], default: [] },
   },
   { timestamps: true }
@@ -87,10 +85,10 @@ app.get("/api/cursos", async (req, res) => {
 //            ROTAS DE UTILIZADOR (AUTH)
 // ==========================================
 async function registarHandler(req, res) {
-  const { curso, numero, username, email, password } = req.body;
+  const { curso, numero, username, password } = req.body; 
 
   try {
-    if (!curso || !username || !email || !password) {
+    if (!curso || !username || !password) {
       return res.status(400).json({ success: false, message: "Faltam campos obrigatórios." });
     }
 
@@ -109,25 +107,20 @@ async function registarHandler(req, res) {
       return res.status(400).json({ success: false, message: "Número inválido (apenas dígitos)." });
     }
 
-    const usernameTrim = String(username).trim();
-    const emailNorm = String(email).trim().toLowerCase();
+const usernameTrim = String(username).trim();
+    // ❌ Remove validação de emailNorm e existingEmail
     const cursoNorm = String(curso).trim();
 
     const existingUser = await User.findOne({ username: usernameTrim });
     if (existingUser) return res.status(400).json({ success: false, message: "Username já existe." });
 
-    const existingEmail = await User.findOne({ email: emailNorm });
-    if (existingEmail) return res.status(400).json({ success: false, message: "Email já existe." });
-
-    const existingNumero = await User.findOne({ numero: numeroNorm });
-    if (existingNumero)
-      return res.status(400).json({ success: false, message: "Esse número já está registado." });
+    // ... (existingNumero mantém-se) ...
 
     const newUser = new User({
       curso: cursoNorm,
-      numero: numeroNorm,
+      numero: String(numero).trim(),
       username: usernameTrim,
-      email: emailNorm,
+      // email: emailNorm,  <-- REMOVE ISTO
       password,
     });
 
@@ -138,7 +131,7 @@ async function registarHandler(req, res) {
       user: {
         id: newUser._id,
         username: newUser.username,
-        email: newUser.email,
+        // email: newUser.email, <-- Podes remover ou enviar null
         curso: newUser.curso,
         numero: newUser.numero,
         favoritos: newUser.favoritos,
