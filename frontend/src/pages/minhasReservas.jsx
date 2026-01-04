@@ -14,37 +14,14 @@ export default function MinhasReservas() {
   // Modal
   const [reservaSelecionada, setReservaSelecionada] = useState(null);
 
+  // Para forçar refetch (ex: depois de cancelar)
+  const [reloadKey, setReloadKey] = useState(0);
+
   // ler user do storage (igual Favoritos)
   useEffect(() => {
     const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
   }, []);
-
-  // buscar reservas
-  useEffect(() => {
-    if (!user?.username) return;
-
-    setLoading(true);
-    setMsg("");
-
-    fetch(`${API_BASE}/api/reservas/${user.username}`)
-      .then((r) => r.json())
-      .then((data) => {
-        // backend devolve { success: true, reservas }
-        const arr = Array.isArray(data) ? data : data?.reservas;
-        setReservas(Array.isArray(arr) ? arr : []);
-      })
-      .catch(() => {
-        setReservas([]);
-        setMsg("❌ Não foi possível carregar as tuas reservas.");
-      })
-      .finally(() => setLoading(false));
-  }, [user, API_BASE]);
-
-  function abrirDetalhes(reserva) {
-    setMsg("");
-    setReservaSelecionada(reserva);
-  }
 
   // ======== helpers alinhados com o teu model Reserva ========
   function getSalaId(r) {
@@ -69,16 +46,6 @@ export default function MinhasReservas() {
     return String(r?.responsavel ?? "");
   }
 
-  // slots 30 em 30
-  const timeSlots = useMemo(() => {
-    const out = [];
-    for (let h = 8; h <= 22; h++) {
-      out.push(`${String(h).padStart(2, "0")}:00`);
-      out.push(`${String(h).padStart(2, "0")}:30`);
-    }
-    return out;
-  }, []);
-
   function formatDiaBR(iso) {
     if (!iso) return "—";
     const [y, m, d] = iso.split("-");
@@ -94,8 +61,56 @@ export default function MinhasReservas() {
     return dt.getTime() < Date.now();
   }
 
+  function abrirDetalhes(reserva) {
+    setMsg("");
+    setReservaSelecionada(reserva);
+  }
+
+  // slots 30 em 30
+  const timeSlots = useMemo(() => {
+    const out = [];
+    for (let h = 8; h <= 22; h++) {
+      out.push(`${String(h).padStart(2, "0")}:00`);
+      out.push(`${String(h).padStart(2, "0")}:30`);
+    }
+    return out;
+  }, []);
+
+  // Buscar reservas (e filtrar só as ativas)
+  useEffect(() => {
+    if (!user?.username) return;
+
+    setLoading(true);
+    setMsg("");
+
+    fetch(`${API_BASE}/api/reservas/${user.username}`)
+      .then((r) => r.json())
+      .then((data) => {
+        // backend devolve { success: true, reservas }
+        const arr = Array.isArray(data) ? data : data?.reservas;
+        const lista = Array.isArray(arr) ? arr : [];
+
+        // ✅ MUITO IMPORTANTE:
+        // Mesmo que o backend devolva canceladas por engano,
+        // aqui só mostramos ativas.
+        const ativas = lista.filter((r) => (r?.status ?? "ativa") === "ativa");
+        setReservas(ativas);
+      })
+      .catch(() => {
+        setReservas([]);
+        setMsg("❌ Não foi possível carregar as tuas reservas.");
+      })
+      .finally(() => setLoading(false));
+  }, [user, API_BASE, reloadKey]);
+
   // Atualiza reserva na lista (helper)
   function updateReservaLocal(updated) {
+    // se por algum motivo vier "cancelada", não fica visível
+    if ((updated?.status ?? "ativa") !== "ativa") {
+      setReservas((prev) => prev.filter((r) => String(r._id) !== String(updated?._id)));
+      return;
+    }
+
     setReservas((prev) =>
       prev.map((r) => (String(r._id) === String(updated._id) ? updated : r))
     );
@@ -110,10 +125,12 @@ export default function MinhasReservas() {
     if (!reserva?._id) return;
 
     // UI otimista
-    const backup = reservas;
+    const backup = reservas.slice();
     removeReservaLocal(reserva._id);
 
     try {
+      // Mantém DELETE porque tu já tens isso a funcionar do lado do backend.
+      // (E o teu backend está a marcar como "cancelada" em vez de apagar)
       const res = await fetch(`${API_BASE}/api/reservas/${reserva._id}`, {
         method: "DELETE",
       });
@@ -126,6 +143,9 @@ export default function MinhasReservas() {
 
       setReservaSelecionada(null);
       setMsg("✅ Reserva cancelada.");
+
+      // força refetch (garante que ao voltar à página não reaparece)
+      setReloadKey((k) => k + 1);
     } catch (e) {
       setMsg("❌ Não foi possível cancelar a reserva.");
     }
@@ -174,7 +194,6 @@ export default function MinhasReservas() {
     async function onGuardarAlteracoes() {
       setLocalMsg("");
 
-      // validações simples
       if (!dia) return setLocalMsg("⚠️ Escolhe uma data.");
       if (!horaInicio) return setLocalMsg("⚠️ Escolhe uma hora.");
       const p = Number(pessoas);
@@ -184,7 +203,6 @@ export default function MinhasReservas() {
 
       setSaving(true);
       try {
-        // se mudou slot (dia/hora), confirma se a sala está livre nesse slot
         const diaOriginal = getDia(reserva);
         const horaOriginal = getHoraInicio(reserva);
 
@@ -197,7 +215,6 @@ export default function MinhasReservas() {
           }
         }
 
-        // PATCH alinhado com o backend/model
         const patch = {
           pessoas: Number(pessoas),
           dia,
@@ -207,6 +224,9 @@ export default function MinhasReservas() {
         const updated = await atualizarReserva(reserva._id, patch);
         updateReservaLocal(updated);
         setLocalMsg("✅ Alterações guardadas.");
+
+        // garante consistência se backend fizer alguma normalização
+        setReloadKey((k) => k + 1);
       } catch (e) {
         setLocalMsg(`❌ ${e.message || "Erro ao guardar."}`);
       } finally {
@@ -307,12 +327,7 @@ export default function MinhasReservas() {
               )}
 
               <div className="modal-actions" style={{ marginTop: 14 }}>
-                <button
-                  className="btn-secondary"
-                  type="button"
-                  onClick={onClose}
-                  disabled={saving}
-                >
+                <button className="btn-secondary" type="button" onClick={onClose} disabled={saving}>
                   Fechar
                 </button>
 
@@ -325,6 +340,7 @@ export default function MinhasReservas() {
                   {saving ? "A guardar..." : "Guardar alterações"}
                 </button>
 
+                {/* ✅ mesmo design do botão Fechar (btn-secondary) */}
                 <button
                   className="btn-secondary"
                   type="button"
@@ -342,6 +358,8 @@ export default function MinhasReservas() {
     );
   }
 
+  const msgColor = msg?.startsWith("✅") ? "#16a34a" : "#b91c1c";
+
   return (
     <div className="dashboard-container">
       <Sidebar />
@@ -353,7 +371,7 @@ export default function MinhasReservas() {
           </div>
         </header>
 
-        {msg && <div style={{ marginBottom: 14, color: "#b91c1c" }}>{msg}</div>}
+        {msg && <div style={{ marginBottom: 14, color: msgColor, fontWeight: 700 }}>{msg}</div>}
 
         {loading ? (
           <p>⏳ A carregar reservas...</p>

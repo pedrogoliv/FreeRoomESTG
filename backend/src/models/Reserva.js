@@ -9,6 +9,18 @@ const ReservaSchema = new mongoose.Schema(
     responsavel: { type: String, required: true, trim: true },
     motivo: { type: String, default: "", trim: true },
     pessoas: { type: Number, required: true, min: 1, default: 1 },
+
+    // ✅ NOVO: para não apagar reservas, só marcar como canceladas
+    status: {
+      type: String,
+      enum: ["ativa", "cancelada"],
+      default: "ativa",
+    },
+    // ✅ NOVO: quando foi cancelada (opcional, mas útil)
+    canceledAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

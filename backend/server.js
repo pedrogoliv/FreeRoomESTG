@@ -454,8 +454,10 @@ app.get("/api/reservas/:username", async (req, res) => {
   try {
     const { username } = req.params;
 
-    const reservas = await Reserva.find({ responsavel: username })
-      .sort({ dia: 1, hora_inicio: 1 });
+    const reservas = await Reserva.find({
+      responsavel: username,
+      status: { $ne: "cancelada" }, // ✅ não devolve canceladas
+    }).sort({ dia: 1, hora_inicio: 1 });
 
     return res.json({ success: true, reservas });
   } catch (err) {
@@ -464,6 +466,7 @@ app.get("/api/reservas/:username", async (req, res) => {
   }
 });
 
+
 // editar reserva (pessoas + mover slot mantendo duração)
 app.put("/api/reservas/:reservaId", async (req, res) => {
   try {
@@ -471,8 +474,8 @@ app.put("/api/reservas/:reservaId", async (req, res) => {
     const { pessoas, dia, hora_inicio } = req.body;
 
     const reserva = await Reserva.findById(reservaId);
-    if (!reserva) {
-      return res.status(404).json({ success: false, message: "Reserva não encontrada." });
+    if (reserva.status === "cancelada") {
+      return res.status(404).json({ success: false, message: "Não podes editar uma reserva cancelada." });
     }
 
     // pessoas
@@ -569,22 +572,33 @@ app.put("/api/reservas/:reservaId", async (req, res) => {
   }
 });
 
-// cancelar reserva
+// cancelar reserva (soft delete: NÃO apaga, só marca como cancelada)
 app.delete("/api/reservas/:reservaId", async (req, res) => {
   try {
     const { reservaId } = req.params;
 
-    const deleted = await Reserva.findByIdAndDelete(reservaId);
-    if (!deleted) {
+    const reserva = await Reserva.findById(reservaId);
+    if (!reserva) {
       return res.status(404).json({ success: false, message: "Reserva não encontrada." });
     }
 
-    return res.json({ success: true });
+    // se já estiver cancelada, não faz nada
+    if (reserva.status === "cancelada") {
+      return res.json({ success: true, reserva });
+    }
+
+    reserva.status = "cancelada";
+    reserva.canceledAt = new Date();
+
+    await reserva.save();
+
+    return res.json({ success: true, reserva });
   } catch (err) {
     console.error("❌ Erro ao cancelar reserva:", err);
     return res.status(500).json({ success: false, message: "Erro no servidor" });
   }
 });
+
 
 // ==========================================
 //                 ROTAS DE SALAS
@@ -622,7 +636,8 @@ app.get("/api/salas-livres", async (req, res) => {
     }).distinct("sala");
 
     // reservas do dia
-    const reservasDia = await Reserva.find({ dia });
+   const reservasDia = await Reserva.find({ dia, status: "ativa" });
+
 
     // consumo por sala nessa hora
     const consumoPorSala = {};
@@ -749,7 +764,7 @@ app.get("/api/salas/:sala/status", async (req, res) => {
     }
 
     // Reservas (ocupam por capacidade)
-    const reservasDia = await Reserva.find({ sala, dia });
+    const reservasDia = await Reserva.find({ sala, dia, status: "ativa" });
 
     let consumoAgora = 0;
     for (const r of reservasDia) {
