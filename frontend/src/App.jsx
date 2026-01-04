@@ -6,6 +6,8 @@ import Dashboard from "./pages/Dashboard";
 import Perfil from "./pages/Perfil";
 import Favoritos from "./pages/Favoritos";
 import MinhasReservas from "./pages/minhasReservas";
+import Mapa from "./pages/Mapa";
+
 
 function RotaProtegida({ children }) {
   const user = sessionStorage.getItem("user");
@@ -63,6 +65,15 @@ export default function App() {
               <Perfil />
             </RotaProtegida>
           }
+        />
+
+        <Route 
+          path="/mapa" 
+          element={
+            <RotaProtegida>
+              <Mapa />
+            </RotaProtegida>
+          } 
         />
 
         <Route path="*" element={<Navigate to="/login" />} />

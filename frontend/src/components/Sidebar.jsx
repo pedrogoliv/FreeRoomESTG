@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { FaHome, FaHeart, FaCalendarAlt, FaUser, FaSignOutAlt } from "react-icons/fa";
+import { FaHome, FaHeart, FaCalendarAlt, FaUser, FaSignOutAlt, FaMap } from "react-icons/fa";
 import "./Sidebar.css";
+
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -37,6 +38,11 @@ export default function Sidebar() {
           <NavLink to="/perfil" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
             <span className="icon"><FaUser /></span>
             <span>Meu Perfil</span>
+          </NavLink>
+
+          <NavLink to="/mapa" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
+            <span className="icon"><FaMap /></span>
+            <span>Planta da Escola</span>
           </NavLink>
         </nav>
       </div>
