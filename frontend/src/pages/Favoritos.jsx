@@ -91,10 +91,13 @@ export default function Favoritos() {
 
       const salaObj = arr.find((s) => String(s.sala) === String(idSala));
 
+      console.log("DEBUG salaObj:", salaObj);
+      console.log("DEBUG keys:", salaObj ? Object.keys(salaObj) : null);
+
       setSalaSelecionada({
         sala: String(idSala),
-        piso: salaObj?.piso ?? "-",
-        lugares: salaObj?.lugares ?? salaObj?.capacidade ?? 15,
+        piso: salaObj?.piso ?? salaObj?.andar ?? salaObj?.floor ?? "-",
+        lugares: salaObj?.lugares ?? salaObj?.capacidade ?? salaObj?.lotacao ?? 15,
       });
     } catch (e) {
       // fallback (não bloqueia o modal)

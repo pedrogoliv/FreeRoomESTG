@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // hashed
   curso: { type: String, required: true },
-  numero: { type: String, required: true, unique: true, trim: true },
+  numero: { type: String, required: false, unique: true, sparse: true, trim: true },
   tipo: { type: String, default: "aluno" }
 }, { timestamps: true });
 

@@ -179,31 +179,32 @@ app.post("/auth/login", async (req, res) => {
 // ==========================================
 //              PERFIL / UTILIZADOR
 // ==========================================
-app.get("/api/users/:username", async (req, res) => {
-  try {
-    const user = await User.findOne({ username: req.params.username }).select("-password");
-    if (!user) return res.status(404).json({ success: false, message: "User não encontrado" });
-    return res.json({ success: true, user });
-  } catch (err) {
-    console.error("❌ Erro ao buscar user:", err);
-    return res.status(500).json({ success: false, message: "Erro no servidor" });
-  }
-});
-
 app.put("/api/users/:username", async (req, res) => {
   try {
     const { curso, email, numero } = req.body;
 
-    if (curso) {
-      const existeCurso = await Curso.exists({ nome: curso });
+    const updates = {};
+
+    if (curso !== undefined) {
+      const cursoNorm = String(curso).trim();
+      if (!cursoNorm) {
+        return res.status(400).json({ success: false, message: "Curso é obrigatório." });
+      }
+
+      const existeCurso = await Curso.exists({ nome: cursoNorm });
       if (!existeCurso) {
         return res.status(400).json({ success: false, message: "Curso inválido." });
       }
+
+      updates.curso = cursoNorm;
     }
 
-    let emailUpdate = undefined;
-    if (email) {
+    if (email !== undefined) {
       const emailNorm = String(email).trim().toLowerCase();
+      if (!emailNorm) {
+        return res.status(400).json({ success: false, message: "Email inválido." });
+      }
+
       const exists = await User.findOne({
         email: emailNorm,
         username: { $ne: req.params.username },
@@ -211,38 +212,44 @@ app.put("/api/users/:username", async (req, res) => {
       if (exists) {
         return res.status(400).json({ success: false, message: "Email já está a ser usado." });
       }
-      emailUpdate = emailNorm;
+
+      updates.email = emailNorm;
     }
 
-    let numeroUpdate = undefined;
     if (numero !== undefined) {
-      const numeroNorm = String(numero).trim();
-      if (!/^\d+$/.test(numeroNorm)) {
-        return res.status(400).json({ success: false, message: "Número inválido (apenas dígitos)." });
-      }
+      if (numero === null || String(numero).trim() === "") {
+        updates.numero = null;
+      } else {
+        const numeroNorm = String(numero).trim();
+        if (!/^\d+$/.test(numeroNorm)) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Número inválido (apenas dígitos)." });
+        }
 
-      const existsNumero = await User.findOne({
-        numero: numeroNorm,
-        username: { $ne: req.params.username },
-      });
-      if (existsNumero) {
-        return res.status(400).json({ success: false, message: "Esse número já está registado." });
-      }
+        const existsNumero = await User.findOne({
+          numero: numeroNorm,
+          username: { $ne: req.params.username },
+        });
+        if (existsNumero) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Esse número já está registado." });
+        }
 
-      numeroUpdate = numeroNorm;
+        updates.numero = numeroNorm;
+      }
     }
 
     const updated = await User.findOneAndUpdate(
       { username: req.params.username },
-      {
-        ...(curso ? { curso } : {}),
-        ...(emailUpdate ? { email: emailUpdate } : {}),
-        ...(numeroUpdate ? { numero: numeroUpdate } : {}),
-      },
+      updates,
       { new: true }
     ).select("-password");
 
-    if (!updated) return res.status(404).json({ success: false, message: "User não encontrado" });
+    if (!updated) {
+      return res.status(404).json({ success: false, message: "User não encontrado" });
+    }
 
     return res.json({ success: true, user: updated });
   } catch (err) {
@@ -250,6 +257,111 @@ app.put("/api/users/:username", async (req, res) => {
     return res.status(500).json({ success: false, message: "Erro no servidor" });
   }
 });
+
+
+app.put("/api/users/:username", async (req, res) => {
+  try {
+    const { curso, email, numero } = req.body;
+
+    // ---- CURSO (se vier no body, valida se existe) ----
+    if (curso !== undefined) {
+      const cursoNorm = String(curso).trim();
+      if (!cursoNorm) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Curso é obrigatório." });
+      }
+
+      const existeCurso = await Curso.exists({ nome: cursoNorm });
+      if (!existeCurso) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Curso inválido." });
+      }
+    }
+
+    // ---- EMAIL (opcional) ----
+    let emailUpdate = undefined;
+    if (email !== undefined) {
+      const emailNorm = String(email).trim().toLowerCase();
+      if (!emailNorm) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Email inválido." });
+      }
+
+      const exists = await User.findOne({
+        email: emailNorm,
+        username: { $ne: req.params.username },
+      });
+
+      if (exists) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Email já está a ser usado." });
+      }
+
+      emailUpdate = emailNorm;
+    }
+
+    // ---- NUMERO (pode ser null/"" para limpar) ----
+    let numeroUpdate = undefined;
+
+    if (numero !== undefined) {
+      // permitir limpar
+      if (numero === null || String(numero).trim() === "") {
+        numeroUpdate = null;
+      } else {
+        const numeroNorm = String(numero).trim();
+
+        if (!/^\d+$/.test(numeroNorm)) {
+          return res.status(400).json({
+            success: false,
+            message: "Número inválido (apenas dígitos).",
+          });
+        }
+
+        const existsNumero = await User.findOne({
+          numero: numeroNorm,
+          username: { $ne: req.params.username },
+        });
+
+        if (existsNumero) {
+          return res.status(400).json({
+            success: false,
+            message: "Esse número já está registado.",
+          });
+        }
+
+        numeroUpdate = numeroNorm;
+      }
+    }
+
+    const updated = await User.findOneAndUpdate(
+      { username: req.params.username },
+      {
+        ...(curso !== undefined ? { curso: String(curso).trim() } : {}),
+        ...(email !== undefined ? { email: emailUpdate } : {}),
+        ...(numero !== undefined ? { numero: numeroUpdate } : {}),
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User não encontrado" });
+    }
+
+    return res.json({ success: true, user: updated });
+  } catch (err) {
+    console.error("❌ Erro ao atualizar user:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Erro no servidor" });
+  }
+});
+
 
 // ==========================================
 //                 FAVORITOS
@@ -481,6 +593,36 @@ app.get("/api/salas-livres", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send("Erro.");
+  }
+});
+
+// ==========================================
+//            LISTA FIXA DE SALAS (METADADOS)
+// ==========================================
+app.get("/api/salas", async (req, res) => {
+  try {
+    const salasOcup = await Ocupacao.distinct("sala");
+    const salasRes = await Reserva.distinct("sala");
+
+    const salas = Array.from(new Set([...salasOcup, ...salasRes]))
+      .filter(Boolean)
+      .sort((a, b) => String(a).localeCompare(String(b)));
+
+    const parsePiso = (nome) => {
+      const m = String(nome).match(/\.(\d+)\./); // A.2.1 -> 2
+      return m ? Number(m[1]) : "?";
+    };
+
+    const payload = salas.map((nome) => ({
+      sala: String(nome),
+      piso: parsePiso(nome),
+      lugares: CAP_BASE,
+    }));
+
+    return res.json(payload);
+  } catch (err) {
+    console.error("❌ Erro /api/salas:", err);
+    return res.status(500).json({ success: false, message: "Erro no servidor" });
   }
 });
 
