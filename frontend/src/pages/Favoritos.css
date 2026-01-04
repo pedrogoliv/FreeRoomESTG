@@ -1,63 +1,89 @@
 /* src/pages/Favoritos.css */
 
-.aviso-box {
-    background: #fffbeb;
-    color: #b45309;
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px solid #fcd34d;
-    font-weight: bold;
-}
-
 .empty-state {
-    text-align: center;
-    padding: 50px;
-    color: #64748b;
-    background: white;
-    border-radius: 20px;
-    margin-top: 20px;
-    border: 2px dashed #e2e8f0;
+  text-align: center;
+  padding: 50px;
+  color: #64748b;
+  background: white;
+  border-radius: 20px;
+  margin-top: 20px;
+  border: 2px dashed #e2e8f0;
 }
 
 .empty-state h3 {
-    margin-bottom: 10px;
-    color: #1e293b;
+  margin-bottom: 10px;
+  color: #1e293b;
 }
 
-/* Estilo específico para o card nos favoritos */
-.sala-info-flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+/* --- ESTILO DO CARTÃO DE FAVORITO --- */
+
+/* Reaproveita classes do Dashboard */
+
+/* Cabeçalho do conteúdo: Sala à esquerda, Piso à direita */
+.card-header-row {
+  display: flex;
+  justify-content: space-between; /* Isto empurra um para cada lado */
+  align-items: center;
+  margin-bottom: 8px; 
 }
 
-.btn-trash {
-    background: #fee2e2;
-    color: #ef4444;
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+.sala-nome {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1e293b;
 }
 
-.btn-trash:hover {
-    background: #ef4444;
-    color: white;
-    transform: scale(1.1);
+/* Badge do Piso */
+.sala-piso-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: inline-block;
+  white-space: nowrap;
 }
 
-.ocupada-ate {
-    background: #f1f5f9;
-    padding: 8px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    color: #475569;
-    text-align: center;
-    margin-top: 5px;
+/* Garante que o card tem cursor de clique */
+.fav-card {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fav-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+/* --- NOVO: Bloco de Info de Reserva (Caso reutilizes em MinhasReservas) --- */
+.reserva-info-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ri-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.ri-label {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ri-value {
+  color: #1e293b;
+  font-weight: 700;
 }

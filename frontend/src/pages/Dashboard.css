@@ -253,22 +253,38 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px; 
+  /* gap: 10px; -> Removi o gap para controlar melhor com margins */
+}
+
+/* Contentor que mete o Nome à esquerda e o Piso à direita */
+.card-header-row {
+  display: flex;
+  justify-content: space-between; /* Um em cada ponta */
+  align-items: center;
+  margin-bottom: 15px; /* Espaço até à barra de progresso */
 }
 
 .sala-nome {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: #1e293b;
+  line-height: 1.2;
 }
 
-.sala-meta {
-  font-size: 0.85rem;
+/* Estilo do botãozinho do Piso */
+.sala-piso-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
   color: #64748b;
-  font-weight: 500;
+  background: #f1f5f9; /* Fundo cinza suave */
+  padding: 4px 10px;
+  border-radius: 8px;
+  white-space: nowrap; /* Garante que "Piso 1" fica na mesma linha */
 }
 
-/* Barra de ocupação */
+/* Podes APAGAR a classe .sala-meta que tinhas aqui antes, já não é precisa */
+
+/* Barra de ocupação (Mantém-se igual) */
 .ocup-bar {
   width: 100%;
   height: 8px;
