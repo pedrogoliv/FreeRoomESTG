@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import "./detalhesSala.css";
 import MapaSala from "./MapaSala";
-
+import { useFiltros } from "../context/FiltrosContext.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -50,25 +50,28 @@ export default function DetalhesSala({
   user,
   bloqueado, // continua a existir se tu quiseres bloquear por outros motivos
   onReservaSucesso,
-  diaSelecionado: diaSelecionadoDashboard,
-  horaSelecionada: horaSelecionadaDashboard,
 }) {
   if (!sala) return null;
 
+  // ✅ ir buscar dia/hora globais ao Context
+  const {
+    diaSelecionado: diaCtx,
+    setDiaSelecionado: setDiaCtx,
+    horaSelecionada: horaCtx,
+    setHoraSelecionada: setHoraCtx,
+  } = useFiltros();
+
   const capacidade = Number(sala.lugares ?? 0);
 
-  // Dia/Hora dentro do modal
-const [diaSelecionado, setDiaSelecionado] = useState(
-  diaSelecionadoDashboard || new Date().toISOString().split("T")[0]
-);
-const [horaSelecionada, setHoraSelecionada] = useState(
-  horaSelecionadaDashboard || "10:00"
-);
+  // ✅ Dia/Hora locais (para o modal), inicializados pelo Context
+  const [diaSelecionado, setDiaSelecionado] = useState(diaCtx);
+  const [horaSelecionada, setHoraSelecionada] = useState(horaCtx);
 
-useEffect(() => {
-  if (diaSelecionadoDashboard) setDiaSelecionado(diaSelecionadoDashboard);
-  if (horaSelecionadaDashboard) setHoraSelecionada(horaSelecionadaDashboard);
-}, [sala?.sala, diaSelecionadoDashboard, horaSelecionadaDashboard]);
+  // ✅ sempre que muda a sala ou o Context, sincroniza o modal
+  useEffect(() => {
+    if (diaCtx) setDiaSelecionado(diaCtx);
+    if (horaCtx) setHoraSelecionada(horaCtx);
+  }, [sala?.sala, diaCtx, horaCtx]);
 
   // Status via /api/salas-livres
   const [status, setStatus] = useState("A carregar"); // "Livre" | "Ocupada" | "A carregar"
@@ -113,21 +116,23 @@ useEffect(() => {
   }, [sala?.sala, diaSelecionado, horaSelecionada]);
 
   async function fetchStatus(dia, hora) {
-  const res = await fetch(
-    `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(dia)}&hora=${encodeURIComponent(hora)}`
-  );
+    const res = await fetch(
+      `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(
+        dia
+      )}&hora=${encodeURIComponent(hora)}`
+    );
 
-  const data = await res.json().catch(() => []);
-  const arr = Array.isArray(data) ? data : [];
+    const data = await res.json().catch(() => []);
+    const arr = Array.isArray(data) ? data : [];
 
-  const salaObj = arr.find((s) => String(s.sala) === String(sala.sala));
+    const salaObj = arr.find((s) => String(s.sala) === String(sala.sala));
 
-  const lugares = Number(salaObj.lugaresDisponiveis ?? 0);
-  const isLivre = String(salaObj.status).toLowerCase() === "livre" && lugares > 0;
+    const lugares = Number(salaObj?.lugaresDisponiveis ?? 0);
+    const isLivre =
+      String(salaObj?.status).toLowerCase() === "livre" && lugares > 0;
 
-  return { isLivre, lugaresDisponiveis: lugares };
-}
-
+    return { isLivre, lugaresDisponiveis: lugares };
+  }
 
   async function calcularHint(dia, hora) {
     setStatusHint("");
@@ -217,7 +222,7 @@ useEffect(() => {
     return () => {
       cancelled = true;
     };
-  }, [diaSelecionado, horaSelecionada, sala?.sala, bloqueadoDia]);
+  }, [diaSelecionado, horaSelecionada, sala?.sala, bloqueadoDia, horarios]);
 
   const isLivre = status === "Livre";
   const livresAgora = Number(lugaresDisp ?? 0);
@@ -262,7 +267,7 @@ useEffect(() => {
           hora_inicio: horaSelecionada,
           hora_fim: horaFim,
           pessoas: n,
-          responsavel: user.username
+          responsavel: user?.username,
         }),
       });
 
@@ -298,8 +303,12 @@ useEffect(() => {
               <input
                 className="field-control"
                 type="date"
-                value={diaSelecionado}
-                onChange={(e) => setDiaSelecionado(e.target.value)}
+                value={diaSelecionado || ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setDiaSelecionado(v); // modal
+                  setDiaCtx(v); // ✅ global (Dashboard/Favoritos/etc.)
+                }}
               />
             </div>
 
@@ -307,8 +316,12 @@ useEffect(() => {
               <label className="field-label">Hora</label>
               <select
                 className="field-control"
-                value={horaSelecionada}
-                onChange={(e) => setHoraSelecionada(e.target.value)}
+                value={horaSelecionada || ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setHoraSelecionada(v); // modal
+                  setHoraCtx(v); // ✅ global
+                }}
               >
                 {horarios.map((h) => (
                   <option key={h} value={h}>
@@ -359,6 +372,7 @@ useEffect(() => {
                 <span className="tag">❄️ Ar Condicionado</span>
                 <span className="tag">🪑 Quadros</span>
               </div>
+
               <MapaSala sala={sala} />
             </>
           )}
@@ -370,7 +384,11 @@ useEffect(() => {
                 className="field-control"
                 value={horaFim}
                 onChange={(e) => setHoraFim(e.target.value)}
-                disabled={bloqueadoFinal || !horaSelecionada || opcoesHoraFim.length === 0}
+                disabled={
+                  bloqueadoFinal ||
+                  !horaSelecionada ||
+                  opcoesHoraFim.length === 0
+                }
               >
                 {opcoesHoraFim.length === 0 ? (
                   <option value="">Sem opções</option>
@@ -432,7 +450,8 @@ useEffect(() => {
                 </>
               ) : (
                 <>
-                  <FaRegHeart className="icon-heart outline" /> Adicionar aos Favoritos
+                  <FaRegHeart className="icon-heart outline" /> Adicionar aos
+                  Favoritos
                 </>
               )}
             </button>

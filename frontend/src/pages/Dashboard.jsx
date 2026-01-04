@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
 import "./Dashboard.css";
+import { useFiltros } from "../context/FiltrosContext";
 
 export default function Dashboard() {
   const [salas, setSalas] = useState([]);
@@ -33,10 +34,7 @@ export default function Dashboard() {
   }, [user, API_BASE]);
 
   // --- LÓGICA DE DATAS E HORAS ---
-  const [diaSelecionado, setDiaSelecionado] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [horaSelecionada, setHoraSelecionada] = useState("10:00");
+const { diaSelecionado, setDiaSelecionado, horaSelecionada, setHoraSelecionada } = useFiltros();
 
   function pad2(n) {
     return String(n).padStart(2, "0");
