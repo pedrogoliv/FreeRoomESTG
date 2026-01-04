@@ -300,7 +300,7 @@ export default function DetalhesSala({
               >
                 <div className="map-icon-box"><FaMapMarkedAlt /></div>
                 <div className="map-link-text">
-                  <strong>Ver na Planta</strong>
+                  <strong>Ver planta da escola</strong>
                 </div>
                 <FaChevronRight className="chevron-icon" />
               </div>
