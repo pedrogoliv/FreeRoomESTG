@@ -1,5 +1,191 @@
 /* ===========================
+   Página Registar - FreeRoom
+   (Fix: remover scroll e compactar card)
+   =========================== */
+
+/* Garante que não há overflow global */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+.loginPage {
+  position: relative;
+  height: 100vh;          /* ocupa o ecrã inteiro */
+  overflow: hidden;       /* remove scroll da página */
+  background: #0f172a;    /* fundo escuro (coerente com o teu layout) */
+}
+
+/* círculo laranja decorativo (mantém, mas sem empurrar layout) */
+.orangeCircle {
+  position: absolute;
+  left: -220px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: rgba(227, 139, 44, 0.7);
+  filter: blur(2px);
+  z-index: 0;
+}
+
+/* Content centrado */
+.loginContent {
+  position: relative;
+  z-index: 1;
+
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  /* padding pequeno para não criar overflow */
+  padding: 18px 16px;
+  box-sizing: border-box;
+}
+
+/* Brand (logo + texto) */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px; /* menos espaço para caber sem scroll */
+}
+
+.logo-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(226, 232, 240, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandTitle {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+  font-weight: 900;
+  color: #ffffff;
+  font-size: 1.8rem;
+}
+
+.brandTitle .highlight {
+  color: #E38B2C;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+/* Card */
+.loginCard {
+  width: min(460px, 92vw);
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+  border: 1px solid #eef0f4;
+
+  /* ✅ compactar para caber */
+  padding: 22px 26px;
+
+  /* ✅ garante que nunca passa do ecrã */
+  max-height: calc(100vh - 120px); /* espaço para brand + padding */
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* Título */
+.loginTitle {
+  margin: 0 0 14px 0;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #1e293b;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Form */
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* menos espaço entre campos */
+}
+
+/* Labels */
+.label {
+  display: block;
+  margin: 0 0 6px 0;
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: #334155;
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  height: 42px;           /* ✅ mais baixo para caber */
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  outline: none;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  color: #1e293b;
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  border-color: #E38B2C;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1);
+}
+
+/* Mensagens */
+.error-msg {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #be123c;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+/* Botão */
+.btn {
+  height: 44px;           /* ✅ mais baixo */
+  margin-top: 4px;
+  background: #E38B2C;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.btn:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===========================
    React-Select (Curso) - Estilo FreeRoom
+   (mantive o que tinhas, só compacteí a altura)
    =========================== */
 
 .select-container {
@@ -11,7 +197,7 @@
   border: 1px solid #e2e8f0 !important;
   background: #f8fafc !important;
   border-radius: 12px !important;
-  min-height: 48px !important;
+  min-height: 42px !important;  /* ✅ antes 48px */
   padding-left: 6px;
   box-shadow: none !important;
   transition: all 0.2s !important;
@@ -23,7 +209,6 @@
   background: #ffffff !important;
   box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1) !important;
 }
-
 
 /* Valor selecionado */
 .select__single-value {
@@ -43,7 +228,7 @@
 .select__menu {
   border-radius: 12px !important;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
   border: 1px solid #e2e8f0 !important;
 }
 
@@ -59,4 +244,34 @@
 .select__option--is-selected {
   background: #E38B2C !important;
   color: white !important;
+}
+
+/* ===========================
+   Ajustes para ecrãs mais baixos
+   =========================== */
+@media (max-height: 780px) {
+  .brand {
+    margin-bottom: 10px;
+  }
+
+  .loginCard {
+    padding: 18px 22px;
+    max-height: calc(100vh - 100px);
+  }
+
+  .loginTitle {
+    margin-bottom: 10px;
+  }
+
+  .loginForm {
+    gap: 8px;
+  }
+
+  .input {
+    height: 40px;
+  }
+
+  .btn {
+    height: 42px;
+  }
 }
