@@ -8,6 +8,9 @@ import Favoritos from "./pages/Favoritos";
 import MinhasReservas from "./pages/minhasReservas";
 import Mapa from "./pages/Mapa";
 
+// ✅ NOVO: página de histórico
+import HistoricoReservas from "./pages/HistoricoReservas.jsx";
+
 // ✅ 1. IMPORTAR O PROVIDER
 import { FiltrosProvider } from "./context/FiltrosContext"; 
 
@@ -71,6 +74,15 @@ export default function App() {
             }
           />
 
+          {/* ✅ NOVO: rota do histórico */}
+<Route
+  path="/historico-reservas"
+  element={
+    <RotaProtegida>
+      <HistoricoReservas />
+    </RotaProtegida>
+  }
+/>
           <Route 
             path="/mapa" 
             element={

@@ -117,7 +117,7 @@ async function registarHandler(req, res) {
       return res.status(400).json({ success: false, message: "Username já existe." });
     }
 
-    // ✅ faltava isto no teu ficheiro: validação do número único
+    // ✅ validação do número único
     const existingNumero = await User.findOne({ numero: numeroNorm });
     if (existingNumero) {
       return res.status(400).json({ success: false, message: "Esse número já está registado." });
@@ -248,11 +248,9 @@ app.put("/api/users/:username", async (req, res) => {
       }
     }
 
-    const updated = await User.findOneAndUpdate(
-      { username: req.params.username },
-      updates,
-      { new: true }
-    ).select("-password");
+    const updated = await User.findOneAndUpdate({ username: req.params.username }, updates, {
+      new: true,
+    }).select("-password");
 
     if (!updated) {
       return res.status(404).json({ success: false, message: "User não encontrado" });
@@ -297,11 +295,9 @@ app.get("/api/users/:username/stats", async (req, res) => {
 
     const totalHoras = Math.round((totalMin / 60) * 10) / 10;
 
-    const salaTop =
-      Object.entries(salaCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+    const salaTop = Object.entries(salaCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
 
-    const diaTop =
-      Object.entries(diaCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+    const diaTop = Object.entries(diaCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
 
     return res.json({
       success: true,
@@ -486,6 +482,25 @@ app.post("/api/reservar", async (req, res) => {
 //     MINHAS RESERVAS (GET / PUT / DELETE)
 // ==========================================
 
+// ✅ NOVO: HISTÓRICO (últimas reservas do utilizador)
+// Inclui ativas + canceladas, ordenado por mais recentes.
+// Ex: GET /api/reservas-historico/kiko?limit=50
+app.get("/api/reservas-historico/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+    const limit = Math.min(Number(req.query.limit || 20), 100);
+
+    const reservas = await Reserva.find({ responsavel: username })
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    return res.json({ success: true, reservas });
+  } catch (err) {
+    console.error("❌ Erro ao buscar histórico:", err);
+    return res.status(500).json({ success: false, message: "Erro no servidor" });
+  }
+});
+
 app.get("/api/reservas/:username", async (req, res) => {
   try {
     const { username } = req.params;
@@ -512,7 +527,9 @@ app.put("/api/reservas/:reservaId", async (req, res) => {
       return res.status(404).json({ success: false, message: "Reserva não encontrada." });
     }
     if (reserva.status === "cancelada") {
-      return res.status(400).json({ success: false, message: "Não podes editar uma reserva cancelada." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Não podes editar uma reserva cancelada." });
     }
 
     if (pessoas !== undefined) {
@@ -530,10 +547,14 @@ app.put("/api/reservas/:reservaId", async (req, res) => {
       const diaNorm = String(dia).trim();
       if (!diaNorm) return res.status(400).json({ success: false, message: "Dia inválido." });
       if (isWeekend(diaNorm)) {
-        return res.status(400).json({ success: false, message: "Não é possível reservar ao fim-de-semana." });
+        return res
+          .status(400)
+          .json({ success: false, message: "Não é possível reservar ao fim-de-semana." });
       }
       if (isFeriado(diaNorm)) {
-        return res.status(400).json({ success: false, message: "Não é possível reservar em feriados." });
+        return res
+          .status(400)
+          .json({ success: false, message: "Não é possível reservar em feriados." });
       }
       reserva.dia = diaNorm;
     }
@@ -589,7 +610,10 @@ app.put("/api/reservas/:reservaId", async (req, res) => {
       if (consumoNovo > sobra) {
         return res.status(409).json({
           success: false,
-          message: `Capacidade excedida. Espaço disponível (com regra de grupos): ${Math.max(0, sobra)}.`,
+          message: `Capacidade excedida. Espaço disponível (com regra de grupos): ${Math.max(
+            0,
+            sobra
+          )}.`,
         });
       }
 

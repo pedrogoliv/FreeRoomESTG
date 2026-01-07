@@ -4,9 +4,15 @@ import Select from "react-select";
 import Sidebar from "../components/Sidebar";
 import "./Perfil.css";
 
+// ✅ NOVO
+import { useNavigate } from "react-router-dom";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function Perfil() {
+  // ✅ NOVO
+  const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [msg, setMsg] = useState("");
 
@@ -246,17 +252,16 @@ export default function Perfil() {
               </div>
             )}
 
+            <div
+              className="icon-circle"
+              style={{
+                marginTop: isEditing ? "60px" : "0",
+                transition: "margin-top 0.3s ease",
+              }}
+            >
+              👤
+            </div>
 
-          <div 
-            className="icon-circle"
-            style={{
-              marginTop: isEditing ? "60px" : "0",  
-              transition: "margin-top 0.3s ease"   
-            }}
-          >
-            👤
-          </div>
-            
             <div className="separator"></div>
 
             <h3>{user.username}</h3>
@@ -337,8 +342,13 @@ export default function Perfil() {
             <h3>Últimas Reservas</h3>
             <p>Consulta o teu histórico</p>
 
-            <button className="btn-action" disabled title="Ainda por implementar">
-              Em breve
+            {/* ✅ ALTERADO: botão clicável */}
+            <button
+              className="btn-action"
+              onClick={() => navigate("/historico-reservas")}
+              type="button"
+            >
+              Ver histórico
             </button>
           </div>
 
@@ -381,9 +391,7 @@ export default function Perfil() {
                     <div className="stats-grid">
                       <div className="stat-card">
                         <div className="stat-label">Reservas totais</div>
-                        <div className="stat-value">
-                          {stats?.totalReservas ?? "—"}
-                        </div>
+                        <div className="stat-value">{stats?.totalReservas ?? "—"}</div>
                       </div>
 
                       <div className="stat-card">

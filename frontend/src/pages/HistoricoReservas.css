@@ -1,0 +1,140 @@
+.page-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.historico-page {
+  flex: 1;
+  padding: 28px 32px;
+  background: #f7f9fc;
+}
+
+.historico-header h1 {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.historico-header p {
+  margin-top: 6px;
+  color: #64748b;
+}
+
+.historico-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primary {
+  background: #e58b2a;
+  border: none;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  filter: brightness(0.97);
+}
+
+.btn-secondary {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.historico-state {
+  margin-top: 18px;
+  padding: 14px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.historico-error {
+  margin-top: 18px;
+  padding: 14px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 14px;
+  color: #b91c1c;
+}
+
+.historico-empty {
+  margin-top: 18px;
+  padding: 22px;
+  background: white;
+  border: 1px dashed #cbd5e1;
+  border-radius: 18px;
+}
+
+.historico-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 360px));
+  gap: 16px;
+}
+
+.historico-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  position: relative;
+}
+
+.historico-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.historico-badge.ativa {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.historico-badge.cancelada {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.historico-card-title {
+  margin-top: 34px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.historico-card-meta {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.historico-motivo {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #334155;
+}
+
+.historico-cancel {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #991b1b;
+}
