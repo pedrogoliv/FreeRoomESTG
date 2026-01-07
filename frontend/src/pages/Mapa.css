@@ -67,3 +67,26 @@
   font-weight: bold;
   opacity: 0.8;
 }
+
+.dot-entrada{
+  background-color: #22c55e;             
+  box-shadow: 0 0 14px rgba(34,197,94,.95);
+  border: 2px solid rgba(255,255,255,0.85);
+}
+
+.dot-destino{
+  background-color: #ffffff;             
+  box-shadow: 0 0 16px rgba(255,255,255,.95);
+  border: 2px solid rgba(0,0,0,0.35);
+}
+
+/* destino um pouco maior para destacar */
+.dot-destino{
+  width: 18px;
+  height: 18px;
+}
+
+/* hover menos "gigante" */
+.mapa-dot:hover {
+  transform: translate(-50%, -50%) scale(1.25);
+}

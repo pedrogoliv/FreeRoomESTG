@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { coordenadas } from "../data/mapaCoords";
@@ -6,36 +6,39 @@ import "./Mapa.css";
 
 export default function Mapa() {
   const location = useLocation();
+  console.log("MAPA state:", location.state);
 
   const [pisoAtivo, setPisoAtivo] = useState(Number(location.state?.pisoDestino) || 1);
 
-  const [statusSalas, setStatusSalas] = useState({});
-  const [loading, setLoading] = useState(true);
+  // sala destino (vem do navigate)
+  const salaDestinoRaw =
+    location.state?.salaDestino || location.state?.sala || location.state?.nomeSala || "";
+  const salaDestino = useMemo(() => String(salaDestinoRaw || "").trim(), [salaDestinoRaw]);
 
-  const hoje = new Date().toISOString().split("T")[0];
-  const agora = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+  // Entrada fixa 
+  const ENTRADA = useMemo(
+    () => ({
+      piso: 1,
+      top: "59%",
+      left: "31%",
+    }),
+    []
+  );
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  // procura coords da sala destino no piso ativo 
+  const pontoDestino = useMemo(() => {
+    if (!salaDestino) return null;
 
-  useEffect(() => {
-    setLoading(true);
-    fetch(`${API_BASE}/api/salas-livres?dia=${hoje}&hora=${agora}`)
-      .then((res) => res.json())
-      .then((dados) => {
-        const mapaStatus = {};
-        if (Array.isArray(dados)) {
-          dados.forEach((sala) => {
-            mapaStatus[sala.sala] = sala.status;
-          });
-        }
-        setStatusSalas(mapaStatus);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
+    return (
+      coordenadas.find(
+        (p) =>
+          String(p.sala).trim() === salaDestino && Number(p.piso) === Number(pisoAtivo)
+      ) || null
+    );
+  }, [salaDestino, pisoAtivo]);
+
+  // aviso quando a sala não existe no mapaCoords para esse piso
+  const showMissingWarning = Boolean(salaDestino) && !pontoDestino;
 
   return (
     <div className="dashboard-container">
@@ -44,7 +47,7 @@ export default function Mapa() {
       <main className="main-content">
         <header className="dashboard-header">
           <h1 className="dashboard-title">Planta da Escola</h1>
-          
+
           <div className="tabs">
             {[1, 2, 3].map((num) => (
               <button
@@ -59,34 +62,44 @@ export default function Mapa() {
         </header>
 
         <div className="mapa-wrapper">
-          {/* Certifica-te que as imagens estão em /public/assets/piso1.svg, etc. */}
-          <img 
-            src={`/assets/piso${pisoAtivo}.svg`} 
-            alt={`Mapa Piso ${pisoAtivo}`} 
+          <img
+            src={`/assets/piso${pisoAtivo}.svg`}
+            alt={`Mapa Piso ${pisoAtivo}`}
             className="mapa-imagem"
           />
 
-          {!loading && coordenadas.map((ponto) => {
-            // Filtra pelo piso ativo
-            if (Number(ponto.piso) !== pisoAtivo) return null;
-
-            const estado = statusSalas[ponto.sala] || "Desconhecido";
-            const classeCor = estado === "Livre" ? "dot-livre" : estado === "Ocupada" ? "dot-ocupada" : "dot-neutro";
-
-            return (
-              <div
-                key={ponto.sala}
-                className={`mapa-dot ${classeCor}`}
-                style={{ top: ponto.top, left: ponto.left }}
-              >
-                <div className="dot-tooltip">
-                  <strong>{ponto.sala}</strong>
-                  <br />
-                  <span className="dot-status">{estado}</span>
-                </div>
+          {pisoAtivo === ENTRADA.piso && (
+            <div
+              className="mapa-dot dot-entrada"
+              style={{ top: ENTRADA.top, left: ENTRADA.left }}
+              title="Entrada"
+            >
+              <div className="dot-tooltip">
+                <strong>Entrada</strong>
               </div>
-            );
-          })}
+            </div>
+          )}
+
+          {pontoDestino && (
+            <div
+              className="mapa-dot dot-destino"
+              style={{ top: pontoDestino.top, left: pontoDestino.left }}
+              title={pontoDestino.sala}
+            >
+              <div className="dot-tooltip">
+                <strong>{pontoDestino.sala}</strong>
+                <br />
+                <span className="dot-status">Destino</span>
+              </div>
+            </div>
+          )}
+
+          {showMissingWarning && (
+            <div className="mapa-warning">
+              Não há coordenadas para <strong>{salaDestino}</strong> no Piso{" "}
+              <strong>{pisoAtivo}</strong>.
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -76,7 +76,6 @@ export default function MinhasReservas() {
     if (!reserva?._id) return;
 
     const backup = reservas;
-    // UI Otimista: remove logo da lista
     removeReservaLocal(reserva._id);
     if (reservaSelecionada?._id === reserva._id) {
       setReservaSelecionada(null); // Fecha o modal se estiver aberto
@@ -136,11 +135,11 @@ export default function MinhasReservas() {
                 <p><strong>Pessoas:</strong> {getPessoas(reserva)}</p>
               </div>
 
-              {/* Botão Mapa */}
               <div 
                 className="map-link-card small" 
                 onClick={() => {
-                  navigate("/mapa", { state: { pisoDestino: piso } });
+                  const salaNome = sala?.sala ?? sala.nome ?? sala.id ?? "";
+                  navigate("/mapa", { state: { pisoDestino: Number(sala.piso) || 1, salaDestino: salaNome } });
                 }}
               >
                 <div className="map-icon-box"><FaMapMarkedAlt /></div>
@@ -151,7 +150,6 @@ export default function MinhasReservas() {
               </div>
             </div>
 
-            {/* Botão Cancelar (Só se for futura) */}
             {!passada && (
               <div className="modal-actions" style={{ marginTop: 20 }}>
                 <button

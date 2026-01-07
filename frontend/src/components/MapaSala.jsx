@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet"
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Fix dos ícones (Vite + Leaflet)
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -15,11 +14,31 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// 👉 Mete aqui as coordenadas “fixas” do edifício/entrada da ESTG (ajustas depois se quiseres)
-const ESTG_COORDS = { lat: 41.693333, lng: -8.846667 };
+// Entrada fixa (ajusta depois)
+const ENTRADA_ESTG = { lat: 41.693333, lng: -8.846667 };
+
+// helper OSRM (rota a pé)
+async function fetchRouteOSRM(from, to) {
+  const url =
+    `https://router.project-osrm.org/route/v1/foot/` +
+    `${from.lng},${from.lat};${to.lng},${to.lat}` +
+    `?overview=full&geometries=geojson`;
+
+  const r = await fetch(url);
+  const data = await r.json();
+
+  const coords = data?.routes?.[0]?.geometry?.coordinates;
+  if (!coords) return null;
+
+  // OSRM -> [lng, lat] ; Leaflet -> [lat, lng]
+  return coords.map(([lng, lat]) => [lat, lng]);
+}
 
 export default function MapaSala({ sala }) {
   const [userPos, setUserPos] = useState(null);
+  const [route, setRoute] = useState(null);
+
+  const destination = useMemo(() => ENTRADA_ESTG, []);
 
   // pedir localização (opcional)
   useEffect(() => {
@@ -27,25 +46,32 @@ export default function MapaSala({ sala }) {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setUserPos({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        });
+        setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
       () => {
-        // se o user recusar, não faz mal – fica só o marcador da ESTG
+        // se recusar, ok
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
   }, []);
 
-  const destination = useMemo(() => ESTG_COORDS, []);
-  const polyline = useMemo(() => {
-    if (!userPos) return null;
-    return [
-      [userPos.lat, userPos.lng],
-      [destination.lat, destination.lng],
-    ];
+  // buscar rota quando tiver userPos
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      if (!userPos) {
+        setRoute(null);
+        return;
+      }
+      const r = await fetchRouteOSRM(userPos, destination);
+      if (!cancelled) setRoute(r);
+    }
+
+    run();
+    return () => {
+      cancelled = true;
+    };
   }, [userPos, destination]);
 
   const openDirections = () => {
@@ -56,12 +82,7 @@ export default function MapaSala({ sala }) {
   return (
     <div className="map-section">
       <div className="map-card">
-        <MapContainer
-          center={[destination.lat, destination.lng]}
-          zoom={17}
-          scrollWheelZoom={false}
-          dragging={true}
-        >
+        <MapContainer center={[destination.lat, destination.lng]} zoom={17} scrollWheelZoom={false}>
           <TileLayer
             attribution='&copy; OpenStreetMap contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -69,22 +90,20 @@ export default function MapaSala({ sala }) {
 
           <Marker position={[destination.lat, destination.lng]}>
             <Popup>
-              <strong>ESTG</strong>
+              <strong>Entrada ESTG</strong>
               <br />
               Sala {sala?.nome ?? ""}
             </Popup>
           </Marker>
 
           {userPos && (
-            <>
-              <Marker position={[userPos.lat, userPos.lng]}>
-                <Popup>A tua localização</Popup>
-              </Marker>
-
-              {/* Linha simples (tipo “rota”) */}
-              {polyline && <Polyline positions={polyline} />}
-            </>
+            <Marker position={[userPos.lat, userPos.lng]}>
+              <Popup>A tua localização</Popup>
+            </Marker>
           )}
+
+          {/* rota real */}
+          {route && <Polyline positions={route} />}
         </MapContainer>
       </div>
 

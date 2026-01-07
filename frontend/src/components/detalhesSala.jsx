@@ -295,7 +295,8 @@ export default function DetalhesSala({
               <div 
                 className="map-link-card small" 
                 onClick={() => {
-                  navigate("/mapa", { state: { pisoDestino: sala.piso } });
+                  const salaNome = sala?.sala ?? sala?.nome ?? sala?.id ?? "";
+                  navigate("/mapa", { state: { pisoDestino: Number(sala.piso) || 1, salaDestino: salaNome } });
                 }}
               >
                 <div className="map-icon-box"><FaMapMarkedAlt /></div>
