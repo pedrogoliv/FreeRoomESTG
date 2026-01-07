@@ -12,15 +12,23 @@ function formatDia(iso) {
   return `${d}/${m}/${y}`;
 }
 
+function isReservaPassada(r) {
+  const dia = String(r?.dia || "").slice(0, 10);
+  const horaRef = r?.hora_fim || r?.hora_inicio;
+  if (!dia || !horaRef) return false;
+
+  const dt = new Date(`${dia}T${horaRef}:00`);
+  if (Number.isNaN(dt.getTime())) return false;
+
+  return dt.getTime() < Date.now();
+}
+
 export default function HistoricoReservas() {
   const navigate = useNavigate();
 
-  // ✅ Lê do mesmo sítio que o resto da app (sessionStorage)
-  // (e se quiseres, faz fallback para localStorage)
   const user = useMemo(() => {
     try {
-      const stored =
-        sessionStorage.getItem("user") || localStorage.getItem("user");
+      const stored = sessionStorage.getItem("user") || localStorage.getItem("user");
       return JSON.parse(stored || "null");
     } catch {
       return null;
@@ -40,9 +48,7 @@ export default function HistoricoReservas() {
     setErro("");
 
     try {
-      const resp = await fetch(
-        `${API_BASE}/api/reservas-historico/${username}?limit=50`
-      );
+      const resp = await fetch(`${API_BASE}/api/reservas-historico/${username}?limit=50`);
       const data = await resp.json().catch(() => ({}));
 
       if (!resp.ok || !data?.success) {
@@ -58,7 +64,6 @@ export default function HistoricoReservas() {
   }, [username]);
 
   useEffect(() => {
-    // ✅ Se não estiver autenticado, manda para login (não para "/")
     if (!username) {
       navigate("/login");
       return;
@@ -73,20 +78,7 @@ export default function HistoricoReservas() {
       <div className="historico-page">
         <div className="historico-header">
           <h1>Histórico de Reservas</h1>
-          <p>Consulta as tuas últimas reservas (ativas e canceladas).</p>
-
-          <div className="historico-actions">
-            <button
-              className="btn-secondary"
-              type="button"
-              onClick={() => navigate("/perfil")}
-            >
-              Voltar ao Perfil
-            </button>
-            <button className="btn-primary" type="button" onClick={fetchHistorico}>
-              Atualizar
-            </button>
-          </div>
+          <p>Consulta as tuas últimas reservas (ativas, concluídas e canceladas).</p>
         </div>
 
         {loading && <div className="historico-state">A carregar…</div>}
@@ -103,18 +95,23 @@ export default function HistoricoReservas() {
         {!loading && !erro && reservas.length > 0 && (
           <div className="historico-grid">
             {reservas.map((r) => {
-              const status = r?.status || "ativa";
-              const isCancelada = status === "cancelada";
+              const statusRaw = r?.status || "ativa";
+              const isCancelada = statusRaw === "cancelada";
+              const isPassada = !isCancelada && isReservaPassada(r);
+
+              // ✅ 3 estados finais
+              const statusFinal = isCancelada ? "cancelada" : isPassada ? "concluida" : "ativa";
+
+              const badgeText =
+                statusFinal === "cancelada"
+                  ? "CANCELADA"
+                  : statusFinal === "concluida"
+                  ? "CONCLUÍDA"
+                  : "ATIVA";
 
               return (
                 <div key={r._id} className="historico-card">
-                  <div
-                    className={`historico-badge ${
-                      isCancelada ? "cancelada" : "ativa"
-                    }`}
-                  >
-                    {isCancelada ? "CANCELADA" : "ATIVA"}
-                  </div>
+                  <div className={`historico-badge ${statusFinal}`}>{badgeText}</div>
 
                   <div className="historico-card-title">{r?.sala || "Sala —"}</div>
 
@@ -123,8 +120,7 @@ export default function HistoricoReservas() {
                       <strong>Dia:</strong> {formatDia(r?.dia)}
                     </span>
                     <span>
-                      <strong>Hora:</strong> {r?.hora_inicio || "—"} -{" "}
-                      {r?.hora_fim || "—"}
+                      <strong>Hora:</strong> {r?.hora_inicio || "—"} - {r?.hora_fim || "—"}
                     </span>
                     <span>
                       <strong>Pessoas:</strong> {r?.pessoas ?? 1}
@@ -137,8 +133,14 @@ export default function HistoricoReservas() {
                     </div>
                   ) : null}
 
-                  {isCancelada && r?.canceledAt ? (
-                    <div className="historico-cancel">
+                  {statusFinal === "concluida" ? (
+                    <div className="historico-note concluida">
+                      <strong>Estado:</strong> Reserva concluída (já passou).
+                    </div>
+                  ) : null}
+
+                  {statusFinal === "cancelada" && r?.canceledAt ? (
+                    <div className="historico-note cancelada">
                       <strong>Cancelada em:</strong>{" "}
                       {new Date(r.canceledAt).toLocaleString("pt-PT")}
                     </div>
