@@ -109,7 +109,6 @@ export default function Registar() {
 
   return (
     <div className="loginPage">
-      <div className="orangeCircle" aria-hidden="true" />
 
       <div className="loginContent">
         

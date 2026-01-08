@@ -1,66 +1,65 @@
 /* ===========================
    Página Registar - FreeRoom
-   (Fix: remover scroll e compactar card)
+   (Versão Clean Gradient - Sem Scroll)
    =========================== */
 
-/* Garante que não há overflow global */
-html,
-body {
+html, body {
   height: 100%;
   margin: 0;
 }
 
 .loginPage {
   position: relative;
-  height: 100vh;          /* ocupa o ecrã inteiro */
-  overflow: hidden;       /* remove scroll da página */
-  background: #0f172a;    /* fundo escuro (coerente com o teu layout) */
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; /* Remove scroll */
+  
+  /* FUNDO: Azul escuro com uma "luz" laranja no canto superior direito */
+  background-color: #0f172a;
+  background-image: radial-gradient(
+    circle at 50% 0%, 
+    rgba(255, 176, 40, 0.236) 0%, 
+    transparent 50%
+  );
+
+  /* Centralizar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* círculo laranja decorativo (mantém, mas sem empurrar layout) */
-.orangeCircle {
-  position: absolute;
-  left: -220px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 520px;
-  height: 520px;
-  border-radius: 50%;
-  background: rgba(227, 139, 44, 0.7);
-  filter: blur(2px);
-  z-index: 0;
-}
+/* (Removemos ::before e ::after e .orangeCircle - o background acima faz o trabalho) */
 
-/* Content centrado */
+/* --- LAYOUT --- */
+
 .loginContent {
   position: relative;
-  z-index: 1;
-
-  height: 100%;
+  z-index: 10;
+  width: 100%;
+  /* Padding pequeno para garantir que cabe em ecrãs pequenos */
+  padding: 20px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  /* padding pequeno para não criar overflow */
-  padding: 18px 16px;
-  box-sizing: border-box;
 }
 
-/* Brand (logo + texto) */
+/* Brand */
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px; /* menos espaço para caber sem scroll */
+  margin-bottom: 20px;
 }
 
 .logo-icon {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(226, 232, 240, 0.12);
+  background: rgba(15, 23, 42, 0.5); /* Mais subtil */
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,83 +68,77 @@ body {
 .brandTitle {
   display: flex;
   flex-direction: column;
-  line-height: 1.05;
+  line-height: 1;
   font-weight: 900;
   color: #ffffff;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
 }
 
 .brandTitle .highlight {
   color: #E38B2C;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 900;
 }
 
 /* Card */
 .loginCard {
-  width: min(460px, 92vw);
+  width: 100%;
+  max-width: 400px; /* Largura controlada */
   background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
-  border: 1px solid #eef0f4;
-
-  /* ✅ compactar para caber */
-  padding: 22px 26px;
-
-  /* ✅ garante que nunca passa do ecrã */
-  max-height: calc(100vh - 120px); /* espaço para brand + padding */
+  border-radius: 20px;
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3); /* Sombra boa */
+  border: 1px solid #e2e8f0;
+  
+  padding: 30px; /* Espaço interno confortável */
   box-sizing: border-box;
-
-  display: flex;
-  flex-direction: column;
 }
 
 /* Título */
 .loginTitle {
-  margin: 0 0 14px 0;
+  margin: 0 0 20px 0;
   text-align: center;
-  font-size: 1.15rem;
-  font-weight: 900;
+  font-size: 1.3rem;
+  font-weight: 800;
   color: #1e293b;
-  letter-spacing: 0.04em;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Form */
+/* Formulário */
 .loginForm {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* menos espaço entre campos */
+  gap: 12px; /* Espaço uniforme */
 }
 
 /* Labels */
 .label {
   display: block;
-  margin: 0 0 6px 0;
-  font-size: 0.88rem;
-  font-weight: 900;
-  color: #334155;
+  margin: 0 0 4px 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
 }
 
-/* Inputs */
+/* Inputs Genéricos (Para ficarem iguais ao Select) */
 .input {
   width: 100%;
-  height: 42px;           /* ✅ mais baixo para caber */
-  padding: 10px 12px;
+  height: 44px;
+  padding: 0 12px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 2px solid #e2e8f0;
   background: #f8fafc;
   outline: none;
   box-sizing: border-box;
   font-size: 0.95rem;
   color: #1e293b;
+  font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .input:focus {
   border-color: #E38B2C;
   background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1);
 }
 
 /* Mensagens */
@@ -153,125 +146,59 @@ body {
   background: #fff1f2;
   border: 1px solid #fecdd3;
   color: #be123c;
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 0.9rem;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center;
 }
 
 /* Botão */
 .btn {
-  height: 44px;           /* ✅ mais baixo */
-  margin-top: 4px;
+  height: 48px;
+  margin-top: 10px;
   background: #E38B2C;
   color: #ffffff;
   border: none;
   border-radius: 12px;
-  font-weight: 900;
+  font-weight: 800;
+  font-size: 1rem;
   cursor: pointer;
-  transition: 0.15s ease;
+  transition: 0.2s ease;
+  box-shadow: 0 4px 10px rgba(227, 139, 44, 0.2);
+
+  display: flex;
+  align-items: center;     /* Centra na vertical */
+  justify-content: center; /* Centra na horizontal */
+  padding: 0;
 }
 
 .btn:hover {
-  filter: brightness(0.95);
+  filter: brightness(1.05);
   transform: translateY(-1px);
 }
 
 .btn:disabled {
-  opacity: 0.65;
+  opacity: 0.7;
   cursor: not-allowed;
-  transform: none;
+}
+
+/* Footer Link */
+.loginCard div[style*="text-align: center"] {
+  margin-top: 15px !important;
 }
 
 /* ===========================
-   React-Select (Curso) - Estilo FreeRoom
-   (mantive o que tinhas, só compacteí a altura)
+   React-Select (Mantido igual)
    =========================== */
+.select-container { font-size: 0.95rem; }
+.select__control { border: 2px solid #e2e8f0 !important; background: #f8fafc !important; border-radius: 12px !important; min-height: 44px !important; padding-left: 6px; box-shadow: none !important; transition: all 0.2s !important; }
+.select__control--is-focused { border-color: #E38B2C !important; background: #ffffff !important; box-shadow: none !important; }
+.select__single-value { color: #1e293b !important; font-weight: 500 !important; }
+.select__indicator { color: #64748b !important; }
+.select__indicator:hover { color: #1e293b !important; }
+.select__menu { border-radius: 12px !important; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important; border: 1px solid #e2e8f0 !important; z-index: 100 !important; }
+.select__option { padding: 12px 14px !important; font-weight: 500 !important; }
+.select__option--is-focused { background: rgba(227, 139, 44, 0.12) !important; color: #E38B2C !important; }
+.select__option--is-selected { background: #E38B2C !important; color: white !important; }
 
-.select-container {
-  font-size: 0.95rem;
-}
-
-/* Control (a "caixa" principal) */
-.select__control {
-  border: 1px solid #e2e8f0 !important;
-  background: #f8fafc !important;
-  border-radius: 12px !important;
-  min-height: 42px !important;  /* ✅ antes 48px */
-  padding-left: 6px;
-  box-shadow: none !important;
-  transition: all 0.2s !important;
-}
-
-/* Quando está focado */
-.select__control--is-focused {
-  border-color: #E38B2C !important;
-  background: #ffffff !important;
-  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1) !important;
-}
-
-/* Valor selecionado */
-.select__single-value {
-  color: #1e293b !important;
-}
-
-/* Setinha */
-.select__indicator {
-  color: #64748b !important;
-}
-
-.select__indicator:hover {
-  color: #1e293b !important;
-}
-
-/* Menu dropdown */
-.select__menu {
-  border-radius: 12px !important;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
-  border: 1px solid #e2e8f0 !important;
-}
-
-/* Opções */
-.select__option {
-  padding: 12px 14px !important;
-}
-
-.select__option--is-focused {
-  background: rgba(227, 139, 44, 0.12) !important;
-}
-
-.select__option--is-selected {
-  background: #E38B2C !important;
-  color: white !important;
-}
-
-/* ===========================
-   Ajustes para ecrãs mais baixos
-   =========================== */
-@media (max-height: 780px) {
-  .brand {
-    margin-bottom: 10px;
-  }
-
-  .loginCard {
-    padding: 18px 22px;
-    max-height: calc(100vh - 100px);
-  }
-
-  .loginTitle {
-    margin-bottom: 10px;
-  }
-
-  .loginForm {
-    gap: 8px;
-  }
-
-  .input {
-    height: 40px;
-  }
-
-  .btn {
-    height: 42px;
-  }
-}
