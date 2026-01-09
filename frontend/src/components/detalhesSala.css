@@ -118,7 +118,7 @@
 /* Usado para: [Dia | Pessoas] e [Inicio | Fim] */
 .reserva-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 50% / 50% */
+  grid-template-columns: 1fr 1fr; 
   gap: 15px;
   margin-bottom: 15px;
 }
