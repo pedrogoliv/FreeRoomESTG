@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
-// Removi FaTrash pois já não vamos usar no cartão
 import "./Favoritos.css";
 
 export default function Favoritos() {
@@ -10,6 +9,9 @@ export default function Favoritos() {
   const [user, setUser] = useState(null);
   const [favoritosIds, setFavoritosIds] = useState([]);
   const [loadingFav, setLoadingFav] = useState(true);
+
+  // ✅ ESTADO PARA NOTIFICAÇÃO UNDO
+  const [undoToast, setUndoToast] = useState(null);
 
   // Modal
   const [salaSelecionada, setSalaSelecionada] = useState(null);
@@ -42,13 +44,48 @@ export default function Favoritos() {
     return "1";
   }
 
-  async function removerFavorito(salaId) {
+  // ✅ FUNÇÃO DE REMOVER COM UNDO (Lógica igual ao Dashboard)
+  async function toggleFavorito(salaId) {
     if (!user?.username) return;
     const sid = String(salaId);
     
-    // UI Otimista
-    setFavoritosIds((prev) => prev.filter((id) => String(id) !== sid));
+    // Verifica se estamos a remover (nesta página é quase sempre remover, mas convém verificar)
+    const isRemoving = favoritosIds.includes(sid);
 
+    // Atualiza a lista visualmente
+    setFavoritosIds((prev) => {
+      if (prev.includes(sid)) return prev.filter((id) => id !== sid);
+      return [...prev, sid];
+    });
+
+    // Gere a notificação
+    if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
+    
+    const timer = setTimeout(() => {
+      setUndoToast(null);
+    }, 4000);
+
+    if (isRemoving) {
+      // ✅ Mostra aviso de remoção com botão UNDO
+      setUndoToast({
+        show: true,
+        type: 'remove',
+        salaId: sid,
+        text: 'Removido dos favoritos.',
+        timeoutId: timer
+      });
+    } else {
+      // ✅ Mostra aviso de adição (caso faças Undo)
+      setUndoToast({
+        show: true,
+        type: 'add',
+        salaId: sid,
+        text: 'Adicionado aos favoritos!',
+        timeoutId: timer
+      });
+    }
+
+    // Chama API
     try {
       await fetch(`${API_BASE}/api/favoritos`, {
         method: "POST",
@@ -56,10 +93,22 @@ export default function Favoritos() {
         body: JSON.stringify({ username: user.username, salaId: sid }),
       });
     } catch (e) {
-      setFavoritosIds((prev) => [...prev, sid]);
-      setMsg("❌ Erro ao remover favorito.");
+      console.error(e);
+      setMsg("❌ Erro ao atualizar favorito.");
     }
   }
+
+  // ✅ FUNÇÃO DESFAZER
+  const handleUndo = () => {
+    if (!undoToast || undoToast.type !== 'remove') return;
+
+    // Volta a adicionar a sala
+    toggleFavorito(undoToast.salaId);
+    
+    // Fecha o aviso imediatamente
+    setUndoToast(null);
+  };
+
 
   function getNowDiaHoraSlot() {
     const now = new Date();
@@ -135,13 +184,12 @@ export default function Favoritos() {
 
                   <div className="card-body">
                     
-                    {/* ✅ MUDANÇA AQUI: Nome à esquerda, Piso à direita */}
+                    {/* Nome à esquerda, Piso à direita */}
                     <div className="card-header-row">
                       <div className="sala-nome">Sala {id}</div>
                       <span className="sala-piso-badge">🏢 Piso {pisoVisual}</span>
                     </div>
                     
-                    {/* Espaçamento extra antes do botão */}
                     <div style={{ marginTop: "15px" }}>
                       <button
                         className="btn-details"
@@ -158,12 +206,29 @@ export default function Favoritos() {
           </div>
         )}
 
+        {/* ✅ COMPONENTE VISUAL DA NOTIFICAÇÃO (Igual ao Dashboard) */}
+        {undoToast && undoToast.show && (
+          <div className={`undo-toast ${undoToast.type === "add" ? "success" : ""}`}>
+            <span>
+              {undoToast.type === "add" ? "✅ " : "🗑️ "} 
+              {undoToast.text}
+            </span>
+            
+            {undoToast.type === "remove" && (
+              <button className="undo-btn" onClick={handleUndo}>
+                Desfazer
+              </button>
+            )}
+          </div>
+        )}
+
         {salaSelecionada && (
           <DetalhesSala
             sala={salaSelecionada}
             onClose={() => setSalaSelecionada(null)}
             isFavorito={favoritosIds.includes(String(salaSelecionada.sala))}
-            onToggleFavorito={() => removerFavorito(salaSelecionada.sala)}
+            // ✅ Agora chamamos o toggleFavorito em vez do removerFavorito antigo
+            onToggleFavorito={() => toggleFavorito(salaSelecionada.sala)}
             user={user}
             bloqueado={false}
             onReservaSucesso={() => setSalaSelecionada(null)}

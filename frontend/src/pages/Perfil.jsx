@@ -3,14 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import Sidebar from "../components/Sidebar";
 import "./Perfil.css";
-
-// ✅ NOVO
 import { useNavigate } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function Perfil() {
-  // ✅ NOVO
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
@@ -31,6 +28,17 @@ export default function Perfil() {
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsErr, setStatsErr] = useState("");
+
+  // ✅ NOVA FUNÇÃO: Formatar tempo (0.5 -> 30 min)
+  const formatarTempo = (horasDecimais) => {
+    if (!horasDecimais) return "0 min";
+    const h = Math.floor(horasDecimais);
+    const m = Math.round((horasDecimais - h) * 60);
+
+    if (h > 0 && m > 0) return `${h}h ${m}m`;
+    if (h > 0) return `${h}h`;
+    return `${m} min`;
+  };
 
   useEffect(() => {
     const stored = sessionStorage.getItem("user");
@@ -194,7 +202,6 @@ export default function Perfil() {
     }
   }
 
-  // --- RETURN 1: LOADING ---
   if (!user) {
     return (
       <div className="dashboard-container">
@@ -211,7 +218,6 @@ export default function Perfil() {
     );
   }
 
-  // --- RETURN 2: CONTEÚDO PRINCIPAL ---
   return (
     <div className="dashboard-container">
       <Sidebar />
@@ -231,7 +237,6 @@ export default function Perfil() {
                 ✏️ Editar
               </button>
             ) : (
-              // Os botões de ação ficam no topo, ocupando o seu espaço natural
               <div className="edit-actions">
                 <button
                   className="btn-secondary"
@@ -342,7 +347,6 @@ export default function Perfil() {
             <h3>Últimas Reservas</h3>
             <p>Consulta o teu histórico</p>
 
-            {/* ✅ ALTERADO: botão clicável */}
             <button
               className="btn-action"
               onClick={() => navigate("/historico-reservas")}
@@ -365,7 +369,7 @@ export default function Perfil() {
           </div>
         </div>
 
-
+        {/* MODAL ESTATÍSTICAS */}
         {statsOpen && (
           <div className="modal-overlay" onClick={() => setStatsOpen(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -385,29 +389,36 @@ export default function Perfil() {
                       
                       {/* CARD 1: RESERVAS */}
                       <div className="stat-card">
-                        <div className="stat-icon-bg">📅</div>
-                        <div className="stat-info">
-                          <div className="stat-value">{stats?.totalReservas ?? 0}</div>
-                          <div className="stat-label">Reservas Totais</div>
+                        <div className="stat-icon-bg">
+                          <span role="img" aria-label="calendario">📅</span>
                         </div>
+                        <div className="stat-value">
+                          {stats?.totalReservas ?? 0}
+                        </div>
+                        <div className="stat-label">Reservas Totais</div>
                       </div>
 
-                      {/* CARD 2: HORAS */}
+                      {/* CARD 2: HORAS (FORMATADO) */}
                       <div className="stat-card">
-                        <div className="stat-icon-bg">⏳</div>
-                        <div className="stat-info">
-                          <div className="stat-value">{stats?.totalHoras ?? 0}h</div>
-                          <div className="stat-label">Tempo em Sala</div>
+                        <div className="stat-icon-bg">
+                          <span role="img" aria-label="tempo">⏳</span>
                         </div>
+                        {/* ✅ AQUI ESTÁ A MUDANÇA */}
+                        <div className="stat-value">
+                          {formatarTempo(stats?.totalHoras)}
+                        </div>
+                        <div className="stat-label">Tempo em Sala</div>
                       </div>
 
                       {/* CARD 3: SALA FAVORITA */}
                       <div className="stat-card">
-                        <div className="stat-icon-bg">📍</div>
-                        <div className="stat-info">
-                          <div className="stat-value highlight">{stats?.salaTop ?? "—"}</div>
-                          <div className="stat-label">Sala Mais Usada</div>
+                        <div className="stat-icon-bg">
+                          <span role="img" aria-label="pin">📍</span>
                         </div>
+                        <div className={`stat-value ${stats?.salaTop === "---" ? "" : "highlight"}`}>
+                          {stats?.salaTop ?? "---"}
+                        </div>
+                        <div className="stat-label">Sala Mais Usada</div>
                       </div>
 
                     </div>

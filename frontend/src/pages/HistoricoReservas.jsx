@@ -132,11 +132,6 @@ export default function HistoricoReservas() {
                     </div>
                   ) : null}
 
-                  {statusFinal === "concluida" ? (
-                    <div className="historico-note concluida">
-                      <strong>Estado:</strong> Reserva concluída (já passou).
-                    </div>
-                  ) : null}
 
                   {statusFinal === "cancelada" && r?.canceledAt ? (
                     <div className="historico-note cancelada">

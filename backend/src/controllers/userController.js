@@ -95,10 +95,21 @@ exports.getUserStats = async (req, res) => {
     }
 
     const totalHoras = Math.round((totalMin / 60) * 10) / 10;
-    const salaTop = Object.entries(salaCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
     
-    // REMOVIDO: Dia Favorito
+    // --- Lógica Sala Mais Usada (Só mostra se houver > 1 reserva) ---
+    const salasOrdenadas = Object.entries(salaCount).sort((a, b) => b[1] - a[1]);
+    let salaTop = "---";
 
+    if (salasOrdenadas.length > 0) {
+      const [nomeSala, qtdReservas] = salasOrdenadas[0];
+      // Só define como "Top" se tiver mais do que 1 reserva na mesma sala
+      // (E podes adicionar "&& totalReservas > 1" para garantir que tens várias reservas no total)
+      if (qtdReservas > 1) {
+        salaTop = nomeSala;
+      }
+      // Caso tenhas 2 reservas mas em salas diferentes (1 cada), qtdReservas será 1, logo fica "---"
+    }
+    
     return res.json({ success: true, stats: { totalReservas, totalHoras, salaTop } });
 
   } catch (err) {

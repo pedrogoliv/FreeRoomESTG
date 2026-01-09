@@ -1,5 +1,7 @@
 /* src/pages/Mapa.css */
 
+/* src/pages/Mapa.css */
+
 /* --- 1. APENAS PARA A PÁGINA MAPA (.page-mapa) --- */
 
 /* Fundo escuro SÓ nesta página */
@@ -13,26 +15,34 @@
   color: #ffffff;
 }
 
-/* Tabs (Piso 1, Piso 2...) */
-.tabs {
+/* Tabs (Piso 1, Piso 2...) - AGORA ESPECÍFICAS PARA O MAPA */
+.page-mapa .tabs {
   display: flex; gap: 10px; margin-bottom: 20px;
 }
 
-.tab {
-  background: #334155; 
-  color: #94a3b8; 
+/* ✅ AQUI ESTÁ O TRUQUE: Adicionei .page-mapa antes */
+.page-mapa .tab {
+  background: #334155; /* Fundo Escuro */
+  color: #94a3b8;      /* Texto Cinza */
   border: none;
   padding: 10px 20px; 
   border-radius: 8px; 
   font-weight: 700; 
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: none;    /* Remove sombras do estilo light */
 }
 
-.tab.active {
+.page-mapa .tab:hover {
+  background: #475569; /* Ligeiramente mais claro */
+  color: white;
+}
+
+.page-mapa .tab.active {
   background: #E38B2C; 
   color: white; 
   transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(227, 139, 44, 0.4);
 }
 
 /* Contentor do Mapa (A caixa preta onde está a imagem) */
