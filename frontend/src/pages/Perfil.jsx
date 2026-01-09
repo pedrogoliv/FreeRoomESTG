@@ -365,56 +365,57 @@ export default function Perfil() {
           </div>
         </div>
 
+
         {statsOpen && (
           <div className="modal-overlay" onClick={() => setStatsOpen(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h2>📊 Estatísticas</h2>
-                <button
-                  className="btn-close"
-                  onClick={() => setStatsOpen(false)}
-                  type="button"
-                >
-                  &times;
-                </button>
+                <button className="btn-close" onClick={() => setStatsOpen(false)}>&times;</button>
               </div>
 
               <div className="modal-body">
                 {statsLoading ? (
-                  <p style={{ color: "#64748b" }}>A carregar...</p>
+                  <p style={{ color: "#64748b", textAlign: "center", padding: "20px" }}>A calcular...</p>
                 ) : statsErr ? (
-                  <div className="warning-box">
-                    <strong>⚠️</strong> {statsErr}
-                  </div>
+                  <div className="warning-box"><strong>⚠️</strong> {statsErr}</div>
                 ) : (
                   <>
                     <div className="stats-grid">
+                      
+                      {/* CARD 1: RESERVAS */}
                       <div className="stat-card">
-                        <div className="stat-label">Reservas totais</div>
-                        <div className="stat-value">{stats?.totalReservas ?? "—"}</div>
+                        <div className="stat-icon-bg">📅</div>
+                        <div className="stat-info">
+                          <div className="stat-value">{stats?.totalReservas ?? 0}</div>
+                          <div className="stat-label">Reservas Totais</div>
+                        </div>
                       </div>
 
+                      {/* CARD 2: HORAS */}
                       <div className="stat-card">
-                        <div className="stat-label">Horas reservadas</div>
-                        <div className="stat-value">{stats?.totalHoras ?? "—"}</div>
+                        <div className="stat-icon-bg">⏳</div>
+                        <div className="stat-info">
+                          <div className="stat-value">{stats?.totalHoras ?? 0}h</div>
+                          <div className="stat-label">Tempo em Sala</div>
+                        </div>
                       </div>
 
+                      {/* CARD 3: SALA FAVORITA */}
                       <div className="stat-card">
-                        <div className="stat-label">Sala mais usada</div>
-                        <div className="stat-value">{stats?.salaTop ?? "—"}</div>
+                        <div className="stat-icon-bg">📍</div>
+                        <div className="stat-info">
+                          <div className="stat-value highlight">{stats?.salaTop ?? "—"}</div>
+                          <div className="stat-label">Sala Mais Usada</div>
+                        </div>
                       </div>
 
-                      <div className="stat-card">
-                        <div className="stat-label">Dia favorito</div>
-                        <div className="stat-value">{stats?.diaTop ?? "—"}</div>
-                      </div>
                     </div>
 
                     <button
                       className="btn-action"
                       onClick={() => setStatsOpen(false)}
-                      style={{ marginTop: 14 }}
-                      type="button"
+                      style={{ marginTop: 20, width: "100%" }}
                     >
                       Fechar
                     </button>

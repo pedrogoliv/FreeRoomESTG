@@ -30,49 +30,34 @@
   color: #1e293b;
 }
 
-.titulo-pagina {
-  color: #E38B2C;
-  margin: 0 0 30px 0;
-  font-size: 2rem;
-  font-weight: 900;
-}
-
-/* Grid: centrado */
+/* Grid Principal: centrado */
 .cards-grid {
   flex: 1;
   display: flex;
   gap: 30px;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-start; /* Altera de 'center' para 'flex-start' para evitar problemas de altura */
+  align-items: flex-start;
   align-content: flex-start;
-
-  /* ✅ ALTERAÇÃO: centrar o "bloco" de cards e evitar ficar puxado para um lado */
   width: 100%;
-  max-width: 1200px;     /* ajusta se quiseres mais/menos largura total */
-  margin: 0 auto;        /* centra a grelha dentro do main */
+  max-width: 1200px;
+  margin: 0 auto;
   padding-top: 20px;
 }
 
-/* --- CARD (CORRIGIDO) --- */
+/* --- CARD --- */
 .card {
   background: #ffffff;
   width: 340px;
-
-  /* ✅ CORREÇÃO DE ALTURA */
   min-height: 380px; /* Altura base mínima */
   height: auto;      /* Permite crescer se necessário */
-
   border-radius: 18px;
   box-shadow: 0 6px 18px rgba(17, 24, 39, 0.08);
   border: 1px solid #eef0f4;
-
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* justify-content: center; <-- Remove isto para os elementos não ficarem a saltar */
-  padding: 30px 26px; /* Mais padding vertical */
-
+  padding: 30px 26px;
   position: relative;
   text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -83,7 +68,7 @@
   box-shadow: 0 12px 24px rgba(227, 139, 44, 0.15);
 }
 
-/* icon */
+/* Icon Principal (Perfil, Relógio, Gráfico) */
 .icon-circle {
   width: 80px;
   height: 80px;
@@ -95,12 +80,10 @@
   margin-bottom: 26px;
   font-size: 2rem;
   color: white;
-
-  /* Garante transição suave se precisarmos de mexer na margem */
   transition: margin-top 0.3s ease;
 }
 
-/* separator */
+/* Separator */
 .separator {
   width: 52px;
   height: 4px;
@@ -109,7 +92,7 @@
   margin-bottom: 22px;
 }
 
-/* textos */
+/* Textos do Card Principal */
 .card h3 {
   font-size: 1.2rem;
   color: #1f2a37;
@@ -123,24 +106,20 @@
   margin: 0;
 }
 
-/* Botão principal (Ver / Fechar / etc.) */
+/* Botão de Ação (Ver / Fechar / etc.) */
 .btn-action {
   background-color: #E38B2C;
-  color: #ffffff; /* Garante branco puro */
+  color: #ffffff;
   border: none;
   padding: 10px 44px;
   border-radius: 12px;
-  
-  /* AJUSTE PARA MELHORAR LEGIBILIDADE */
-  font-weight: 700; /* Força o Bold limpo (não 800/900) */
-  -webkit-font-smoothing: antialiased; /* Torna a fonte mais nítida */
-  -moz-osx-font-smoothing: grayscale;
-
+  font-weight: 700;
+  -webkit-font-smoothing: antialiased;
   cursor: pointer;
   margin-top: auto; 
   margin-bottom: 10px; 
   transition: 0.15s ease;
-  font-size: 0.95rem; /* Um pouco maior ajuda a ler melhor a branco */
+  font-size: 0.95rem;
 }
 
 .btn-action:hover {
@@ -148,13 +127,7 @@
   transform: translateY(-1px);
 }
 
-.btn-action:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Botão Editar (quando não está a editar) */
+/* Botão Editar e Ações */
 .btn-edit {
   position: absolute;
   top: 14px;
@@ -175,10 +148,8 @@
   transform: translateY(-1px);
 }
 
-/* Ações de edição (Cancelar / Guardar) */
 .edit-actions {
-  /* Em vez de position: absolute, deixamos relativo para ocupar espaço no topo */
-  position: absolute; /* Mantemos absoluto para ficar no topo */
+  position: absolute;
   top: 14px;
   right: 14px;
   display: flex;
@@ -225,7 +196,7 @@
   transform: none;
 }
 
-/* Form no card */
+/* Formulário no card */
 .form-stack {
   width: 100%;
   margin-top: 12px;
@@ -258,81 +229,24 @@
   box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1);
 }
 
-.field-control:disabled {
-  opacity: 0.75;
-  cursor: not-allowed;
-}
-
 /* =========================
    React Select Styles
    ========================= */
-
-.select-container {
-  font-size: 0.95rem;
-}
-
-.select__control {
-  border: 1px solid #e2e8f0 !important;
-  background: #f8fafc !important;
-  border-radius: 12px !important;
-  min-height: 48px !important;
-  padding-left: 6px;
-  box-shadow: none !important;
-  transition: all 0.2s !important;
-}
-
-.select__control--is-focused {
-  border-color: #E38B2C !important;
-  background: #ffffff !important;
-  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1) !important;
-}
-
-.select__placeholder {
-  color: #94a3b8 !important;
-}
-
-.select__single-value {
-  color: #1e293b !important;
-}
-
-.select__indicator {
-  color: #64748b !important;
-}
-
-.select__indicator:hover {
-  color: #1e293b !important;
-}
-
-.select__menu {
-  border-radius: 12px !important;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important;
-  border: 1px solid #e2e8f0 !important;
-  z-index: 100 !important; /* Importante para passar por cima de outros cards */
-}
-
-.select__option {
-  padding: 12px 14px !important;
-}
-
-.select__option--is-focused {
-  background: rgba(227, 139, 44, 0.12) !important;
-}
-
-.select__option--is-selected {
-  background: #E38B2C !important;
-  color: white !important;
-}
+.select-container { font-size: 0.95rem; }
+.select__control { border: 1px solid #e2e8f0 !important; background: #f8fafc !important; border-radius: 12px !important; min-height: 48px !important; padding-left: 6px; box-shadow: none !important; transition: all 0.2s !important; }
+.select__control--is-focused { border-color: #E38B2C !important; background: #ffffff !important; box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1) !important; }
+.select__placeholder { color: #94a3b8 !important; }
+.select__single-value { color: #1e293b !important; }
+.select__menu { border-radius: 12px !important; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important; border: 1px solid #e2e8f0 !important; z-index: 100 !important; }
+.select__option--is-selected { background: #E38B2C !important; color: white !important; }
 
 /* =========================
-   MODAL (stats)
+   MODAL (STATS ATUALIZADO)
    ========================= */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
@@ -344,10 +258,10 @@
 
 .modal-content {
   background: white;
-  width: 92%;
-  max-width: 520px;
+  width: 95%;
+  max-width: 600px; /* Um pouco mais largo para caber as 3 colunas bem */
   border-radius: 20px;
-  padding: 22px;
+  padding: 25px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
   position: relative;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -357,74 +271,103 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 .modal-header h2 {
   margin: 0;
   color: #1e293b;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 900;
 }
 
 .btn-close {
   background: #f1f5f9;
   border: none;
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   border-radius: 50%;
   color: #64748b;
   cursor: pointer;
   font-size: 1.2rem;
   transition: all 0.2s;
 }
+.btn-close:hover { background: #e2e8f0; color: #ef4444; }
 
-.btn-close:hover {
-  background: #e2e8f0;
-  color: #ef4444;
-}
-
-.modal-body p {
-  color: #475569;
-  font-size: 0.95rem;
-}
-
-/* stats no modal */
+/* --- GRELHA DE ESTATÍSTICAS (NOVO LAYOUT) --- */
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr); /* 3 Colunas Iguais */
+  gap: 15px;
   margin-top: 10px;
 }
 
+/* O Cartão de Estatística */
 .stat-card {
-  border: 1px solid #e2e8f0;
   background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 12px;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s, border-color 0.2s;
 }
 
-.stat-label {
-  color: #64748b;
-  font-weight: 900;
-  font-size: 0.85rem;
-  margin-bottom: 6px;
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.stat-value {
+/* Ícone no topo */
+.stat-icon-bg {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  background: white;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
   color: #1e293b;
-  font-weight: 900;
-  font-size: 1.2rem;
 }
 
-/* warning box */
+/* O Número Grande */
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+/* Destaque para a sala (Laranja) */
+.stat-value.highlight {
+  color: #E38B2C;
+}
+
+/* O Texto pequeno */
+.stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #64748b;
+  margin-top: 5px;
+  letter-spacing: 0.5px;
+}
+
+/* Warning box */
 .warning-box {
   background: #fff1f2;
-  padding: 12px;
+  padding: 15px;
   border-radius: 12px;
   color: #be123c;
   font-size: 0.9rem;
   border: 1px solid #fecdd3;
+  text-align: center;
 }
 
 /* Animations */
@@ -432,28 +375,29 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* mobile */
+/* MOBILE */
 @media (max-width: 720px) {
-  .perfil-container {
-    padding: 22px;
-  }
+  .perfil-container { padding: 22px; }
+  .cards-grid { max-width: 100%; }
+  .card { width: min(360px, 92vw); }
 
-  /* ✅ ALTERAÇÃO: em mobile deixa ocupar a largura toda */
-  .cards-grid {
-    max-width: 100%;
-  }
-
-  .card {
-    width: min(360px, 92vw);
-  }
-
+  /* Stats em mobile ficam em coluna */
   .stats-grid {
     grid-template-columns: 1fr;
   }
+  
+  .stat-card {
+    flex-direction: row; /* Ícone esquerda, Texto direita */
+    gap: 15px;
+    padding: 15px;
+    text-align: left;
+    align-items: center;
+  }
+  
+  .stat-icon-bg { margin-bottom: 0; }
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 import Sidebar from "../components/Sidebar";
 import { FaMapMarkedAlt, FaChevronRight, FaCalendarAlt, FaClock, FaUserFriends, FaHistory } from "react-icons/fa";
-import "./minhasreservas.css"; 
+import "./minhasReservas.css"; 
 
 export default function MinhasReservas() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
@@ -57,15 +57,17 @@ export default function MinhasReservas() {
 
   function isPastReserva(r) {
     const dia = getDia(r);
-    const hora = getHoraInicio(r);
-    if (!dia || !hora) return false;
-    const dt = new Date(`${dia}T${hora}:00`);
-    return dt.getTime() < Date.now();
+    const horaFim = getHoraFim(r); 
+    
+    if (!dia || !horaFim) return false;
+    
+    const dtFim = new Date(`${dia}T${horaFim}:00`);
+    return dtFim.getTime() < Date.now();
   }
 
   async function cancelarReserva(reserva) {
     if (!reserva?._id) return;
-    if (!window.confirm("Queres mesmo cancelar esta reserva?")) return;
+    if (!window.confirm("Tem a certeza que pretende cancelar esta reserva?")) return;
 
     const backup = reservas;
     setReservas((prev) => prev.filter((r) => r._id !== reserva._id));
@@ -88,7 +90,7 @@ export default function MinhasReservas() {
   const reservasFuturas = reservas.filter(r => !isPastReserva(r));
   const reservasPassadas = reservas.filter(r => isPastReserva(r));
 
-  // Ordenação (Futuras: mais perto primeiro | Passadas: mais recentes primeiro)
+  // Ordenação
   reservasFuturas.sort((a, b) => new Date(`${getDia(a)}T${getHoraInicio(a)}`) - new Date(`${getDia(b)}T${getHoraInicio(b)}`));
   reservasPassadas.sort((a, b) => new Date(`${getDia(b)}T${getHoraInicio(b)}`) - new Date(`${getDia(a)}T${getHoraInicio(a)}`));
 
@@ -98,24 +100,43 @@ export default function MinhasReservas() {
     const dia = getDia(r);
     const piso = getPisoFromNome(salaId);
 
+    // Lógica "A DECORRER"
+    const agora = new Date();
+    const dataInicio = new Date(`${dia}T${getHoraInicio(r)}:00`);
+    const dataFim = new Date(`${dia}T${getHoraFim(r)}:00`);
+    const aDecorrer = agora >= dataInicio && agora < dataFim;
+
     return (
-      <div className="reserva-row ativa" onClick={() => setReservaSelecionada(r)}>
+      <div 
+        className={`reserva-row ativa ${aDecorrer ? "em-curso" : ""}`} 
+        onClick={() => setReservaSelecionada(r)}
+      >
         <div className="date-badge">
           <span className="date-day">{dia.split("-")[2]}</span>
           <span className="date-month">
             {new Date(dia).toLocaleString('pt-PT', { month: 'short' }).replace('.', '')}
           </span>
         </div>
+        
         <div className="row-info">
+          {/* AQUI ESTÁ A CORREÇÃO: row-header já usa flexbox para alinhar lado a lado */}
           <div className="row-header">
             <span className="sala-name">Sala {salaId}</span>
+            
+            {aDecorrer && (
+              <span className="tag-status">A DECORRER</span>
+            )}
           </div>
+          
           <div className="row-details">
-            <span><FaClock size={12} /> {getHoraInicio(r)} - {getHoraFim(r)}</span>
+            <span style={{ color: aDecorrer ? '#22c55e' : 'inherit', fontWeight: aDecorrer ? 'bold' : 'normal' }}>
+              <FaClock size={12} /> {getHoraInicio(r)} - {getHoraFim(r)}
+            </span>
             <span className="divider">•</span>
             <span>Piso {piso}</span>
           </div>
         </div>
+        
         <div className="row-action">
           <FaChevronRight />
         </div>
@@ -195,7 +216,12 @@ export default function MinhasReservas() {
 
             <button 
               className="btn-mapa" 
-              onClick={() => navigate("/mapa", { state: { pisoDestino: piso } })}
+              onClick={() => navigate("/mapa", { 
+                state: { 
+                  pisoDestino: piso, 
+                  salaDestino: salaId
+                } 
+              })}
             >
               <FaMapMarkedAlt /> Ver localização na planta
             </button>
@@ -226,7 +252,6 @@ export default function MinhasReservas() {
         ) : (
           <div className="reservas-split-layout">
             
-            {/* COLUNA ESQUERDA: FUTURAS */}
             <div className="coluna-principal">
               <h3 className="section-title">Próximas Reservas ({reservasFuturas.length})</h3>
               
@@ -246,19 +271,19 @@ export default function MinhasReservas() {
               )}
             </div>
 
-            {/* COLUNA DIREITA: HISTÓRICO */}
             <div className="coluna-lateral">
               <h3 className="section-title history">Histórico</h3>
-              
-              {reservasPassadas.length === 0 ? (
-                <p className="text-muted">Sem histórico.</p>
-              ) : (
-                <div className="lista-passadas">
-                  {reservasPassadas.map((r) => (
-                    <CardReservaPassada key={r._id} r={r} />
-                  ))}
-                </div>
-              )}
+              <div className="historico-box">
+                {reservasPassadas.length === 0 ? (
+                  <p className="text-muted">Sem histórico.</p>
+                ) : (
+                  <div className="lista-passadas">
+                    {reservasPassadas.map((r) => (
+                      <CardReservaPassada key={r._id} r={r} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
           </div>

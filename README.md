@@ -38,7 +38,6 @@ O sistema permite consultar horários de salas (com base em dados importados do 
 
 ### Pré-requisitos
 * [Node.js](https://nodejs.org/) instalado.
-* Git instalado.
 
 ### 1. Configurar o Backend
 Navega até à pasta do servidor e instala as dependências:

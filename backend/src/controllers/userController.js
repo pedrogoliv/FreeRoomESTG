@@ -58,11 +58,23 @@ exports.updateUser = async (req, res) => {
 exports.getUserStats = async (req, res) => {
   try {
     const { username } = req.params;
-    const reservas = await Reserva.find({ responsavel: username, status: { $ne: "cancelada" } });
-
-    const totalReservas = reservas.length;
     
-    // Helper local
+    // 1. Buscar reservas ativas
+    const todasReservas = await Reserva.find({ responsavel: username, status: { $ne: "cancelada" } });
+    const agora = new Date();
+
+    // 2. Filtro: Apenas reservas PASSADAS
+    const reservasPassadas = todasReservas.filter((r) => {
+      if (!r.dia || !r.hora_fim) return false;
+      const diaStr = String(r.dia).split("T")[0]; 
+      const horaFimStr = String(r.hora_fim);
+      const dataFimReserva = new Date(`${diaStr}T${horaFimStr}:00`);
+      return dataFimReserva < agora;
+    });
+
+    const totalReservas = reservasPassadas.length;
+    
+    // Helper minutos
     const toMinutesLocal = (t) => {
       const [h, m] = String(t).split(":").map(Number);
       return h * 60 + m;
@@ -70,25 +82,25 @@ exports.getUserStats = async (req, res) => {
 
     let totalMin = 0;
     const salaCount = {};
-    const diaCount = {};
 
-    for (const r of reservas) {
+    for (const r of reservasPassadas) {
+      // Soma horas
       if (r?.hora_inicio && r?.hora_fim) {
         const diff = toMinutesLocal(r.hora_fim) - toMinutesLocal(r.hora_inicio);
         if (diff > 0) totalMin += diff;
       }
+      // Contagem Salas
       const sala = String(r.sala || "");
       if (sala) salaCount[sala] = (salaCount[sala] || 0) + 1;
-
-      const dia = String(r.dia || "");
-      if (dia) diaCount[dia] = (diaCount[dia] || 0) + 1;
     }
 
     const totalHoras = Math.round((totalMin / 60) * 10) / 10;
     const salaTop = Object.entries(salaCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
-    const diaTop = Object.entries(diaCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+    
+    // REMOVIDO: Dia Favorito
 
-    return res.json({ success: true, stats: { totalReservas, totalHoras, salaTop, diaTop } });
+    return res.json({ success: true, stats: { totalReservas, totalHoras, salaTop } });
+
   } catch (err) {
     console.error("❌ Erro stats:", err);
     return res.status(500).json({ success: false, message: "Erro no servidor" });

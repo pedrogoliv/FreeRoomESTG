@@ -1,157 +1,115 @@
-/* src/pages/minhasreservas.css */
-
+/* --- GERAL --- */
 .dashboard-header { margin-bottom: 30px; }
-.dashboard-subtitle { color: #64748b; margin-top: -5px; font-size: 0.95rem; }
+.dashboard-title { margin: 0; font-size: 2rem; font-weight: 900; color: #1e293b; }
+.msg-box.error { background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 12px; border: 1px solid #fecaca; font-weight: 600; margin-bottom: 20px; }
+.loading-text { color: #64748b; font-weight: 500; }
 
-.msg-box.error {
-  background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 12px;
-  border: 1px solid #fecaca; font-weight: 600; margin-bottom: 20px;
-}
+/* --- LAYOUT DUAS COLUNAS --- */
+.reservas-split-layout { display: flex; gap: 40px; align-items: flex-start; width: 100%; }
+.coluna-principal { flex: 2; }
+.coluna-lateral { flex: 1; display: flex; flex-direction: column; }
 
-/* --- LAYOUT DE DUAS COLUNAS --- */
-.reservas-split-layout {
-  display: flex;
-  gap: 40px;
-  align-items: flex-start;
-}
-
-.coluna-principal {
-  flex: 2; /* Ocupa mais espaço */
-}
-
-.coluna-lateral {
-  flex: 1; /* Ocupa menos espaço (sidebar) */
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 20px;
-  border: 1px solid #eef0f4;
-}
-
-.section-title {
-  font-size: 1.1rem;
-  color: #1e293b;
-  margin-bottom: 15px;
-  font-weight: 800;
-  display: flex; align-items: center; justify-content: space-between;
-}
+.section-title { font-size: 1.1rem; color: #1e293b; margin-bottom: 15px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; }
 .section-title.history { color: #64748b; }
 
-/* Empty State Simples */
-.empty-state-card {
-  background: white; border: 2px dashed #e2e8f0; border-radius: 16px;
-  padding: 30px; text-align: center; color: #64748b;
-}
-.btn-link {
-  background: none; border: none; color: #E38B2C; font-weight: 700;
-  cursor: pointer; margin-top: 5px; text-decoration: underline;
-}
-
-/* --- CARTÃO ATIVO (Esquerda) --- */
-.lista-futuras {
-  display: flex; flex-direction: column; gap: 15px;
-}
+/* --- CARTÕES DE RESERVA --- */
+.lista-futuras { display: flex; flex-direction: column; gap: 15px; }
 
 .reserva-row {
-  display: flex; align-items: center; background: white; padding: 15px 20px;
+  display: flex; align-items: center;
+  background: white; padding: 15px 20px;
   border-radius: 16px; border: 1px solid #e2e8f0;
   box-shadow: 0 4px 10px rgba(0,0,0,0.02);
   transition: all 0.2s ease; cursor: pointer;
-  border-left: 5px solid #E38B2C; /* Marca laranja */
+  border-left: 5px solid #E38B2C;
+}
+.reserva-row:hover { transform: translateX(4px); border-color: #E38B2C; }
+
+/* Em Curso */
+.reserva-row.ativa.em-curso { border-left-color: #22c55e; background-color: #f0fdf4; }
+
+/* Container que alinha o Nome e a Etiqueta */
+.row-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
-.reserva-row:hover {
-  transform: translateX(4px); border-color: #E38B2C;
-  box-shadow: 0 8px 20px rgba(227, 139, 44, 0.1);
+/* A Etiqueta */
+.tag-status {
+  position: static;
+  display: inline-block;
+  
+  margin-left: 55px;    
+  margin-top: 20px;
+
+  /* Resto do visual */
+  background: #22c55e; 
+  color: white;
+  font-size: 0.65rem; 
+  padding: 4px 10px;
+  border-radius: 6px; 
+  font-weight: 600;
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  animation: pulse 2s infinite;
 }
 
-.date-badge {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: #f8fafc; border-radius: 12px; min-width: 60px; height: 60px;
-  margin-right: 20px; border: 1px solid #e2e8f0; color: #334155;
-}
+/* --- RESTO DOS ELEMENTOS --- */
+.date-badge { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border-radius: 12px; min-width: 60px; height: 60px; margin-right: 20px; border: 1px solid #e2e8f0; color: #334155; }
 .date-day { font-size: 1.4rem; font-weight: 800; line-height: 1; }
 .date-month { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: #E38B2C; }
 
 .row-info { flex: 1; }
-.row-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
 .sala-name { font-size: 1.1rem; font-weight: 800; color: #1e293b; }
-.tag-status {
-  font-size: 0.7rem; background: #dcfce7; color: #15803d;
-  padding: 2px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase;
-}
-
-.row-details {
-  display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 0.9rem; font-weight: 500;
-}
+.row-details { display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 0.9rem; font-weight: 500; }
 .divider { color: #cbd5e1; }
-.row-action { color: #cbd5e1; }
+.row-action { color: #cbd5e1; font-size: 1rem; }
 
-/* --- CARTÃO HISTÓRICO (Direita - Mais compacto) --- */
-.lista-passadas {
-  display: flex; flex-direction: column; gap: 10px;
-  max-height: 500px; overflow-y: auto; /* Scroll se for muito grande */
-  padding-right: 5px;
-}
+.empty-state-card { background: white; border: 2px dashed #e2e8f0; border-radius: 16px; padding: 30px; text-align: center; color: #64748b; }
+.btn-link { background: none; border: none; color: #E38B2C; font-weight: 700; cursor: pointer; text-decoration: underline; }
 
-.history-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px; border-radius: 12px;
-  background: #f8fafc; border: 1px solid #e2e8f0;
-  cursor: pointer; transition: 0.2s;
-}
+/* --- HISTÓRICO --- */
+.historico-box { background: #ffffff; padding: 20px; border-radius: 20px; border: 1px solid #eef0f4; }
+.lista-passadas { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
+.history-row { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.2s; }
 .history-row:hover { background: #ffffff; border-color: #cbd5e1; }
-
-.history-icon {
-  color: #94a3b8; font-size: 1rem;
-}
+.history-icon { color: #94a3b8; font-size: 1rem; }
 .history-info { flex: 1; }
 .history-sala { font-weight: 700; color: #475569; font-size: 0.95rem; }
 .history-date { font-size: 0.8rem; color: #94a3b8; }
 .history-action { font-size: 0.75rem; font-weight: 700; color: #E38B2C; }
 
-/* --- RESPONSIVIDADE --- */
-@media (max-width: 900px) {
-  .reservas-split-layout { flex-direction: column; }
-  .coluna-lateral { width: 100%; border: none; background: transparent; padding: 0; }
-  .lista-passadas { max-height: 300px; }
-}
-
-/* --- MODAL (Mantido igual) --- */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000;
-}
-.modal-content {
-  background: white; width: 90%; max-width: 400px;
-  border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-}
-.modal-header {
-  padding: 20px 24px; border-bottom: 1px solid #f1f5f9;
-  display: flex; justify-content: space-between; align-items: center;
-}
+/* --- MODAL --- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: white; width: 90%; max-width: 400px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
 .header-left { display: flex; align-items: center; gap: 10px; }
 .header-left h2 { margin: 0; font-size: 1.4rem; color: #1e293b; }
-.status-pill {
-  font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase;
-}
+.status-pill { font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; }
 .status-pill.ativa { background: #dcfce7; color: #15803d; }
 .status-pill.passada { background: #f1f5f9; color: #64748b; }
 .btn-close { background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
 .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 15px; }
 .info-row { display: flex; gap: 15px; }
-.info-item {
-  flex: 1; background: #f8fafc; padding: 12px; border-radius: 12px;
-  display: flex; align-items: center; gap: 10px; border: 1px solid #e2e8f0;
-}
+.info-item { flex: 1; background: #f8fafc; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; border: 1px solid #e2e8f0; }
 .info-item .icon { color: #E38B2C; font-size: 1.1rem; }
 .info-item div { display: flex; flex-direction: column; }
 .info-item label { font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; }
 .info-item strong { color: #334155; font-size: 0.95rem; }
-.btn-mapa {
-  width: 100%; padding: 12px; background: #1e293b; color: white; border: none;
-  border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+.btn-mapa { width: 100%; padding: 12px; background: #1e293b; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-cancelar { width: 100%; padding: 12px; background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
 }
-.btn-cancelar {
-  width: 100%; padding: 12px; background: #fee2e2; color: #ef4444; border: 1px solid #fecaca;
-  border-radius: 12px; font-weight: 700; cursor: pointer;
+
+@media (max-width: 900px) {
+  .reservas-split-layout { flex-direction: column; }
+  .coluna-lateral { width: 100%; }
+  .historico-box { border: none; background: transparent; padding: 0; }
+  .lista-passadas { max-height: 300px; }
 }

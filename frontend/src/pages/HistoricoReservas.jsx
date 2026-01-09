@@ -140,7 +140,7 @@ export default function HistoricoReservas() {
 
                   {statusFinal === "cancelada" && r?.canceledAt ? (
                     <div className="historico-note cancelada">
-                      <strong>Cancelada em:</strong>{" "}
+                      <strong>Cancelada a:</strong>{" "}
                       {new Date(r.canceledAt).toLocaleString("pt-PT")}
                     </div>
                   ) : null}
