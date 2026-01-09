@@ -49,7 +49,7 @@ export default function Sidebar() {
 
           <NavLink to="/minhas-reservas" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
             <span className="icon"><FaCalendarAlt /></span>
-            <span>As Minhas Reservas</span>
+            <span>Minhas Reservas</span>
           </NavLink>
 
           <NavLink to="/perfil" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>

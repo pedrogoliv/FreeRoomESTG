@@ -78,7 +78,6 @@ export default function HistoricoReservas() {
       <div className="historico-page">
         <div className="historico-header">
           <h1>Histórico de Reservas</h1>
-          <p>Consulta as tuas últimas reservas (ativas, concluídas e canceladas).</p>
         </div>
 
         {loading && <div className="historico-state">A carregar…</div>}

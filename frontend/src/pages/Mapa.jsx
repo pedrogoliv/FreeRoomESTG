@@ -6,42 +6,34 @@ import "./Mapa.css";
 
 export default function Mapa() {
   const location = useLocation();
-  console.log("MAPA state:", location.state);
-
   const [pisoAtivo, setPisoAtivo] = useState(Number(location.state?.pisoDestino) || 1);
 
-  // sala destino (vem do navigate)
+  // sala destino
   const salaDestinoRaw =
     location.state?.salaDestino || location.state?.sala || location.state?.nomeSala || "";
   const salaDestino = useMemo(() => String(salaDestinoRaw || "").trim(), [salaDestinoRaw]);
 
   // Entrada fixa 
   const ENTRADA = useMemo(
-    () => ({
-      piso: 1,
-      top: "59%",
-      left: "31%",
-    }),
+    () => ({ piso: 1, top: "59%", left: "31%" }),
     []
   );
 
-  // procura coords da sala destino no piso ativo 
+  // procura coords
   const pontoDestino = useMemo(() => {
     if (!salaDestino) return null;
-
     return (
       coordenadas.find(
-        (p) =>
-          String(p.sala).trim() === salaDestino && Number(p.piso) === Number(pisoAtivo)
+        (p) => String(p.sala).trim() === salaDestino && Number(p.piso) === Number(pisoAtivo)
       ) || null
     );
   }, [salaDestino, pisoAtivo]);
 
-  // aviso quando a sala não existe no mapaCoords para esse piso
   const showMissingWarning = Boolean(salaDestino) && !pontoDestino;
 
   return (
-    <div className="dashboard-container">
+    // ADICIONEI "page-mapa" AQUI 👇
+    <div className="dashboard-container page-mapa">
       <Sidebar />
 
       <main className="main-content">
@@ -68,28 +60,27 @@ export default function Mapa() {
             className="mapa-imagem"
           />
 
+          {/* PONTO ENTRADA */}
           {pisoAtivo === ENTRADA.piso && (
             <div
               className="mapa-dot dot-entrada"
               style={{ top: ENTRADA.top, left: ENTRADA.left }}
-              title="Entrada"
             >
               <div className="dot-tooltip">
-                <strong>Entrada</strong>
+                <strong>ENTRADA</strong>
               </div>
             </div>
           )}
 
+          {/* PONTO DESTINO */}
           {pontoDestino && (
             <div
               className="mapa-dot dot-destino"
               style={{ top: pontoDestino.top, left: pontoDestino.left }}
-              title={pontoDestino.sala}
             >
               <div className="dot-tooltip">
                 <strong>{pontoDestino.sala}</strong>
-                <br />
-                <span className="dot-status">Destino</span>
+                <span className="dot-status">DESTINO</span>
               </div>
             </div>
           )}

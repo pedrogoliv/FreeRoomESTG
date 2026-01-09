@@ -1,30 +1,63 @@
-/* RESET BÁSICO - Garante que nada tem margens estranhas */
+/* =========================================
+   1. IMPORTAR FONTE INTER (Do Google Fonts)
+   Trazemos os pesos: 400(Normal), 500(Medium), 600, 700, 800(ExtraBold), 900(Black)
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* =========================================
+   2. VARIÁVEIS DE COR (Opcional, mas dá jeito)
+   ========================================= */
+:root {
+  --cor-laranja: #E38B2C;
+  --cor-azul-escuro: #1e293b;
+  --cor-fundo-claro: #f6f7fb; /* Cor de fundo suave para dashboards */
+}
+
+/* =========================================
+   3. RESET & APLICAÇÃO GERAL
+   ========================================= */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  
+  /* AQUI ESTÁ O SEGREDO: Aplica a Inter em TUDO */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
 }
 
-/* OBRIGAR O SITE A OCUPAR 100% DO ECRÃ */
 html, body, #root {
   width: 100%;
   height: 100%;
-  overflow-x: hidden; /* Evita scroll lateral indesejado */
-}
-
-/* ESTILOS DE TEXTO BÁSICOS */
-body {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  
-  /* Podes mudar a cor de fundo base aqui se quiseres */
-  background-color: #ffffff;
-  color: #213547;
-  
+  overflow-x: hidden;
+  background-color: var(--cor-fundo-claro);
+  color: var(--cor-azul-escuro);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Removemos o estilo dos links e botões para já, 
-   para tu controlares isso nos teus componentes */
+/* =========================================
+   4. TIPOGRAFIA FORTE (ESTILO LOGIN)
+   ========================================= */
+
+/* TÍTULOS (H1, H2...) -> FICAM COMO O "BEM-VINDO" */
+h1, h2, h3, h4 {
+  font-weight: 900 !important; /* Black (Muito grosso) */
+  letter-spacing: -0.5px;      /* Letras um bocadinho mais juntas */
+  color: var(--cor-azul-escuro);
+}
+
+/* BOTÕES, LABELS E INPUTS -> FICAM COMO "USERNAME" / "ENTRAR" / "VER HISTÓRICO" */
+button, input, select, textarea, label, .btn {
+  font-weight: 800 !important; /* Extra Bold */
+}
+
+/* TEXTOS NORMAIS (Parágrafos, descrições) */
+p, span, div {
+  font-weight: 500; /* Medium (Para não ficar demasiado fino e ilegível) */
+}
+
+/* =========================================
+   5. UTILITÁRIOS
+   ========================================= */
+/* Se precisares de forçar algo a ser laranja */
+.text-orange { color: var(--cor-laranja); }
+.bg-orange { background-color: var(--cor-laranja); }

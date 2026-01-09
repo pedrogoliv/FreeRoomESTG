@@ -1,5 +1,22 @@
-# Logs
-logs
+# --- Dependências (Ignorar em TODAS as pastas) ---
+node_modules/
+**/node_modules/
+
+# --- Variáveis de Ambiente (SEGURANÇA MÁXIMA) ---
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# --- Builds e Distribuição ---
+dist/
+dist-ssr/
+build/
+out/
+
+# --- Logs e Debug ---
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,18 +24,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# --- IDEs e Editores ---
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# --- Sistema Operativo ---
+.DS_Store
+Thumbs.db
+
+# --- Testes (Coverage) ---
+coverage/

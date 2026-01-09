@@ -126,15 +126,21 @@
 /* Botão principal (Ver / Fechar / etc.) */
 .btn-action {
   background-color: #E38B2C;
-  color: white;
+  color: #ffffff; /* Garante branco puro */
   border: none;
   padding: 10px 44px;
   border-radius: 12px;
-  font-weight: 900;
+  
+  /* AJUSTE PARA MELHORAR LEGIBILIDADE */
+  font-weight: 700; /* Força o Bold limpo (não 800/900) */
+  -webkit-font-smoothing: antialiased; /* Torna a fonte mais nítida */
+  -moz-osx-font-smoothing: grayscale;
+
   cursor: pointer;
-  margin-top: auto; /* Empurra o botão para o fundo do cartão */
-  margin-bottom: 10px; /* Pequena margem do fundo */
+  margin-top: auto; 
+  margin-bottom: 10px; 
   transition: 0.15s ease;
+  font-size: 0.95rem; /* Um pouco maior ajuda a ler melhor a branco */
 }
 
 .btn-action:hover {

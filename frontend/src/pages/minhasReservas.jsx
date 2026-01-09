@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 import Sidebar from "../components/Sidebar";
-import { FaMapMarkedAlt, FaChevronRight } from "react-icons/fa";
-// Importamos o CSS específico para esta página
+import { FaMapMarkedAlt, FaChevronRight, FaCalendarAlt, FaClock, FaUserFriends, FaHistory } from "react-icons/fa";
 import "./minhasreservas.css"; 
 
 export default function MinhasReservas() {
@@ -13,7 +12,6 @@ export default function MinhasReservas() {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
-
   const [reservaSelecionada, setReservaSelecionada] = useState(null);
 
   useEffect(() => {
@@ -21,7 +19,6 @@ export default function MinhasReservas() {
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  // Carregar Reservas
   useEffect(() => {
     if (!user?.username) return;
     setLoading(true);
@@ -44,10 +41,8 @@ export default function MinhasReservas() {
   function getPisoFromNome(nomeSala) {
     if (!nomeSala) return "1";
     const match = nomeSala.match(/\.(\d+)\./);
-    if (match && match[1]) return match[1];
-    return "1";
+    return match && match[1] ? match[1] : "1";
   }
-
   function getSalaId(r) { return String(r?.sala ?? "-"); }
   function getDia(r) { return String(r?.dia ?? "").slice(0, 10); }
   function getHoraInicio(r) { return String(r?.hora_inicio ?? "00:00"); }
@@ -68,34 +63,87 @@ export default function MinhasReservas() {
     return dt.getTime() < Date.now();
   }
 
-  function removeReservaLocal(id) {
-    setReservas((prev) => prev.filter((r) => String(r._id) !== String(id)));
-  }
-
   async function cancelarReserva(reserva) {
     if (!reserva?._id) return;
+    if (!window.confirm("Queres mesmo cancelar esta reserva?")) return;
 
     const backup = reservas;
-    removeReservaLocal(reserva._id);
-    if (reservaSelecionada?._id === reserva._id) {
-      setReservaSelecionada(null); // Fecha o modal se estiver aberto
-    }
+    setReservas((prev) => prev.filter((r) => r._id !== reserva._id));
+    if (reservaSelecionada?._id === reserva._id) setReservaSelecionada(null);
 
     try {
       const res = await fetch(`${API_BASE}/api/reservas/${reserva._id}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
-      
       if (!res.ok || data?.success === false) {
-        setReservas(backup); // Reverte se falhar
-        alert(data?.message || "Erro a cancelar.");
+        setReservas(backup);
+        alert(data?.message || "Erro ao cancelar.");
       }
     } catch (e) {
       setReservas(backup);
-      alert("Erro de ligação ao cancelar.");
+      alert("Erro de ligação.");
     }
   }
 
-  // --- MODAL (Apenas Leitura + Cancelar + Mapa) ---
+  // Separação das Reservas
+  const reservasFuturas = reservas.filter(r => !isPastReserva(r));
+  const reservasPassadas = reservas.filter(r => isPastReserva(r));
+
+  // Ordenação (Futuras: mais perto primeiro | Passadas: mais recentes primeiro)
+  reservasFuturas.sort((a, b) => new Date(`${getDia(a)}T${getHoraInicio(a)}`) - new Date(`${getDia(b)}T${getHoraInicio(b)}`));
+  reservasPassadas.sort((a, b) => new Date(`${getDia(b)}T${getHoraInicio(b)}`) - new Date(`${getDia(a)}T${getHoraInicio(a)}`));
+
+  // --- COMPONENTES DE CARTÃO ---
+  function CardReservaAtiva({ r }) {
+    const salaId = getSalaId(r);
+    const dia = getDia(r);
+    const piso = getPisoFromNome(salaId);
+
+    return (
+      <div className="reserva-row ativa" onClick={() => setReservaSelecionada(r)}>
+        <div className="date-badge">
+          <span className="date-day">{dia.split("-")[2]}</span>
+          <span className="date-month">
+            {new Date(dia).toLocaleString('pt-PT', { month: 'short' }).replace('.', '')}
+          </span>
+        </div>
+        <div className="row-info">
+          <div className="row-header">
+            <span className="sala-name">Sala {salaId}</span>
+          </div>
+          <div className="row-details">
+            <span><FaClock size={12} /> {getHoraInicio(r)} - {getHoraFim(r)}</span>
+            <span className="divider">•</span>
+            <span>Piso {piso}</span>
+          </div>
+        </div>
+        <div className="row-action">
+          <FaChevronRight />
+        </div>
+      </div>
+    );
+  }
+
+  function CardReservaPassada({ r }) {
+    const salaId = getSalaId(r);
+    const dia = getDia(r);
+
+    return (
+      <div className="history-row" onClick={() => setReservaSelecionada(r)}>
+        <div className="history-icon">
+          <FaHistory />
+        </div>
+        <div className="history-info">
+          <div className="history-sala">Sala {salaId}</div>
+          <div className="history-date">
+            {formatDiaBR(dia)} • {getHoraInicio(r)}
+          </div>
+        </div>
+        <div className="history-action">Ver</div>
+      </div>
+    );
+  }
+
+  // --- MODAL ---
   function ModalVerReserva({ reserva, onClose }) {
     const salaId = getSalaId(reserva);
     const piso = getPisoFromNome(salaId);
@@ -104,62 +152,58 @@ export default function MinhasReservas() {
     return (
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          
           <div className="modal-header">
-            <div className="header-title-group">
-              <h2>Reserva {salaId}</h2>
-              <span className={`status-badge ${passada ? "ocupada" : "livre"}`}>
-                {passada ? "Passada" : "Ativa"}
+            <div className="header-left">
+              <h2>Sala {salaId}</h2>
+              <span className={`status-pill ${passada ? "passada" : "ativa"}`}>
+                {passada ? "Histórico" : "Confirmada"}
               </span>
             </div>
             <button className="btn-close" onClick={onClose}>&times;</button>
           </div>
 
           <div className="modal-body">
-            
-            {passada && (
-              <div className="warning-box">
-                <strong>Reserva antiga</strong>
-                <div>Esta reserva já passou e não pode ser alterada.</div>
-              </div>
-            )}
-
-            {/* Informação Compacta */}
-            <div className="compact-info-section">
-              <div className="info-grid-row">
-                <p><strong>Dia:</strong> {formatDiaBR(getDia(reserva))}</p>
-                <p><strong>Hora:</strong> {getHoraInicio(reserva)} - {getHoraFim(reserva)}</p>
-              </div>
-              <div className="info-grid-row" style={{ borderBottom: "none" }}>
-                <p><strong>Piso:</strong> {piso}</p>
-                <p><strong>Pessoas:</strong> {getPessoas(reserva)}</p>
-              </div>
-
-              <div 
-                className="map-link-card small" 
-                onClick={() => {
-                  const salaNome = sala?.sala ?? sala.nome ?? sala.id ?? "";
-                  navigate("/mapa", { state: { pisoDestino: Number(sala.piso) || 1, salaDestino: salaNome } });
-                }}
-              >
-                <div className="map-icon-box"><FaMapMarkedAlt /></div>
-                <div className="map-link-text">
-                  <strong>Ver na Planta</strong>
+            <div className="info-row">
+              <div className="info-item">
+                <FaCalendarAlt className="icon" />
+                <div>
+                  <label>Data</label>
+                  <strong>{formatDiaBR(getDia(reserva))}</strong>
                 </div>
-                <FaChevronRight className="chevron-icon" />
+              </div>
+              <div className="info-item">
+                <FaClock className="icon" />
+                <div>
+                  <label>Horário</label>
+                  <strong>{getHoraInicio(reserva)} - {getHoraFim(reserva)}</strong>
+                </div>
               </div>
             </div>
 
-            {!passada && (
-              <div className="modal-actions" style={{ marginTop: 20 }}>
-                <button
-                  className="btn-action"
-                  style={{ background: "#ef4444" }} 
-                  onClick={() => cancelarReserva(reserva)}
-                >
-                  Cancelar Reserva
-                </button>
+            <div className="info-row">
+              <div className="info-item">
+                <FaUserFriends className="icon" />
+                <div>
+                  <label>Pessoas</label>
+                  <strong>{getPessoas(reserva)}</strong>
+                </div>
               </div>
+              <div className="info-item">
+                <strong>Piso {piso}</strong>
+              </div>
+            </div>
+
+            <button 
+              className="btn-mapa" 
+              onClick={() => navigate("/mapa", { state: { pisoDestino: piso } })}
+            >
+              <FaMapMarkedAlt /> Ver localização na planta
+            </button>
+
+            {!passada && (
+              <button className="btn-cancelar" onClick={() => cancelarReserva(reserva)}>
+                Cancelar Reserva
+              </button>
             )}
           </div>
         </div>
@@ -170,75 +214,60 @@ export default function MinhasReservas() {
   return (
     <div className="dashboard-container">
       <Sidebar />
-
       <main className="main-content">
         <header className="dashboard-header">
-          <div><h1 className="dashboard-title">Minhas Reservas</h1></div>
+          <h1 className="dashboard-title">Minhas Reservas</h1>
         </header>
 
-        {msg && <div style={{ marginBottom: 14, color: "#b91c1c" }}>{msg}</div>}
+        {msg && <div className="msg-box error">{msg}</div>}
 
         {loading ? (
-          <p>⏳ A carregar reservas...</p>
-        ) : reservas.length === 0 ? (
-          <div className="empty-state">
-            <h3>📌 Ainda não tens reservas</h3>
-            <p>Vai ao Dashboard e faz uma reserva.</p>
-          </div>
+          <p className="loading-text">⏳ A carregar a tua agenda...</p>
         ) : (
-          <div className="grid-salas">
-            {reservas.map((r) => {
-              const salaId = getSalaId(r);
-              const piso = getPisoFromNome(salaId);
-              const passada = isPastReserva(r);
-
-              return (
-                <div
-                  key={r._id}
-                  className="card-sala fav-card"
-                  onClick={() => setReservaSelecionada(r)}
-                >
-                  {/* Status Topo */}
-                  <div className={`card-top ${passada ? "ocupada" : "livre"}`}>
-                    <span className="statusDot" />
-                    <span>{passada ? "Passada" : "Confirmada"}</span>
-                  </div>
-
-                  <div className="card-body">
-                    {/* Header: Nome + Piso */}
-                    <div className="card-header-row">
-                      <div className="sala-nome">Sala {salaId}</div>
-                      <span className="sala-piso-badge">🏢 Piso {piso}</span>
-                    </div>
-
-                    {/* Info Data/Hora Clean (Tabela style) */}
-                    <div className="reserva-info-box">
-                      <div className="ri-row">
-                        <span className="ri-label">Data</span>
-                        <span className="ri-value">{formatDiaBR(getDia(r))}</span>
-                      </div>
-                      <div className="ri-row">
-                        <span className="ri-label">Horário</span>
-                        <span className="ri-value">
-                          {getHoraInicio(r)} - {getHoraFim(r)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button className="btn-details">
-                      Ver detalhes
-                    </button>
-                  </div>
+          <div className="reservas-split-layout">
+            
+            {/* COLUNA ESQUERDA: FUTURAS */}
+            <div className="coluna-principal">
+              <h3 className="section-title">Próximas Reservas ({reservasFuturas.length})</h3>
+              
+              {reservasFuturas.length === 0 ? (
+                <div className="empty-state-card">
+                  <p>Não tens reservas ativas.</p>
+                  <button onClick={() => navigate("/dashboard")} className="btn-link">
+                    Fazer nova reserva
+                  </button>
                 </div>
-              );
-            })}
+              ) : (
+                <div className="lista-futuras">
+                  {reservasFuturas.map((r) => (
+                    <CardReservaAtiva key={r._id} r={r} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* COLUNA DIREITA: HISTÓRICO */}
+            <div className="coluna-lateral">
+              <h3 className="section-title history">Histórico</h3>
+              
+              {reservasPassadas.length === 0 ? (
+                <p className="text-muted">Sem histórico.</p>
+              ) : (
+                <div className="lista-passadas">
+                  {reservasPassadas.map((r) => (
+                    <CardReservaPassada key={r._id} r={r} />
+                  ))}
+                </div>
+              )}
+            </div>
+
           </div>
         )}
 
         {reservaSelecionada && (
-          <ModalVerReserva
-            reserva={reservaSelecionada}
-            onClose={() => setReservaSelecionada(null)}
+          <ModalVerReserva 
+            reserva={reservaSelecionada} 
+            onClose={() => setReservaSelecionada(null)} 
           />
         )}
       </main>

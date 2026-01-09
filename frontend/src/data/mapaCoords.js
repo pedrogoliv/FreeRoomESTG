@@ -1,13 +1,72 @@
 export const coordenadas = [
-  // --- PISO 1 ---
-  { sala: "S.1.1", piso: 1, top: "39%", left: "47%" },
-  { sala: "S.1.2", piso: 1, top: "40%", left: "35%" },
-  { sala: "A.1.1", piso: 1, top: "39%", left: "40%" }, 
-  { sala: "L.1.5", piso: 1, top: "60%", left: "70%" }, 
+  // ==========================
+  // PISO 1
+  // ==========================
+  { sala: "S.1.7", piso: 1, top: "24%", left: "19%" },
+  { sala: "S.1.4", piso: 1, top: "31%", left: "18%" },
+  { sala: "S.1.3", piso: 1, top: "40%", left: "19%" },
+  { sala: "S.1.6", piso: 1, top: "24%", left: "23%" },
+  { sala: "S.1.5", piso: 1, top: "29%", left: "24%" },
+  { sala: "A.1.2", piso: 1, top: "39%", left: "24%" },
+  { sala: "A.1.1", piso: 1, top: "36%", left: "40%" },
+  { sala: "S.1.1", piso: 1, top: "36%", left: "47%" },
+  { sala: "S.1.10", piso: 1, top: "25%", left: "63%" },
+  { sala: "S.1.11", piso: 1, top: "25%", left: "68%" },
+  { sala: "L.1.11", piso: 1, top: "32%", left: "68%" },
+  { sala: "L.1.12", piso: 1, top: "43%", left: "68%" },
+  { sala: "L.1.13", piso: 1, top: "57%", left: "68%" },
+  { sala: "L.1.14", piso: 1, top: "60%", left: "68%" },
+  { sala: "L.1.15", piso: 1, top: "64%", left: "68%" },
+  { sala: "L.1.16", piso: 1, top: "68%", left: "68%" },
+  { sala: "L.1.17", piso: 1, top: "73%", left: "68%" },
+  { sala: "L.1.18", piso: 1, top: "79%", left: "68%" },
+  { sala: "S.1.2", piso: 1, top: "77%", left: "62%" },
+  { sala: "L.1.19", piso: 1, top: "91%", left: "68%" },
+  { sala: "L.1.6", piso: 1, top: "53%", left: "72%" },
+  { sala: "L.1.5", piso: 1, top: "54%", left: "82%" },
+  { sala: "L.1.4", piso: 1, top: "54%", left: "88%" },
+  { sala: "L.1.2", piso: 1, top: "40%", left: "86%" },
+  { sala: "L.1.1", piso: 1, top: "34%", left: "86%" },
+  { sala: "L.1.3", piso: 1, top: "39%", left: "93%" },
 
-  // --- PISO 2 ---
-  { sala: "S.2.1", piso: 2, top: "20%", left: "20%" },
-  { sala: "G.2.3", piso: 2, top: "50%", left: "50%" },
-  
-  // ... tens de adicionar as outras salas aqui
-];  
+  // ==========================
+  // PISO 2
+  // ==========================
+  { sala: "L.2.8", piso: 2, top: "31%", left: "24%" },
+  { sala: "S.2.11", piso: 2, top: "40%", left: "24%" },
+  { sala: "S.2.7", piso: 2, top: "54%", left: "25%" },
+  { sala: "S.2.6", piso: 2, top: "55%", left: "30%" },
+  { sala: "A.2.1", piso: 2, top: "36%", left: "41%" },
+  { sala: "S.2.10", piso: 2, top: "33%", left: "47%" },
+  { sala: "S.2.9", piso: 2, top: "40%", left: "47%" },
+  { sala: "S.2.5", piso: 2, top: "55%", left: "50%" },
+  { sala: "S.2.4", piso: 2, top: "55%", left: "54%" },
+  { sala: "S.2.3", piso: 2, top: "53%", left: "59%" },
+  { sala: "S.2.1", piso: 2, top: "25%", left: "68%" },
+  { sala: "S.2.2", piso: 2, top: "33%", left: "68%" },
+  { sala: "L.2.6", piso: 2, top: "39%", left: "68%" },
+  { sala: "S.2.8", piso: 2, top: "49%", left: "68%" },
+  { sala: "L.2.1", piso: 2, top: "62%", left: "68%" },
+  { sala: "L.2.2", piso: 2, top: "77%", left: "68%" },
+  { sala: "L.2.5", piso: 2, top: "80%", left: "63%" },
+  { sala: "L.2.4", piso: 2, top: "91%", left: "64%" },
+
+  // ==========================
+  // PISO 3
+  // ==========================
+  { sala: "S.3.5", piso: 3, top: "31%", left: "41%" },
+  { sala: "S.3.4", piso: 3, top: "38%", left: "41%" },
+  { sala: "S.3.2", piso: 3, top: "44%", left: "53%" },
+  { sala: "S.3.3", piso: 3, top: "53%", left: "54%" },
+  { sala: "S.3.1", piso: 3, top: "44%", left: "57%" },
+  { sala: "L.3.9", piso: 3, top: "30%", left: "68%" },
+  { sala: "L.3.8", piso: 3, top: "38%", left: "68%" },
+  { sala: "L.3.7", piso: 3, top: "47%", left: "68%" },
+  { sala: "L.3.1A", piso: 3, top: "55%", left: "68%" },
+  { sala: "L.3.1", piso: 3, top: "61%", left: "68%" },
+  { sala: "L.3.2", piso: 3, top: "72%", left: "68%" },
+  { sala: "L.3.5", piso: 3, top: "90%", left: "63%" },
+  { sala: "L.3.3A", piso: 3, top: "80%", left: "69%" },
+  { sala: "L.3.3B", piso: 3, top: "83%", left: "72%" },
+  { sala: "L.3.4", piso: 3, top: "90%", left: "71%" },
+];
