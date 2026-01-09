@@ -116,15 +116,8 @@ padding: 24px 24px 10px 24px !important;
 .form-grid-compact {
   display: grid;
   grid-template-columns: 1fr 1fr; 
-  gap: 16px; 
-  align-items: start;
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 0 !important; /* Garante que não há margens escondidas */
+  gap: 15px;
+  margin-bottom: 15px;
 }
 
 .field-label {
