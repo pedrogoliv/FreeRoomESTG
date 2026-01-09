@@ -24,7 +24,7 @@ O sistema permite consultar horários de salas (com base em dados importados do 
 ### **Backend (API)**
 * **Node.js & Express** - Servidor e API REST.
 * **MongoDB (Atlas)** - Base de dados NoSQL (Armazena horários e reservas).
-* **Puppeteer/Cheerio** - Utilizado para extração/importação inicial de dados.
+* **Burpsuite/Postman** - Utilizado para extração inicial de dados.
 * **Dotenv** - Gestão de variáveis de ambiente.
 
 ### **Frontend (Interface)**
