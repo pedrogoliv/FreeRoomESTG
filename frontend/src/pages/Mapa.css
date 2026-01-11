@@ -81,6 +81,21 @@
   z-index: 20;
 }
 
+.mapa-back{
+  margin-top: 8px;
+  background: #0f172a;
+  color: #fff;
+  border: 2px solid #E38B2C;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mapa-back:hover{
+  filter: brightness(1.06);
+}
+
 /* === ENTRADA (VERDE) - HOVER ONLY === */
 .dot-entrada {
   width: 16px; height: 16px;

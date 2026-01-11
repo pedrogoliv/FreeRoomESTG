@@ -1,5 +1,3 @@
-/* src/components/gerirReserva.css */
-
 /* --- FUNDO E MODAL --- */
 .modal-overlay {
   position: fixed;
@@ -37,7 +35,6 @@
   align-items: center;
   background: #fff;
   flex-shrink: 0;
-  /* Borda roxa subtil em baixo */
   border-bottom: 1px solid #e0e7ff !important;
 }
 

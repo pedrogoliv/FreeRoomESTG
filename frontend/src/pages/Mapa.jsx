@@ -1,11 +1,13 @@
 import { useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { coordenadas } from "../data/mapaCoords";
 import "./Mapa.css";
 
 export default function Mapa() {
   const location = useLocation();
+  const navigate = useNavigate();
+
   const [pisoAtivo, setPisoAtivo] = useState(Number(location.state?.pisoDestino) || 1);
 
   // sala destino
@@ -13,11 +15,21 @@ export default function Mapa() {
     location.state?.salaDestino || location.state?.sala || location.state?.nomeSala || "";
   const salaDestino = useMemo(() => String(salaDestinoRaw || "").trim(), [salaDestinoRaw]);
 
-  // Entrada fixa 
-  const ENTRADA = useMemo(
-    () => ({ piso: 1, top: "59%", left: "31%" }),
-    []
-  );
+  // ✅ VOLTAR (para onde estava antes)
+  const handleVoltar = () => {
+    const from = location.state?.from;
+    const scrollY = location.state?.scrollY ?? 0;
+
+    if (from) {
+      navigate(from);
+      setTimeout(() => window.scrollTo(0, scrollY), 0);
+    } else {
+      navigate(-1);
+    }
+  };
+
+  // Entrada fixa
+  const ENTRADA = useMemo(() => ({ piso: 1, top: "59%", left: "31%" }), []);
 
   // procura coords
   const pontoDestino = useMemo(() => {
@@ -32,13 +44,18 @@ export default function Mapa() {
   const showMissingWarning = Boolean(salaDestino) && !pontoDestino;
 
   return (
-    // ADICIONEI "page-mapa" AQUI 👇
     <div className="dashboard-container page-mapa">
       <Sidebar />
 
       <main className="main-content">
         <header className="dashboard-header">
-          <h1 className="dashboard-title">Planta da Escola</h1>
+          <div>
+            <h1 className="dashboard-title">Planta da Escola</h1>
+
+            <button className="mapa-back" onClick={handleVoltar}>
+              ← Voltar
+            </button>
+          </div>
 
           <div className="tabs">
             {[1, 2, 3].map((num) => (
@@ -60,19 +77,14 @@ export default function Mapa() {
             className="mapa-imagem"
           />
 
-          {/* PONTO ENTRADA */}
           {pisoAtivo === ENTRADA.piso && (
-            <div
-              className="mapa-dot dot-entrada"
-              style={{ top: ENTRADA.top, left: ENTRADA.left }}
-            >
+            <div className="mapa-dot dot-entrada" style={{ top: ENTRADA.top, left: ENTRADA.left }}>
               <div className="dot-tooltip">
                 <strong>ENTRADA</strong>
               </div>
             </div>
           )}
 
-          {/* PONTO DESTINO */}
           {pontoDestino && (
             <div
               className="mapa-dot dot-destino"

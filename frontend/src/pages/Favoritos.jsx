@@ -227,7 +227,6 @@ export default function Favoritos() {
             sala={salaSelecionada}
             onClose={() => setSalaSelecionada(null)}
             isFavorito={favoritosIds.includes(String(salaSelecionada.sala))}
-            // ✅ Agora chamamos o toggleFavorito em vez do removerFavorito antigo
             onToggleFavorito={() => toggleFavorito(salaSelecionada.sala)}
             user={user}
             bloqueado={false}

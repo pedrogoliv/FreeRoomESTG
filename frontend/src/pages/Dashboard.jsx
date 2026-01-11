@@ -1,21 +1,29 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
 import GerirReserva from "../components/gerirReserva";
+
 import "./Dashboard.css";
 import { useFiltros } from "../context/FiltrosContext";
 import "../components/detalhesSala.css";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   const [salas, setSalas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
-  // ✅ CORREÇÃO 1: Faltava este estado! Sem ele o código crasha.
+  // Reservas do utilizador
   const [minhasReservas, setMinhasReservas] = useState([]);
 
-  // Estado para a Notificação
+  // Toast (favoritos)
   const [undoToast, setUndoToast] = useState(null);
+
+  // ✅ Toast (reserva confirmada)
+  const [reservaToast, setReservaToast] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
@@ -26,16 +34,14 @@ export default function Dashboard() {
   const [favoritosIds, setFavoritosIds] = useState([]);
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-  // ✅ CORREÇÃO 2: Buscar Favoritos E RESERVAS do utilizador ao iniciar
+  // Buscar Favoritos e Reservas
   useEffect(() => {
     if (user && user.username) {
-      // 1. Favoritos
       fetch(`${API_BASE}/api/favoritos/${user.username}`)
         .then((res) => res.json())
         .then((data) => setFavoritosIds(Array.isArray(data) ? data : []))
         .catch(() => {});
 
-      // 2. Minhas Reservas (Para saber onde mostrar o botão roxo)
       fetch(`${API_BASE}/api/reservas/${user.username}`)
         .then((res) => res.json())
         .then((data) => setMinhasReservas(data.reservas || []))
@@ -43,12 +49,17 @@ export default function Dashboard() {
     }
   }, [user, API_BASE]);
 
-  const { 
-    diaSelecionado, setDiaSelecionado, 
-    horaSelecionada, setHoraSelecionada 
-  } = useFiltros(); 
+  const {
+    diaSelecionado,
+    setDiaSelecionado,
+    horaSelecionada,
+    setHoraSelecionada,
+  } = useFiltros();
 
-  function pad2(n) { return String(n).padStart(2, "0"); }
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
+
   function nextHalfHour() {
     const now = new Date();
     const m = now.getMinutes();
@@ -57,7 +68,10 @@ export default function Dashboard() {
     if (m <= 30) return `${pad2(h)}:30`;
     return `${pad2((h + 1) % 24)}:00`;
   }
-  function hojeISO() { return new Date().toISOString().split("T")[0]; }
+
+  function hojeISO() {
+    return new Date().toISOString().split("T")[0];
+  }
 
   const hoje = hojeISO();
   const minHoraHoje = nextHalfHour();
@@ -67,11 +81,11 @@ export default function Dashboard() {
       setDiaSelecionado(hoje);
     }
   }, [diaSelecionado, hoje, setDiaSelecionado]);
-  
+
   const isWeekend = (isoDate) => {
     if (!isoDate) return false;
     const d = new Date(`${isoDate}T00:00:00`);
-    const day = d.getDay(); 
+    const day = d.getDay();
     return day === 0 || day === 6;
   };
 
@@ -88,9 +102,16 @@ export default function Dashboard() {
         if (data?.success && Array.isArray(data.feriados)) setFERIADOS(new Set(data.feriados));
         else setFERIADOS(new Set());
       })
-      .catch(() => { if (alive) setFERIADOS(new Set()); })
-      .finally(() => { if (alive) setFeriadosLoading(false); });
-    return () => { alive = false; };
+      .catch(() => {
+        if (alive) setFERIADOS(new Set());
+      })
+      .finally(() => {
+        if (alive) setFeriadosLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
   }, [API_BASE]);
 
   const isFeriado = (isoDate) => FERIADOS.has(isoDate);
@@ -120,7 +141,14 @@ export default function Dashboard() {
       const primeiraValida = listaHorariosFiltrada[0] || minHoraHoje;
       if (primeiraValida) setHoraSelecionada(primeiraValida);
     }
-  }, [diaSelecionado, hoje, horaSelecionada, minHoraHoje, listaHorariosFiltrada, setHoraSelecionada]);
+  }, [
+    diaSelecionado,
+    hoje,
+    horaSelecionada,
+    minHoraHoje,
+    listaHorariosFiltrada,
+    setHoraSelecionada,
+  ]);
 
   const foraDeHoras = horaSelecionada < "08:00" || horaSelecionada > "22:30";
 
@@ -130,9 +158,12 @@ export default function Dashboard() {
       setSalas([]);
       return;
     }
+
     setLoading(true);
     fetch(
-      `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(diaSelecionado)}&hora=${encodeURIComponent(horaSelecionada)}`
+      `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(diaSelecionado)}&hora=${encodeURIComponent(
+        horaSelecionada
+      )}`
     )
       .then((res) => res.json())
       .then((dados) => {
@@ -145,7 +176,9 @@ export default function Dashboard() {
       });
   }, [API_BASE, diaSelecionado, horaSelecionada, feriadosLoading, foraDeHoras, fimDeSemana, feriado]);
 
-  useEffect(() => { refetchSalas(); }, [refetchSalas]);
+  useEffect(() => {
+    refetchSalas();
+  }, [refetchSalas]);
 
   const salasFiltradas = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -176,15 +209,27 @@ export default function Dashboard() {
     });
 
     if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
-    
+
     const timer = setTimeout(() => {
       setUndoToast(null);
     }, 4000);
 
     if (isRemoving) {
-      setUndoToast({ show: true, type: 'remove', salaId: idDaSala, text: 'Removido dos favoritos.', timeoutId: timer });
+      setUndoToast({
+        show: true,
+        type: "remove",
+        salaId: idDaSala,
+        text: "Removido dos favoritos.",
+        timeoutId: timer,
+      });
     } else {
-      setUndoToast({ show: true, type: 'add', salaId: idDaSala, text: 'Adicionado aos favoritos!', timeoutId: timer });
+      setUndoToast({
+        show: true,
+        type: "add",
+        salaId: idDaSala,
+        text: "Adicionado aos favoritos!",
+        timeoutId: timer,
+      });
     }
 
     try {
@@ -199,26 +244,60 @@ export default function Dashboard() {
   };
 
   const handleUndo = () => {
-    if (!undoToast || undoToast.type !== 'remove') return;
+    if (!undoToast || undoToast.type !== "remove") return;
     toggleFavorito(undoToast.salaId);
     setUndoToast(null);
+  };
+
+  // ✅ Toast de reserva (mesmo estilo do favoritos)
+  const showReservaToast = (payload) => {
+    if (reservaToast?.timeoutId) clearTimeout(reservaToast.timeoutId);
+
+    const fallbackSalaNome = salaSelecionada?.sala ? `Sala ${salaSelecionada.sala}` : "Sala";
+    const salaNome = payload?.salaNome || fallbackSalaNome;
+
+    const diaISO = payload?.diaISO || diaSelecionado;
+    const horaInicio = payload?.horaInicio || horaSelecionada;
+    const horaFim = payload?.horaFim || payload?.hora_fim || "";
+
+    const timer = setTimeout(() => setReservaToast(null), 5000);
+
+    setReservaToast({
+      show: true,
+      text: `✅ Reserva confirmada para ${salaNome} (Dia ${diaISO} das ${horaInicio} até ${horaFim ? `-${horaFim}` : ""}).`,
+      timeoutId: timer,
+    });
   };
 
   return (
     <div className="dashboard-container">
       <Sidebar />
+
       <main className="main-content">
         <header className="dashboard-header">
-          <div><h1 className="dashboard-title">Salas em Tempo Real</h1></div>
+          <div>
+            <h1 className="dashboard-title">Salas em Tempo Real</h1>
+          </div>
+
           <div className="filters">
             <div className="filtro-box">
               <label>Dia</label>
-              <input type="date" value={diaSelecionado} min={hoje} onChange={(e) => setDiaSelecionado(e.target.value)} />
+              <input
+                type="date"
+                value={diaSelecionado}
+                min={hoje}
+                onChange={(e) => setDiaSelecionado(e.target.value)}
+              />
             </div>
+
             <div className="filtro-box">
               <label>Hora</label>
               <select value={horaSelecionada} onChange={(e) => setHoraSelecionada(e.target.value)}>
-                {listaHorariosFiltrada.map((horario) => (<option key={horario} value={horario}>{horario}</option>))}
+                {listaHorariosFiltrada.map((horario) => (
+                  <option key={horario} value={horario}>
+                    {horario}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -226,12 +305,22 @@ export default function Dashboard() {
 
         <div className="controlsRow">
           <div className="search">
-            <input className="searchInput" placeholder="Procura o número de uma sala" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input
+              className="searchInput"
+              placeholder="Procura o número de uma sala"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
             <span className="searchIcon">🔎</span>
           </div>
+
           <div className="tabs">
             {["todas", "1", "2", "3"].map((piso) => (
-              <button key={piso} className={tab === piso ? "tab active" : "tab"} onClick={() => setTab(piso)}>
+              <button
+                key={piso}
+                className={tab === piso ? "tab active" : "tab"}
+                onClick={() => setTab(piso)}
+              >
                 {piso === "todas" ? "Todas as salas" : `Piso ${piso}`}
               </button>
             ))}
@@ -243,19 +332,44 @@ export default function Dashboard() {
         ) : foraDeHoras || fimDeSemana || feriado ? (
           <div className="fechado">
             <h2>🚫 Reservas indisponíveis</h2>
-            {fimDeSemana ? <p>Não é possível reservar salas ao fim-de-semana.</p> : feriado ? <p>Não é possível reservar salas em feriados.</p> : <p>Seleciona um horário entre 08:00 e 22:30.</p>}
+            {fimDeSemana ? (
+              <p>Não é possível reservar salas ao fim-de-semana.</p>
+            ) : feriado ? (
+              <p>Não é possível reservar salas em feriados.</p>
+            ) : (
+              <p>Seleciona um horário entre 08:00 e 22:30.</p>
+            )}
           </div>
         ) : (
           <>
             <div className="stats-container">
-              <div className="stat-card"><span className="stat-numero">{totalSalas}</span><span className="stat-label">Total de salas</span></div>
-              <div className="stat-card"><span className="stat-numero green">{totalLivres} <span className="dot greenDot" /></span><span className="stat-label">Disponíveis agora</span></div>
-              <div className="stat-card"><span className="stat-numero red">{totalOcupadas} <span className="dot redDot" /></span><span className="stat-label">Ocupadas agora</span></div>
+              <div className="stat-card">
+                <span className="stat-numero">{totalSalas}</span>
+                <span className="stat-label">Total de salas</span>
+              </div>
+
+              <div className="stat-card">
+                <span className="stat-numero green">
+                  {totalLivres} <span className="dot greenDot" />
+                </span>
+                <span className="stat-label">Disponíveis agora</span>
+              </div>
+
+              <div className="stat-card">
+                <span className="stat-numero red">
+                  {totalOcupadas} <span className="dot redDot" />
+                </span>
+                <span className="stat-label">Ocupadas agora</span>
+              </div>
             </div>
+
             <div className="grid-salas">
               {salasFiltradas.map((item) => {
                 const capacidade = Number(item.lugares ?? 15) || 15;
-                const livresAgora = Math.max(0, Math.min(capacidade, Number(item.lugaresDisponiveis ?? 0)));
+                const livresAgora = Math.max(
+                  0,
+                  Math.min(capacidade, Number(item.lugaresDisponiveis ?? 0))
+                );
                 const ocupadas = Math.max(0, Math.min(capacidade, capacidade - livresAgora));
                 let ocupClass = "ocup-green";
                 if (ocupadas >= 7 && ocupadas <= 10) ocupClass = "ocup-yellow";
@@ -263,28 +377,40 @@ export default function Dashboard() {
                 const pct = capacidade > 0 ? Math.round((ocupadas / capacidade) * 100) : 0;
                 const livre = item.status === "Livre";
 
-                // ✅ Verificar se tenho reserva nesta sala à hora atual
-                const minhaReserva = minhasReservas.find(r => 
-                  r.sala === item.sala &&
-                  r.dia === diaSelecionado &&
-                  r.status === 'ativa' &&
-                  r.hora_inicio <= horaSelecionada && 
-                  r.hora_fim > horaSelecionada
+                const minhaReserva = minhasReservas.find(
+                  (r) =>
+                    r.sala === item.sala &&
+                    r.dia === diaSelecionado &&
+                    r.status === "ativa" &&
+                    r.hora_inicio <= horaSelecionada &&
+                    r.hora_fim > horaSelecionada
                 );
 
                 return (
-                  <div key={`${item.sala}-${item.piso}`} className={`card-sala ${minhaReserva ? "minha-reserva-border" : ""}`}>
-                    <div className={`card-top ${minhaReserva ? "minha" : (livre ? "livre" : "ocupada")}`}>
-                      <span className="statusDot" /><span>{minhaReserva ? "Minha Reserva" : (livre ? "Disponível" : "Ocupada")}</span>
+                  <div
+                    key={`${item.sala}-${item.piso}`}
+                    className={`card-sala ${minhaReserva ? "minha-reserva-border" : ""}`}
+                  >
+                    <div className={`card-top ${minhaReserva ? "minha" : livre ? "livre" : "ocupada"}`}>
+                      <span className="statusDot" />
+                      <span>{minhaReserva ? "Minha Reserva" : livre ? "Disponível" : "Ocupada"}</span>
                     </div>
+
                     <div className="card-body">
-                      <div className="card-header-row"><div className="sala-nome">Sala {item.sala}</div><span className="sala-piso-badge">🏢 Piso {item.piso}</span></div>
-                      <div className="ocup-bar" aria-hidden="true"><div className={`ocup-fill ${ocupClass}`} style={{ width: `${pct}%` }} /></div>
-                      <div className="ocup-hint">{livresAgora}/{capacidade} livres</div>
-                      
-                      {/* ✅ CORREÇÃO 3: Passar a reserva para dentro do estado ao clicar! */}
-                      <button 
-                        className={minhaReserva ? "btn-details btn-manage" : "btn-details"} 
+                      <div className="card-header-row">
+                        <div className="sala-nome">Sala {item.sala}</div>
+                        <span className="sala-piso-badge">🏢 Piso {item.piso}</span>
+                      </div>
+
+                      <div className="ocup-bar" aria-hidden="true">
+                        <div className={`ocup-fill ${ocupClass}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="ocup-hint">
+                        {livresAgora}/{capacidade} livres
+                      </div>
+
+                      <button
+                        className={minhaReserva ? "btn-details btn-manage" : "btn-details"}
                         onClick={() => setSalaSelecionada({ ...item, reservaExistente: minhaReserva })}
                       >
                         {minhaReserva ? "✏️ Gerir Reserva" : "Ver detalhes"}
@@ -297,16 +423,38 @@ export default function Dashboard() {
           </>
         )}
 
+        {/* Toast Favoritos */}
         {undoToast && undoToast.show && (
           <div className={`undo-toast ${undoToast.type === "add" ? "success" : ""}`}>
-            <span>{undoToast.type === "add" ? "✅ " : "🗑️ "} {undoToast.text}</span>
-            {undoToast.type === "remove" && (<button className="undo-btn" onClick={handleUndo}>Desfazer</button>)}
+            <span>
+              {undoToast.type === "add" ? "✅ " : "🗑️ "} {undoToast.text}
+            </span>
+            {undoToast.type === "remove" && (
+              <button className="undo-btn" onClick={handleUndo}>
+                Desfazer
+              </button>
+            )}
           </div>
         )}
 
-        {salaSelecionada && (
-          // SE TEM RESERVA EXISTENTE -> ABRE O COMPONENTE DE GERIR
-          salaSelecionada.reservaExistente ? (
+        {/* ✅ Toast Reserva */}
+        {reservaToast && reservaToast.show && (
+          <div className="undo-toast success">
+            <span>{reservaToast.text}</span>
+            <button
+              className="undo-btn"
+              onClick={() => {
+                setReservaToast(null);
+                navigate("/minhas-reservas");
+              }}
+            >
+              Minhas reservas
+            </button>
+          </div>
+        )}
+
+        {salaSelecionada &&
+          (salaSelecionada.reservaExistente ? (
             <GerirReserva
               salaInfo={salaSelecionada}
               reserva={salaSelecionada.reservaExistente}
@@ -331,9 +479,12 @@ export default function Dashboard() {
               onToggleFavorito={() => toggleFavorito(salaSelecionada.sala)}
               diaSelecionado={diaSelecionado}
               horaSelecionada={horaSelecionada}
-              onReservaSucesso={() => {
+              onReservaSucesso={(payload) => {
+                showReservaToast(payload);
+
                 refetchSalas();
                 setSalaSelecionada(null);
+
                 if (user?.username) {
                   fetch(`${API_BASE}/api/reservas/${user.username}`)
                     .then((res) => res.json())
@@ -341,8 +492,7 @@ export default function Dashboard() {
                 }
               }}
             />
-          )
-        )}
+          ))}
       </main>
     </div>
   );
