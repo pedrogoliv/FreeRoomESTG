@@ -38,31 +38,30 @@ export default function DetalhesSala({
   const [lugaresDisp, setLugaresDisp] = useState(null);
   const [pessoas, setPessoas] = useState("1");
   const [horaFim, setHoraFim] = useState("");
+  
+  // ✅ NOVO ESTADO: MOTIVO
+  const [motivo, setMotivo] = useState("");
+
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
 
   const diaLocalBloqueado = isWeekend(diaSelecionado) || isHoliday(diaSelecionado);
 
-  // ✅ NOVA LÓGICA: Calcula horários e remove o passado se for Hoje
   const horarios = useMemo(() => {
     const slots = [];
-    // 1. Gerar todos os slots base (08:00 - 22:30)
     for (let h = 8; h <= 22; h++) {
       const hh = String(h).padStart(2, "0");
       slots.push(`${hh}:00`);
       slots.push(`${hh}:30`);
     }
 
-    // 2. Verificar se o dia selecionado é HOJE
     const hojeStr = new Date().toISOString().split("T")[0];
-    
     if (diaSelecionado === hojeStr) {
        const agora = new Date();
        const horaAtual = agora.getHours();
        const minAtual = agora.getMinutes();
 
-       // Filtra: Só mostra slots que sejam MAIORES que a hora atual
        return slots.filter(slot => {
           const [h, m] = slot.split(':').map(Number);
           if (h > horaAtual) return true;
@@ -70,11 +69,9 @@ export default function DetalhesSala({
           return false;
        });
     }
-
     return slots;
   }, [diaSelecionado]);
 
-  // ✅ AUTO-CORREÇÃO: Se a hora selecionada já passou (não existe na lista), seleciona a primeira disponível
   useEffect(() => {
     if (horarios.length > 0 && !horarios.includes(horaSelecionada)) {
       setHoraSelecionada(horarios[0]);
@@ -97,9 +94,7 @@ export default function DetalhesSala({
   useEffect(() => { setMsg(""); }, [diaSelecionado, horaSelecionada]);
 
   async function fetchStatus(dia, hora) {
-    // Se não houver hora válida (ex: já passou das 22h30 hoje), não faz fetch
     if (!hora) return { isLivre: false, lugaresDisponiveis: 0 };
-
     const res = await fetch(`${API_BASE}/api/salas-livres?dia=${encodeURIComponent(dia)}&hora=${encodeURIComponent(hora)}`);
     const data = await res.json().catch(() => []);
     const arr = Array.isArray(data) ? data : [];
@@ -144,7 +139,16 @@ export default function DetalhesSala({
     try {
       const res = await fetch(`${API_BASE}/api/reservar`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sala: sala.sala, dia: diaSelecionado, hora_inicio: horaSelecionada, hora_fim: horaFim, pessoas: n, responsavel: user?.username }),
+        // ✅ ADICIONADO: Envia o motivo para a API
+        body: JSON.stringify({ 
+          sala: sala.sala, 
+          dia: diaSelecionado, 
+          hora_inicio: horaSelecionada, 
+          hora_fim: horaFim, 
+          pessoas: n, 
+          responsavel: user?.username,
+          motivo: motivo // Pode ir vazio
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) { onReservaSucesso?.(); }
@@ -220,11 +224,22 @@ export default function DetalhesSala({
                  {opcoesHoraFim.length === 0 ? <option value="">-</option> : opcoesHoraFim.map((h) => <option key={h} value={h}>{h}</option>)}
                </select>
             </div>
+
+            {/* ✅ 5. NOVO CAMPO: Motivo (Full Width) */}
+            <div className="field-group" style={{ gridColumn: "1 / -1" }}>
+               <label className="field-label">Motivo (Opcional)</label>
+               <input 
+                 className="field-control" 
+                 type="text" 
+                 value={motivo} 
+                 onChange={(e) => setMotivo(e.target.value)} 
+                 placeholder="Ex: Reunião de grupo..."
+                 disabled={diaLocalBloqueado}
+               />
+            </div>
           </div>
           
           {diaLocalBloqueado && <div className="warning-block">⛔ Selecione um dia útil (Seg-Sex).</div>}
-
-          {/* Se for hoje e já tiver passado das 22:30, mostra aviso */}
           {horarios.length === 0 && !diaLocalBloqueado && (
              <div className="warning-block">⛔ Não há mais horários disponíveis para hoje.</div>
           )}
@@ -258,7 +273,7 @@ export default function DetalhesSala({
                onClick={reservar}
                disabled={diaLocalBloqueado || horarios.length === 0 || loading || loadingStatus || !isLivre || livresAgora <= 0}
              >
-               {diaLocalBloqueado ? "Indisponível" : (loading ? "A reservar..." : "Confirmar Reserva")}
+               {diaLocalBloqueado ? "Indisponível" : (loading ? "A reservar..." : "Reservar")}
              </button>
              {msg && <div className="msg-error">{msg}</div>}
           </div>

@@ -1,15 +1,20 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
+import GerirReserva from "../components/gerirReserva";
 import "./Dashboard.css";
-import { useFiltros } from "../context/FiltrosContext"; 
+import { useFiltros } from "../context/FiltrosContext";
+import "../components/detalhesSala.css";
 
 export default function Dashboard() {
   const [salas, setSalas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
-  // ✅ ESTADO PARA A NOTIFICAÇÃO
+  // ✅ CORREÇÃO 1: Faltava este estado! Sem ele o código crasha.
+  const [minhasReservas, setMinhasReservas] = useState([]);
+
+  // Estado para a Notificação
   const [undoToast, setUndoToast] = useState(null);
 
   useEffect(() => {
@@ -21,20 +26,26 @@ export default function Dashboard() {
   const [favoritosIds, setFavoritosIds] = useState([]);
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
+  // ✅ CORREÇÃO 2: Buscar Favoritos E RESERVAS do utilizador ao iniciar
   useEffect(() => {
     if (user && user.username) {
+      // 1. Favoritos
       fetch(`${API_BASE}/api/favoritos/${user.username}`)
         .then((res) => res.json())
         .then((data) => setFavoritosIds(Array.isArray(data) ? data : []))
         .catch(() => {});
+
+      // 2. Minhas Reservas (Para saber onde mostrar o botão roxo)
+      fetch(`${API_BASE}/api/reservas/${user.username}`)
+        .then((res) => res.json())
+        .then((data) => setMinhasReservas(data.reservas || []))
+        .catch(() => setMinhasReservas([]));
     }
   }, [user, API_BASE]);
 
   const { 
-    diaSelecionado, 
-    setDiaSelecionado, 
-    horaSelecionada, 
-    setHoraSelecionada 
+    diaSelecionado, setDiaSelecionado, 
+    horaSelecionada, setHoraSelecionada 
   } = useFiltros(); 
 
   function pad2(n) { return String(n).padStart(2, "0"); }
@@ -51,6 +62,12 @@ export default function Dashboard() {
   const hoje = hojeISO();
   const minHoraHoje = nextHalfHour();
 
+  useEffect(() => {
+    if (diaSelecionado < hoje) {
+      setDiaSelecionado(hoje);
+    }
+  }, [diaSelecionado, hoje, setDiaSelecionado]);
+  
   const isWeekend = (isoDate) => {
     if (!isoDate) return false;
     const d = new Date(`${isoDate}T00:00:00`);
@@ -145,74 +162,45 @@ export default function Dashboard() {
   const totalLivres = salasFiltradas.filter((s) => s.status === "Livre").length;
   const totalOcupadas = totalSalas - totalLivres;
 
-  // ✅ TOGGLE FAVORITO ATUALIZADO
   const toggleFavorito = async (idDaSala) => {
     if (!user || !user.username) {
       alert("Erro de autenticação: Faz login novamente.");
       return;
     }
 
-    // 1. Verificar se estamos a remover
     const isRemoving = favoritosIds.includes(idDaSala);
 
-    // 2. Atualizar visualmente (Otimista)
     setFavoritosIds((prevIds) => {
       if (prevIds.includes(idDaSala)) return prevIds.filter((id) => id !== idDaSala);
       return [...prevIds, idDaSala];
     });
 
-    // 3. Gerir a Notificação
-    // Limpa timer anterior
     if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
     
-    // Novo timer de 4 segundos
     const timer = setTimeout(() => {
       setUndoToast(null);
     }, 4000);
 
     if (isRemoving) {
-      // Caso REMOVER: Mostra botão Undo
-      setUndoToast({ 
-        show: true, 
-        type: 'remove', 
-        salaId: idDaSala, 
-        text: 'Removido dos favoritos.', 
-        timeoutId: timer 
-      });
+      setUndoToast({ show: true, type: 'remove', salaId: idDaSala, text: 'Removido dos favoritos.', timeoutId: timer });
     } else {
-      // Caso ADICIONAR: Mostra apenas sucesso (sem undo)
-      setUndoToast({ 
-        show: true, 
-        type: 'add', 
-        salaId: idDaSala, 
-        text: 'Adicionado aos favoritos!', 
-        timeoutId: timer 
-      });
+      setUndoToast({ show: true, type: 'add', salaId: idDaSala, text: 'Adicionado aos favoritos!', timeoutId: timer });
     }
 
-    // 4. Chamar API
     try {
       await fetch(`${API_BASE}/api/favoritos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: user.username,
-          salaId: idDaSala,
-        }),
+        body: JSON.stringify({ username: user.username, salaId: idDaSala }),
       });
     } catch (error) {
       console.error("Erro ao guardar favorito", error);
     }
   };
 
-  // ✅ FUNÇÃO DESFAZER
   const handleUndo = () => {
     if (!undoToast || undoToast.type !== 'remove') return;
-
-    // Chama o toggle de novo para a mesma sala (re-adiciona)
     toggleFavorito(undoToast.salaId);
-    
-    // Fecha o aviso imediatamente
     setUndoToast(null);
   };
 
@@ -220,30 +208,17 @@ export default function Dashboard() {
     <div className="dashboard-container">
       <Sidebar />
       <main className="main-content">
-        {/* ✅ HEADER ALINHADO (Mesma estrutura das outras páginas) */}
         <header className="dashboard-header">
-          {/* Título dentro de uma DIV */}
-          <div>
-            <h1 className="dashboard-title">Salas em Tempo Real</h1>
-          </div>
-          
-          {/* Filtros à direita */}
+          <div><h1 className="dashboard-title">Salas em Tempo Real</h1></div>
           <div className="filters">
             <div className="filtro-box">
               <label>Dia</label>
-              <input
-                type="date"
-                value={diaSelecionado}
-                min={hoje}
-                onChange={(e) => setDiaSelecionado(e.target.value)}
-              />
+              <input type="date" value={diaSelecionado} min={hoje} onChange={(e) => setDiaSelecionado(e.target.value)} />
             </div>
             <div className="filtro-box">
               <label>Hora</label>
               <select value={horaSelecionada} onChange={(e) => setHoraSelecionada(e.target.value)}>
-                {listaHorariosFiltrada.map((horario) => (
-                  <option key={horario} value={horario}>{horario}</option>
-                ))}
+                {listaHorariosFiltrada.map((horario) => (<option key={horario} value={horario}>{horario}</option>))}
               </select>
             </div>
           </div>
@@ -287,16 +262,33 @@ export default function Dashboard() {
                 if (ocupadas >= 11) ocupClass = "ocup-red";
                 const pct = capacidade > 0 ? Math.round((ocupadas / capacidade) * 100) : 0;
                 const livre = item.status === "Livre";
+
+                // ✅ Verificar se tenho reserva nesta sala à hora atual
+                const minhaReserva = minhasReservas.find(r => 
+                  r.sala === item.sala &&
+                  r.dia === diaSelecionado &&
+                  r.status === 'ativa' &&
+                  r.hora_inicio <= horaSelecionada && 
+                  r.hora_fim > horaSelecionada
+                );
+
                 return (
-                  <div key={`${item.sala}-${item.piso}`} className="card-sala">
-                    <div className={`card-top ${livre ? "livre" : "ocupada"}`}>
-                      <span className="statusDot" /><span>{livre ? "Disponível" : "Ocupada"}</span>
+                  <div key={`${item.sala}-${item.piso}`} className={`card-sala ${minhaReserva ? "minha-reserva-border" : ""}`}>
+                    <div className={`card-top ${minhaReserva ? "minha" : (livre ? "livre" : "ocupada")}`}>
+                      <span className="statusDot" /><span>{minhaReserva ? "Minha Reserva" : (livre ? "Disponível" : "Ocupada")}</span>
                     </div>
                     <div className="card-body">
                       <div className="card-header-row"><div className="sala-nome">Sala {item.sala}</div><span className="sala-piso-badge">🏢 Piso {item.piso}</span></div>
                       <div className="ocup-bar" aria-hidden="true"><div className={`ocup-fill ${ocupClass}`} style={{ width: `${pct}%` }} /></div>
                       <div className="ocup-hint">{livresAgora}/{capacidade} livres</div>
-                      <button className="btn-details" onClick={() => setSalaSelecionada(item)}>Ver detalhes</button>
+                      
+                      {/* ✅ CORREÇÃO 3: Passar a reserva para dentro do estado ao clicar! */}
+                      <button 
+                        className={minhaReserva ? "btn-details btn-manage" : "btn-details"} 
+                        onClick={() => setSalaSelecionada({ ...item, reservaExistente: minhaReserva })}
+                      >
+                        {minhaReserva ? "✏️ Gerir Reserva" : "Ver detalhes"}
+                      </button>
                     </div>
                   </div>
                 );
@@ -305,34 +297,51 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* ✅ COMPONENTE VISUAL DA NOTIFICAÇÃO */}
         {undoToast && undoToast.show && (
           <div className={`undo-toast ${undoToast.type === "add" ? "success" : ""}`}>
-            <span>
-              {undoToast.type === "add" ? "✅ " : "🗑️ "} 
-              {undoToast.text}
-            </span>
-            
-            {/* Só mostra o botão DESFAZER se for uma remoção */}
-            {undoToast.type === "remove" && (
-              <button className="undo-btn" onClick={handleUndo}>
-                Desfazer
-              </button>
-            )}
+            <span>{undoToast.type === "add" ? "✅ " : "🗑️ "} {undoToast.text}</span>
+            {undoToast.type === "remove" && (<button className="undo-btn" onClick={handleUndo}>Desfazer</button>)}
           </div>
         )}
 
         {salaSelecionada && (
-          <DetalhesSala
-            sala={salaSelecionada}
-            user={user}
-            onClose={() => setSalaSelecionada(null)}
-            isFavorito={favoritosIds.includes(salaSelecionada.sala)}
-            onToggleFavorito={() => toggleFavorito(salaSelecionada.sala)}
-            diaSelecionado={diaSelecionado}
-            horaSelecionada={horaSelecionada}
-            onReservaSucesso={() => { refetchSalas(); setSalaSelecionada(null); }}
-          />
+          // SE TEM RESERVA EXISTENTE -> ABRE O COMPONENTE DE GERIR
+          salaSelecionada.reservaExistente ? (
+            <GerirReserva
+              salaInfo={salaSelecionada}
+              reserva={salaSelecionada.reservaExistente}
+              user={user}
+              onClose={() => setSalaSelecionada(null)}
+              onSuccess={() => {
+                refetchSalas();
+                setSalaSelecionada(null);
+                if (user?.username) {
+                  fetch(`${API_BASE}/api/reservas/${user.username}`)
+                    .then((res) => res.json())
+                    .then((data) => setMinhasReservas(data.reservas || []));
+                }
+              }}
+            />
+          ) : (
+            <DetalhesSala
+              sala={salaSelecionada}
+              user={user}
+              onClose={() => setSalaSelecionada(null)}
+              isFavorito={favoritosIds.includes(salaSelecionada.sala)}
+              onToggleFavorito={() => toggleFavorito(salaSelecionada.sala)}
+              diaSelecionado={diaSelecionado}
+              horaSelecionada={horaSelecionada}
+              onReservaSucesso={() => {
+                refetchSalas();
+                setSalaSelecionada(null);
+                if (user?.username) {
+                  fetch(`${API_BASE}/api/reservas/${user.username}`)
+                    .then((res) => res.json())
+                    .then((data) => setMinhasReservas(data.reservas || []));
+                }
+              }}
+            />
+          )
         )}
       </main>
     </div>

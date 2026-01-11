@@ -422,3 +422,28 @@
   from { transform: translate(-50%, 20px); opacity: 0; }
   to { transform: translate(-50%, 0); opacity: 1; }
 }
+
+/* --- ESTILOS PARA MINHAS RESERVAS --- */
+
+/* Botão de Gerir (Azul/Roxo ou outra cor de destaque) */
+.btn-manage {
+  background: #4f46e5; /* Índigo */
+  border: 1px solid #4338ca;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.btn-manage:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+
+/* Badge de Topo "Minha Reserva" */
+.card-top.minha {
+  background: #e0e7ff; /* Fundo azul clarinho */
+  color: #4338ca;      /* Texto azul escuro */
+}
+
+/* Opcional: Borda mais grossa no cartão se for minha reserva */
+.minha-reserva-border {
+  border: 2px solid #818cf8 !important;
+}

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom"; 
 import Sidebar from "../components/Sidebar";
+import GerirReserva from "../components/gerirReserva";
 import { FaMapMarkedAlt, FaChevronRight, FaCalendarAlt, FaClock, FaUserFriends, FaHistory } from "react-icons/fa";
-import "./minhasReservas.css"; 
+import "./MinhasReservas.css"; 
 
 export default function MinhasReservas() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
@@ -19,7 +20,8 @@ export default function MinhasReservas() {
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  useEffect(() => {
+  // ✅ 2. Função de carregar reservas (para usar no refresh)
+  const carregarReservas = useCallback(() => {
     if (!user?.username) return;
     setLoading(true);
     setMsg("");
@@ -36,6 +38,11 @@ export default function MinhasReservas() {
       })
       .finally(() => setLoading(false));
   }, [user, API_BASE]);
+
+  // Carregar ao iniciar
+  useEffect(() => {
+    carregarReservas();
+  }, [carregarReservas]);
 
   // --- HELPERS ---
   function getPisoFromNome(nomeSala) {
@@ -58,32 +65,9 @@ export default function MinhasReservas() {
   function isPastReserva(r) {
     const dia = getDia(r);
     const horaFim = getHoraFim(r); 
-    
     if (!dia || !horaFim) return false;
-    
     const dtFim = new Date(`${dia}T${horaFim}:00`);
     return dtFim.getTime() < Date.now();
-  }
-
-  async function cancelarReserva(reserva) {
-    if (!reserva?._id) return;
-    if (!window.confirm("Tem a certeza que pretende cancelar esta reserva?")) return;
-
-    const backup = reservas;
-    setReservas((prev) => prev.filter((r) => r._id !== reserva._id));
-    if (reservaSelecionada?._id === reserva._id) setReservaSelecionada(null);
-
-    try {
-      const res = await fetch(`${API_BASE}/api/reservas/${reserva._id}`, { method: "DELETE" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data?.success === false) {
-        setReservas(backup);
-        alert(data?.message || "Erro ao cancelar.");
-      }
-    } catch (e) {
-      setReservas(backup);
-      alert("Erro de ligação.");
-    }
   }
 
   // Separação das Reservas
@@ -94,13 +78,12 @@ export default function MinhasReservas() {
   reservasFuturas.sort((a, b) => new Date(`${getDia(a)}T${getHoraInicio(a)}`) - new Date(`${getDia(b)}T${getHoraInicio(b)}`));
   reservasPassadas.sort((a, b) => new Date(`${getDia(b)}T${getHoraInicio(b)}`) - new Date(`${getDia(a)}T${getHoraInicio(a)}`));
 
-  // --- COMPONENTES DE CARTÃO ---
+  // --- COMPONENTES VISUAIS (Cartões) ---
   function CardReservaAtiva({ r }) {
     const salaId = getSalaId(r);
     const dia = getDia(r);
     const piso = getPisoFromNome(salaId);
 
-    // Lógica "A DECORRER"
     const agora = new Date();
     const dataInicio = new Date(`${dia}T${getHoraInicio(r)}:00`);
     const dataFim = new Date(`${dia}T${getHoraFim(r)}:00`);
@@ -119,15 +102,10 @@ export default function MinhasReservas() {
         </div>
         
         <div className="row-info">
-          {/* AQUI ESTÁ A CORREÇÃO: row-header já usa flexbox para alinhar lado a lado */}
           <div className="row-header">
             <span className="sala-name">Sala {salaId}</span>
-            
-            {aDecorrer && (
-              <span className="tag-status">A DECORRER</span>
-            )}
+            {aDecorrer && <span className="tag-status">A DECORRER</span>}
           </div>
-          
           <div className="row-details">
             <span style={{ color: aDecorrer ? '#22c55e' : 'inherit', fontWeight: aDecorrer ? 'bold' : 'normal' }}>
               <FaClock size={12} /> {getHoraInicio(r)} - {getHoraFim(r)}
@@ -136,10 +114,7 @@ export default function MinhasReservas() {
             <span>Piso {piso}</span>
           </div>
         </div>
-        
-        <div className="row-action">
-          <FaChevronRight />
-        </div>
+        <div className="row-action"><FaChevronRight /></div>
       </div>
     );
   }
@@ -147,28 +122,22 @@ export default function MinhasReservas() {
   function CardReservaPassada({ r }) {
     const salaId = getSalaId(r);
     const dia = getDia(r);
-
     return (
       <div className="history-row" onClick={() => setReservaSelecionada(r)}>
-        <div className="history-icon">
-          <FaHistory />
-        </div>
+        <div className="history-icon"><FaHistory /></div>
         <div className="history-info">
           <div className="history-sala">Sala {salaId}</div>
-          <div className="history-date">
-            {formatDiaBR(dia)} • {getHoraInicio(r)}
-          </div>
+          <div className="history-date">{formatDiaBR(dia)} • {getHoraInicio(r)}</div>
         </div>
         <div className="history-action">Ver</div>
       </div>
     );
   }
 
-  // --- MODAL ---
-  function ModalVerReserva({ reserva, onClose }) {
+  // --- MODAL DE APENAS LEITURA (Para Histórico) ---
+  function ModalVerHistorico({ reserva, onClose }) {
     const salaId = getSalaId(reserva);
     const piso = getPisoFromNome(salaId);
-    const passada = isPastReserva(reserva);
 
     return (
       <div className="modal-overlay" onClick={onClose}>
@@ -176,61 +145,19 @@ export default function MinhasReservas() {
           <div className="modal-header">
             <div className="header-left">
               <h2>Sala {salaId}</h2>
-              <span className={`status-pill ${passada ? "passada" : "ativa"}`}>
-                {passada ? "Histórico" : "Confirmada"}
-              </span>
+              <span className="status-badge ocupada">Histórico</span>
             </div>
             <button className="btn-close" onClick={onClose}>&times;</button>
           </div>
-
           <div className="modal-body">
             <div className="info-row">
-              <div className="info-item">
-                <FaCalendarAlt className="icon" />
-                <div>
-                  <label>Data</label>
-                  <strong>{formatDiaBR(getDia(reserva))}</strong>
-                </div>
-              </div>
-              <div className="info-item">
-                <FaClock className="icon" />
-                <div>
-                  <label>Horário</label>
-                  <strong>{getHoraInicio(reserva)} - {getHoraFim(reserva)}</strong>
-                </div>
-              </div>
+              <div className="info-item"><FaCalendarAlt className="icon" /> <div><label>Data</label><strong>{formatDiaBR(getDia(reserva))}</strong></div></div>
+              <div className="info-item"><FaClock className="icon" /> <div><label>Horário</label><strong>{getHoraInicio(reserva)} - {getHoraFim(reserva)}</strong></div></div>
             </div>
-
             <div className="info-row">
-              <div className="info-item">
-                <FaUserFriends className="icon" />
-                <div>
-                  <label>Pessoas</label>
-                  <strong>{getPessoas(reserva)}</strong>
-                </div>
-              </div>
-              <div className="info-item">
-                <strong>Piso {piso}</strong>
-              </div>
+              <div className="info-item"><FaUserFriends className="icon" /> <div><label>Pessoas</label><strong>{getPessoas(reserva)}</strong></div></div>
+              <div className="info-item"><strong>Piso {piso}</strong></div>
             </div>
-
-            <button 
-              className="btn-mapa" 
-              onClick={() => navigate("/mapa", { 
-                state: { 
-                  pisoDestino: piso, 
-                  salaDestino: salaId
-                } 
-              })}
-            >
-              <FaMapMarkedAlt /> Ver localização na planta
-            </button>
-
-            {!passada && (
-              <button className="btn-cancelar" onClick={() => cancelarReserva(reserva)}>
-                Cancelar Reserva
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -254,19 +181,14 @@ export default function MinhasReservas() {
             
             <div className="coluna-principal">
               <h3 className="section-title">Próximas Reservas ({reservasFuturas.length})</h3>
-              
               {reservasFuturas.length === 0 ? (
                 <div className="empty-state-card">
                   <p>Não tens reservas ativas.</p>
-                  <button onClick={() => navigate("/dashboard")} className="btn-link">
-                    Fazer nova reserva
-                  </button>
+                  <button onClick={() => navigate("/dashboard")} className="btn-link">Fazer nova reserva</button>
                 </div>
               ) : (
                 <div className="lista-futuras">
-                  {reservasFuturas.map((r) => (
-                    <CardReservaAtiva key={r._id} r={r} />
-                  ))}
+                  {reservasFuturas.map((r) => <CardReservaAtiva key={r._id} r={r} />)}
                 </div>
               )}
             </div>
@@ -278,9 +200,7 @@ export default function MinhasReservas() {
                   <p className="text-muted">Sem histórico.</p>
                 ) : (
                   <div className="lista-passadas">
-                    {reservasPassadas.map((r) => (
-                      <CardReservaPassada key={r._id} r={r} />
-                    ))}
+                    {reservasPassadas.map((r) => <CardReservaPassada key={r._id} r={r} />)}
                   </div>
                 )}
               </div>
@@ -289,12 +209,33 @@ export default function MinhasReservas() {
           </div>
         )}
 
+        {/* ✅ 3. LÓGICA DE SELEÇÃO DE MODAL */}
         {reservaSelecionada && (
-          <ModalVerReserva 
-            reserva={reservaSelecionada} 
-            onClose={() => setReservaSelecionada(null)} 
-          />
+          isPastReserva(reservaSelecionada) ? (
+            // Se for passado -> Mostra apenas leitura
+            <ModalVerHistorico 
+              reserva={reservaSelecionada} 
+              onClose={() => setReservaSelecionada(null)} 
+            />
+          ) : (
+            // Se for futuro -> Abre o GerirReserva (Editável)
+            <GerirReserva
+              salaInfo={{ 
+                sala: reservaSelecionada.sala, 
+                piso: getPisoFromNome(reservaSelecionada.sala),
+                lugares: 15 // Hack: Como a lista não traz capacidade, assumimos 15 por defeito
+              }}
+              reserva={reservaSelecionada}
+              user={user}
+              onClose={() => setReservaSelecionada(null)}
+              onSuccess={() => {
+                setReservaSelecionada(null);
+                carregarReservas(); // Atualiza a lista após editar/cancelar
+              }}
+            />
+          )
         )}
+
       </main>
     </div>
   );

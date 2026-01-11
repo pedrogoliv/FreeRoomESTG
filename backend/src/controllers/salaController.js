@@ -18,10 +18,9 @@ const toMinutes = (t) => {
   return h * 60 + m;
 };
 
+// ✅ CORRIGIDO AQUI TAMBÉM: Sem penalidade!
 const consumoReserva = (pessoas) => {
-  const p = Number(pessoas) || 1;
-  const penalty = Math.floor((p - 1) / 3);
-  return p + penalty;
+  return Number(pessoas) || 1;
 };
 
 // --- Controllers ---

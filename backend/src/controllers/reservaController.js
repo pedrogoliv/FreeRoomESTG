@@ -1,26 +1,30 @@
 const Reserva = require("../models/Reserva");
 const Ocupacao = require("../models/OcupacaoRaw");
-const FERIADOS = require("../config/feriadosPT"); // Assuming you move config here
+const FERIADOS = require("../config/feriadosPT");
 
 const CAP_BASE = 15;
 
 // --- Helpers ---
+
 const isWeekend = (isoDate) => {
   const d = new Date(`${isoDate}T00:00:00`);
   const day = d.getDay();
   return day === 0 || day === 6;
 };
+
 const isFeriado = (isoDate) => FERIADOS.has(isoDate);
+
 const toMinutes = (t) => {
   const [h, m] = String(t).split(":").map(Number);
   return h * 60 + m;
 };
+
 const consumoReserva = (pessoas) => {
-  const p = Number(pessoas) || 1;
-  const penalty = Math.floor((p - 1) / 3);
-  return p + penalty;
+  return Number(pessoas) || 1;
 };
+
 const isValidTimeHHMM = (t) => typeof t === "string" && /^\d{2}:\d{2}$/.test(t);
+
 const addMinutesHHMM = (hhmm, minutesToAdd) => {
   const [h, m] = hhmm.split(":").map(Number);
   const total = h * 60 + m + minutesToAdd;
@@ -215,7 +219,7 @@ exports.updateReserva = async (req, res) => {
       if (consumoNovo > sobra) {
         return res.status(409).json({
           success: false,
-          message: `Capacidade excedida. Espaço disponível (com regra de grupos): ${Math.max(0, sobra)}.`,
+          message: `Capacidade excedida. Espaço disponível: ${Math.max(0, sobra)}.`,
         });
       }
 
