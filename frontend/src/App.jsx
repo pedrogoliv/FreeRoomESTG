@@ -11,6 +11,9 @@ import Mapa from "./pages/Mapa";
 // ✅ NOVO: página de histórico
 import HistoricoReservas from "./pages/HistoricoReservas.jsx";
 
+// ✅ NOVO: Landing Page (página inicial antes do login)
+import Landing from "./pages/Landing.jsx";
+
 // ✅ 1. IMPORTAR O PROVIDER
 import { FiltrosProvider } from "./context/FiltrosContext"; 
 
@@ -26,18 +29,11 @@ export default function App() {
       <FiltrosProvider>
         <Routes>
           {/* --- ROTAS PÚBLICAS --- */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registar" element={<Registar />} /> 
 
-          <Route
-            path="/"
-            element={
-              <RotaProtegida>
-                <Dashboard />
-              </RotaProtegida>
-            }
-          />
-
+          {/* --- ROTAS PROTEGIDAS --- */}
           <Route
             path="/dashboard"
             element={
@@ -75,14 +71,15 @@ export default function App() {
           />
 
           {/* ✅ NOVO: rota do histórico */}
-<Route
-  path="/historico-reservas"
-  element={
-    <RotaProtegida>
-      <HistoricoReservas />
-    </RotaProtegida>
-  }
-/>
+          <Route
+            path="/historico-reservas"
+            element={
+              <RotaProtegida>
+                <HistoricoReservas />
+              </RotaProtegida>
+            }
+          />
+
           <Route 
             path="/mapa" 
             element={
@@ -92,7 +89,15 @@ export default function App() {
             } 
           />
 
-          <Route path="*" element={<Navigate to="/login" />} />
+          {/* ✅ se estiver logado e cair numa rota inválida, vai para dashboard; senão, landing */}
+          <Route
+            path="*"
+            element={
+              sessionStorage.getItem("user")
+                ? <Navigate to="/dashboard" replace />
+                : <Navigate to="/" replace />
+            }
+          />
         </Routes>
       </FiltrosProvider>
     </BrowserRouter>
