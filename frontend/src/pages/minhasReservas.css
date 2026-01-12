@@ -113,3 +113,81 @@
   .historico-box { border: none; background: transparent; padding: 0; }
   .lista-passadas { max-height: 300px; }
 }
+
+/* =========================================
+   CONFIRMAÇÃO DE CANCELAMENTO (NOVO)
+   ========================================= */
+.confirm-overlay {
+  position: absolute; /* Fica dentro do modal principal */
+  inset: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  border-radius: 24px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.confirm-box {
+  background: white;
+  border: 1px solid #fee2e2;
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.15);
+  padding: 24px;
+  border-radius: 16px;
+  text-align: center;
+  width: 80%;
+  max-width: 300px;
+  transform: scale(0.95);
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.confirm-title {
+  color: #991b1b;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.confirm-text {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-sim {
+  flex: 1;
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-sim:hover { background: #b91c1c; }
+
+.btn-nao {
+  flex: 1;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-nao:hover { background: #e2e8f0; color: #334155; }
+
+@keyframes popIn {
+  to { transform: scale(1); }
+}

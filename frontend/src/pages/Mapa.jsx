@@ -10,28 +10,35 @@ export default function Mapa() {
 
   const [pisoAtivo, setPisoAtivo] = useState(Number(location.state?.pisoDestino) || 1);
 
-  // sala destino
   const salaDestinoRaw =
     location.state?.salaDestino || location.state?.sala || location.state?.nomeSala || "";
+    
   const salaDestino = useMemo(() => String(salaDestinoRaw || "").trim(), [salaDestinoRaw]);
 
-  // ✅ VOLTAR (para onde estava antes)
+  // ✅ VERIFICA SE VIEMOS DE UM MODAL DE RESERVA
+  // Se location.state.origem não existir (ex: vindo da Sidebar), isto dá false.
+  const isReservaFlow = location.state?.origem === "reserva";
+
   const handleVoltar = () => {
     const from = location.state?.from;
-    const scrollY = location.state?.scrollY ?? 0;
+    const estadoPreservado = location.state?.estadoPreservado; 
 
-    if (from) {
-      navigate(from);
-      setTimeout(() => window.scrollTo(0, scrollY), 0);
+    if (from && isReservaFlow) {
+      // Volta e reabre o modal com os dados
+      navigate(from, {
+        state: { 
+          reabrirSala: salaDestinoRaw,
+          reabrirComEstado: estadoPreservado 
+        }
+      });
     } else {
+      // Fallback de segurança (caso o botão aparecesse por engano)
       navigate(-1);
     }
   };
 
-  // Entrada fixa
   const ENTRADA = useMemo(() => ({ piso: 1, top: "59%", left: "31%" }), []);
 
-  // procura coords
   const pontoDestino = useMemo(() => {
     if (!salaDestino) return null;
     return (
@@ -52,9 +59,12 @@ export default function Mapa() {
           <div>
             <h1 className="dashboard-title">Planta da Escola</h1>
 
-            <button className="mapa-back" onClick={handleVoltar}>
-              ← Voltar
-            </button>
+            {/* ✅ SÓ MOSTRA O BOTÃO SE VIERMOS DA RESERVA */}
+            {isReservaFlow && (
+              <button className="mapa-back" onClick={handleVoltar}>
+                ← Voltar à Reserva
+              </button>
+            )}
           </div>
 
           <div className="tabs">
@@ -99,7 +109,7 @@ export default function Mapa() {
 
           {showMissingWarning && (
             <div className="mapa-warning">
-              Não há coordenadas para <strong>{salaDestino}</strong> no Piso{" "}
+               A sala <strong>{salaDestino}</strong> não se encontra no piso{" "}
               <strong>{pisoAtivo}</strong>.
             </div>
           )}

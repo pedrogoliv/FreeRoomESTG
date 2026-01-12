@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
+// ✅ 1. Importar hooks de navegação
+import { useLocation, useNavigate } from "react-router-dom"; 
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
 import "./Favoritos.css";
 
 export default function Favoritos() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  
+  // ✅ 2. Instanciar hooks
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
   const [favoritosIds, setFavoritosIds] = useState([]);
   const [loadingFav, setLoadingFav] = useState(true);
 
-  // ✅ ESTADO PARA NOTIFICAÇÃO UNDO
+  // Estado para notificação UNDO
   const [undoToast, setUndoToast] = useState(null);
 
   // Modal
@@ -44,21 +50,18 @@ export default function Favoritos() {
     return "1";
   }
 
-  // ✅ FUNÇÃO DE REMOVER COM UNDO (Lógica igual ao Dashboard)
+  // Função de remover com Undo
   async function toggleFavorito(salaId) {
     if (!user?.username) return;
     const sid = String(salaId);
     
-    // Verifica se estamos a remover (nesta página é quase sempre remover, mas convém verificar)
     const isRemoving = favoritosIds.includes(sid);
 
-    // Atualiza a lista visualmente
     setFavoritosIds((prev) => {
       if (prev.includes(sid)) return prev.filter((id) => id !== sid);
       return [...prev, sid];
     });
 
-    // Gere a notificação
     if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
     
     const timer = setTimeout(() => {
@@ -66,7 +69,6 @@ export default function Favoritos() {
     }, 4000);
 
     if (isRemoving) {
-      // ✅ Mostra aviso de remoção com botão UNDO
       setUndoToast({
         show: true,
         type: 'remove',
@@ -75,7 +77,6 @@ export default function Favoritos() {
         timeoutId: timer
       });
     } else {
-      // ✅ Mostra aviso de adição (caso faças Undo)
       setUndoToast({
         show: true,
         type: 'add',
@@ -85,7 +86,6 @@ export default function Favoritos() {
       });
     }
 
-    // Chama API
     try {
       await fetch(`${API_BASE}/api/favoritos`, {
         method: "POST",
@@ -98,17 +98,11 @@ export default function Favoritos() {
     }
   }
 
-  // ✅ FUNÇÃO DESFAZER
   const handleUndo = () => {
     if (!undoToast || undoToast.type !== 'remove') return;
-
-    // Volta a adicionar a sala
     toggleFavorito(undoToast.salaId);
-    
-    // Fecha o aviso imediatamente
     setUndoToast(null);
   };
-
 
   function getNowDiaHoraSlot() {
     const now = new Date();
@@ -151,6 +145,27 @@ export default function Favoritos() {
     }
   }
 
+  // ✅ 3. LÓGICA PARA REABRIR A SALA AO VOLTAR DO MAPA
+  useEffect(() => {
+    if (location.state?.reabrirSala) {
+      const nomeSala = location.state.reabrirSala;
+      const estadoQueVoltou = location.state.reabrirComEstado;
+
+      // Mesmo que ainda não tenhamos carregado tudo, podemos reconstruir o objeto básico da sala
+      const pisoProvavel = getPisoFromNome(nomeSala);
+      
+      setSalaSelecionada({
+        sala: nomeSala,
+        piso: pisoProvavel,
+        lugares: 15, // Valor temporário até carregar, ou mantido se for fallback
+        estadoPreservado: estadoQueVoltou // ✅ Injeta os dados do formulário
+      });
+
+      // Limpa o estado da navegação
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   return (
     <div className="dashboard-container">
       <Sidebar />
@@ -176,15 +191,12 @@ export default function Favoritos() {
 
               return (
                 <div key={id} className="card-sala fav-card" onClick={() => abrirDetalhes(id)}>
-                  {/* Topo Verde */}
                   <div className="card-top livre">
                     <span className="statusDot" />
                     <span>Favorito</span>
                   </div>
 
                   <div className="card-body">
-                    
-                    {/* Nome à esquerda, Piso à direita */}
                     <div className="card-header-row">
                       <div className="sala-nome">Sala {id}</div>
                       <span className="sala-piso-badge">🏢 Piso {pisoVisual}</span>
@@ -206,7 +218,6 @@ export default function Favoritos() {
           </div>
         )}
 
-        {/* ✅ COMPONENTE VISUAL DA NOTIFICAÇÃO (Igual ao Dashboard) */}
         {undoToast && undoToast.show && (
           <div className={`undo-toast ${undoToast.type === "add" ? "success" : ""}`}>
             <span>

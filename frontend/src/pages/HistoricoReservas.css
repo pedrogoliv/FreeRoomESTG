@@ -1,45 +1,43 @@
-/* src/pages/Historico.css */
+/* src/pages/HistoricoReservas.css */
 
 /* =========================================
-   1. LAYOUT GERAL (Igual ao Perfil)
+   1. LAYOUT GERAL (Sidebar Fixa + Scroll no Conteúdo)
    ========================================= */
 
 .page-layout {
   display: flex;
-  min-height: 100vh;
-  background: #f6f7fb; /* Mesmo fundo do perfil */
+  height: 100vh;       /* Altura total do ecrã */
+  overflow: hidden;    /* Impede o scroll na página inteira (prende a sidebar) */
+  background: #f8fafc; /* Fundo claro do tema */
 }
 
+/* Área de Conteúdo (Lado Direito) */
 .historico-page {
-  flex: 1;
-  padding: 40px;
-  /* Removemos o display:flex/column centralizado do perfil */
-  /* Mantemos o fluxo normal para ficar alinhado à esquerda */
-  width: 100%;
+  flex: 1;             /* Ocupa o resto do espaço */
+  height: 100%;        /* Altura total */
+  overflow-y: auto;    /* ✅ O SCROLL ACONTECE SÓ AQUI */
+  padding: 40px;       /* Espaçamento interno */
+  
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Alinha tudo à esquerda */
 }
 
 /* =========================================
-   2. HEADER (Igual ao .dashboard-header)
+   2. HEADER
    ========================================= */
 
 .historico-header {
   margin-bottom: 30px;
-  text-align: left; /* Garante que fica à esquerda */
+  width: 100%;
 }
 
 .historico-header h1 {
   margin: 0;
-  font-size: 2rem;      /* Igual ao .dashboard-title */
-  font-weight: 900;     /* Igual ao .dashboard-title */
+  font-size: 2rem;
+  font-weight: 800;
   color: #1e293b;
   letter-spacing: -0.5px;
-}
-
-.historico-header p {
-  margin-top: 8px;
-  color: #64748b;       /* Cinza do perfil */
-  font-size: 0.95rem;
-  font-weight: 500;
 }
 
 /* =========================================
@@ -50,19 +48,16 @@
 .historico-error, 
 .historico-empty {
   padding: 30px;
-  border-radius: 18px; /* Arredondamento igual aos cards */
+  border-radius: 16px;
   font-weight: 700;
-  text-align: left;    /* Alinhado à esquerda */
-  max-width: 600px;    /* Não deixa esticar a página toda se estiver vazio */
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
 }
 
-.historico-state { background: white; border: 1px solid #eef0f4; color: #64748b; }
+.historico-state { background: white; border: 1px solid #e2e8f0; color: #64748b; }
 .historico-error { background: #fee2e2; border: 1px solid #fecaca; color: #b91c1c; }
-.historico-empty { 
-  background: white; 
-  border: 2px dashed #e2e8f0; 
-  color: #94a3b8; 
-}
+.historico-empty { background: white; border: 2px dashed #e2e8f0; color: #94a3b8; }
 
 /* =========================================
    4. GRID DE CARTÕES
@@ -70,49 +65,46 @@
 
 .historico-grid {
   display: grid;
-  /* Cria colunas automaticamente (min 340px igual ao card do perfil) */
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); 
+  /* Cria colunas responsivas (min 300px) */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
   gap: 24px;
   width: 100%;
+  padding-bottom: 40px; /* Espaço extra no fundo para o scroll não cortar */
 }
 
 /* =========================================
-   5. CARTÃO DE HISTÓRICO (Estilo do Perfil)
+   5. CARTÃO DE HISTÓRICO
    ========================================= */
 
 .historico-card {
   background: #ffffff;
-  border-radius: 18px;            /* Igual ao .card */
-  border: 1px solid #eef0f4;      /* Igual ao .card */
-  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.08); /* Igual ao .card */
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   
   padding: 24px;
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s, box-shadow 0.2s;
   
-  /* Diferença: Alinhamento interno à esquerda */
-  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; 
-  text-align: left;
+  height: 100%; /* Garante altura igual na linha */
 }
 
 .historico-card:hover {
-  transform: translateY(-5px);    /* Efeito hover do perfil */
-  box-shadow: 0 12px 24px rgba(227, 139, 44, 0.15); /* Sombra laranja suave */
-  border-color: #E38B2C;          /* Borda laranja subtil */
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e1;
 }
 
-/* Título da Sala (ex: Sala A.1.2) */
+/* Título (Sala) */
 .historico-card-title {
   font-size: 1.4rem;
-  font-weight: 900;
+  font-weight: 800;
   color: #1e293b;
-  margin: 0 0 16px 0;
-  width: 100%;
+  margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #f1f5f9; /* Separador subtil */
+  border-bottom: 2px solid #f1f5f9;
 }
 
 /* Detalhes (Data, Hora, etc) */
@@ -122,19 +114,7 @@
   gap: 8px;
   font-size: 0.95rem;
   color: #475569;
-  width: 100%;
-  flex: 1;
-}
-
-.historico-card-meta div {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* Ícones dentro do card (opcional, se usares ícones) */
-.historico-card-meta svg {
-  color: #E38B2C; /* Laranja da marca */
+  flex: 1; /* Empurra o rodapé para baixo */
 }
 
 /* =========================================
@@ -145,24 +125,17 @@
   position: absolute;
   top: 20px;
   right: 20px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  padding: 6px 12px;
-  border-radius: 999px;
+  padding: 4px 10px;
+  border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* Cores das Badges */
-.historico-badge.ativa {
-  background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;
-}
-.historico-badge.cancelada {
-  background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
-}
-.historico-badge.concluida {
-  background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;
-}
+.historico-badge.ativa { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.historico-badge.cancelada { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.historico-badge.concluida { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
 /* =========================================
    7. RODAPÉ DO CARTÃO (Notas / Motivos)
@@ -171,30 +144,28 @@
 .historico-motivo {
   margin-top: 16px;
   font-size: 0.85rem;
-  background: #fff1f2;
-  color: #991b1b;
+  background: #fff7ed; /* Laranja muito claro */
+  color: #c2410c;      /* Laranja escuro */
   padding: 8px 12px;
   border-radius: 8px;
-  width: 100%;
+  border: 1px solid #ffedd5;
 }
 
 .historico-note {
-  margin-top: auto; /* Empurra para o fundo se o card crescer */
-  padding-top: 15px;
-  font-size: 0.8rem;
+  margin-top: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #94a3b8;
-  width: 100%;
   text-align: right;
+}
+
+.historico-note.cancelada {
+  color: #ef4444;
 }
 
 /* Mobile */
 @media (max-width: 768px) {
-  .historico-page {
-    padding: 20px;
-  }
-  
-  .historico-grid {
-    grid-template-columns: 1fr; /* 1 coluna no telemóvel */
-  }
+  .page-layout { flex-direction: column; height: auto; overflow: visible; }
+  .historico-page { padding: 20px; height: auto; overflow: visible; }
+  .historico-grid { grid-template-columns: 1fr; }
 }

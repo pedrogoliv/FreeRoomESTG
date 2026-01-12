@@ -125,19 +125,24 @@
   color: #fff;
 }
 
-/* --- RODAPÉ (Botão Sair) (MANTIDO IGUAL) --- */
+/* --- RODAPÉ (Perfil + Botão Sair) --- */
 .sidebarBottom {
   border-top: 1px solid #334155;
   padding-top: 20px;
+  /* Adicionado Flex para empilhar o Perfil e o Sair */
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Espaço entre o botão de perfil e o de sair */
 }
 
+/* Ajuste para o botão de logout alinhar visualmente com o navItem do perfil */
 .logoutBtn {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 14px;
+  justify-content: flex-start; /* Mudado para flex-start para alinhar texto à esq */
+  gap: 14px; /* Igual ao .navItem */
+  padding: 14px 16px; /* Igual ao .navItem */
   border-radius: 12px;
   background: transparent;
   border: 1px solid #334155;
@@ -145,7 +150,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
 }
 
 .logoutBtn:hover {
@@ -157,4 +163,7 @@
 
 .logoutIcon {
   font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

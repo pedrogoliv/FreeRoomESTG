@@ -74,7 +74,7 @@ exports.criarReserva = async (req, res) => {
       return novoIni < fim && novoFim > ini;
     });
     if (aulaConflito) {
-      return res.status(409).json({ erro: "Sala tem aula nesse horário." });
+      return res.status(409).json({ erro: "A sala está ocupada nesse horário." });
     }
 
     const reservas = await Reserva.find({ sala, dia, status: "ativa" });
@@ -132,11 +132,21 @@ exports.getReservasUser = async (req, res) => {
   }
 };
 
+
 exports.updateReserva = async (req, res) => {
   try {
     const { reservaId } = req.params;
-    const { pessoas, dia, hora_inicio } = req.body;
+    
 
+    const { 
+      dia, 
+      hora_inicio, 
+      hora_fim, // Agora lemos explicitamente a hora de fim
+      pessoas, 
+      motivo 
+    } = req.body;
+
+    // 2. Buscar a reserva original
     const reserva = await Reserva.findById(reservaId);
     if (!reserva) {
       return res.status(404).json({ success: false, message: "Reserva não encontrada." });
@@ -145,92 +155,86 @@ exports.updateReserva = async (req, res) => {
       return res.status(400).json({ success: false, message: "Não podes editar uma reserva cancelada." });
     }
 
-    if (pessoas !== undefined) {
-      const p = Number(pessoas);
-      if (!Number.isFinite(p) || p < 1) {
-        return res.status(400).json({ success: false, message: "Número de pessoas inválido." });
-      }
-      reserva.pessoas = p;
-    }
+    // 3. Definir os novos valores (ou manter os antigos se não vierem no pedido)
+    // IMPORTANTE: Usamos 'let' para poder alterar conforme a lógica
+    let novoDia = dia !== undefined ? String(dia).trim() : reserva.dia;
+    let novoIni = hora_inicio !== undefined ? String(hora_inicio).trim() : reserva.hora_inicio;
+    let novoFim = hora_fim !== undefined ? String(hora_fim).trim() : reserva.hora_fim;
+    
+    // Atualizar dados simples
+    if (motivo !== undefined) reserva.motivo = String(motivo).trim();
+    if (pessoas !== undefined) reserva.pessoas = Number(pessoas);
 
-    const querMudarDia = dia !== undefined;
-    const querMudarHora = hora_inicio !== undefined;
+    // 4. Se houver mudança de horário, validar TUDO
+    const mudouHorario = (novoDia !== reserva.dia) || (novoIni !== reserva.hora_inicio) || (novoFim !== reserva.hora_fim);
 
-    if (querMudarDia) {
-      const diaNorm = String(dia).trim();
-      if (!diaNorm) return res.status(400).json({ success: false, message: "Dia inválido." });
-      if (isWeekend(diaNorm)) {
-        return res.status(400).json({ success: false, message: "Não é possível reservar ao fim-de-semana." });
-      }
-      if (isFeriado(diaNorm)) {
-        return res.status(400).json({ success: false, message: "Não é possível reservar em feriados." });
-      }
-      reserva.dia = diaNorm;
-    }
+    if (mudouHorario) {
 
-    if (querMudarHora) {
-      const horaNorm = String(hora_inicio).trim();
-      if (!isValidTimeHHMM(horaNorm)) {
-        return res.status(400).json({ success: false, message: "Hora início inválida (HH:MM)." });
-      }
-      reserva.hora_inicio = horaNorm;
-    }
+      // A. Validações Básicas
+      if (isWeekend(novoDia)) return res.status(400).json({ success: false, message: "Fim-de-semana bloqueado." });
+      if (isFeriado(novoDia)) return res.status(400).json({ success: false, message: "Feriado bloqueado." });
 
-    if (querMudarDia || querMudarHora) {
-      let duracaoMin = 30;
-      if (isValidTimeHHMM(reserva.hora_inicio) && isValidTimeHHMM(reserva.hora_fim)) {
-        const diff = toMinutes(reserva.hora_fim) - toMinutes(reserva.hora_inicio);
-        if (diff > 0) duracaoMin = diff;
+      const minIni = toMinutes(novoIni);
+      const minFim = toMinutes(novoFim);
+
+      if (Number.isNaN(minIni) || Number.isNaN(minFim)) {
+        return res.status(400).json({ success: false, message: "Formato de hora inválido." });
+      }
+      if (minFim <= minIni) {
+        return res.status(400).json({ success: false, message: "A hora de fim deve ser depois do início." });
       }
 
-      const novaHoraFim = addMinutesHHMM(reserva.hora_inicio, duracaoMin);
-
-      const aulas = await Ocupacao.find({ sala: reserva.sala, dia: reserva.dia });
-      const iniNovo = toMinutes(reserva.hora_inicio);
-      const fimNovo = toMinutes(novaHoraFim);
-
-      const aulaConflito = aulas.some((a) => {
-        const ini = toMinutes(a.hora_inicio);
-        const fim = toMinutes(a.hora_fim);
-        return iniNovo < fim && fimNovo > ini;
+      // B. Verificar Conflitos com AULAS (Ocupacao)
+      const aulas = await Ocupacao.find({ sala: reserva.sala, dia: novoDia });
+      const conflitoAula = aulas.some((a) => {
+        const aIni = toMinutes(a.hora_inicio);
+        const aFim = toMinutes(a.hora_fim);
+        return minIni < aFim && minFim > aIni;
       });
-
-      if (aulaConflito) {
-        return res.status(409).json({ success: false, message: "Sala tem aula nesse horário." });
+      if (conflitoAula) {
+        return res.status(409).json({ success: false, message: "Existe uma aula nesse horário." });
       }
 
-      const reservas = await Reserva.find({
-        _id: { $ne: reserva._id },
+      // C. Verificar Conflitos com OUTRAS RESERVAS
+      const outrasReservas = await Reserva.find({
+        _id: { $ne: reserva._id }, // Ignora a própria reserva que estamos a editar
         sala: reserva.sala,
-        dia: reserva.dia,
-        status: "ativa",
+        dia: novoDia,
+        status: "ativa"
       });
 
-      const overlap = reservas.filter((r) => {
-        const ini = toMinutes(r.hora_inicio);
-        const fim = toMinutes(r.hora_fim);
-        return iniNovo < fim && fimNovo > ini;
+      const overlap = outrasReservas.filter((r) => {
+        const rIni = toMinutes(r.hora_inicio);
+        const rFim = toMinutes(r.hora_fim);
+        return minIni < rFim && minFim > rIni;
       });
 
-      const consumoOcupado = overlap.reduce((sum, r) => sum + consumoReserva(r.pessoas ?? 1), 0);
-      const consumoNovo = consumoReserva(reserva.pessoas ?? 1);
-      const sobra = CAP_BASE - consumoOcupado;
+      // Calcular Capacidade
+      const ocupado = overlap.reduce((sum, r) => sum + (r.pessoas || 1), 0);
+      const capacidadeRestante = CAP_BASE - ocupado;
+      const minhasPessoas = reserva.pessoas || 1; // Já atualizámos o reserva.pessoas ali em cima
 
-      if (consumoNovo > sobra) {
-        return res.status(409).json({
-          success: false,
-          message: `Capacidade excedida. Espaço disponível: ${Math.max(0, sobra)}.`,
+      if (minhasPessoas > capacidadeRestante) {
+        return res.status(409).json({ 
+          success: false, 
+          message: `Sala cheia nesse horário. Lugares livres: ${Math.max(0, capacidadeRestante)}.` 
         });
       }
 
-      reserva.hora_fim = novaHoraFim;
+      // D. Se passou todas as validações, aplica as novas horas
+      reserva.dia = novoDia;
+      reserva.hora_inicio = novoIni;
+      reserva.hora_fim = novoFim;
     }
 
+    // 5. Guardar na Base de Dados
     await reserva.save();
+    
     return res.json({ success: true, reserva });
+
   } catch (err) {
-    console.error("❌ Erro ao atualizar reserva:", err);
-    return res.status(500).json({ success: false, message: "Erro no servidor" });
+    console.error("❌ Erro critico no updateReserva:", err);
+    return res.status(500).json({ success: false, message: "Erro interno do servidor." });
   }
 };
 

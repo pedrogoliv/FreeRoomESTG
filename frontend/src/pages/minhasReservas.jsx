@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom"; 
+// ✅ 1. Importar useLocation
+import { useNavigate, useLocation } from "react-router-dom"; 
 import Sidebar from "../components/Sidebar";
 import GerirReserva from "../components/gerirReserva";
 import { FaMapMarkedAlt, FaChevronRight, FaCalendarAlt, FaClock, FaUserFriends, FaHistory } from "react-icons/fa";
@@ -8,6 +9,7 @@ import "./MinhasReservas.css";
 export default function MinhasReservas() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ 2. Instanciar
 
   const [user, setUser] = useState(null);
   const [reservas, setReservas] = useState([]);
@@ -15,12 +17,14 @@ export default function MinhasReservas() {
   const [msg, setMsg] = useState("");
   const [reservaSelecionada, setReservaSelecionada] = useState(null);
 
+  // Estado extra para guardar dados que vieram do mapa (motivo, horas, etc.)
+  const [estadoDoMapa, setEstadoDoMapa] = useState(null);
+
   useEffect(() => {
     const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  // ✅ 2. Função de carregar reservas (para usar no refresh)
   const carregarReservas = useCallback(() => {
     if (!user?.username) return;
     setLoading(true);
@@ -39,10 +43,29 @@ export default function MinhasReservas() {
       .finally(() => setLoading(false));
   }, [user, API_BASE]);
 
-  // Carregar ao iniciar
   useEffect(() => {
     carregarReservas();
   }, [carregarReservas]);
+
+  // --- LÓGICA DE REABERTURA (QUANDO VOLTA DO MAPA) ---
+  useEffect(() => {
+    if (location.state?.reabrirSala && reservas.length > 0) {
+      const nomeSala = location.state.reabrirSala;
+      const estadoQueVoltou = location.state.reabrirComEstado;
+
+      // Encontra a reserva correspondente a essa sala (a primeira ativa, por exemplo)
+      // Como estamos em "Minhas Reservas", é seguro assumir que queremos editar a reserva dessa sala
+      const reservaAlvo = reservas.find(r => r.sala === nomeSala && !isPastReserva(r));
+
+      if (reservaAlvo) {
+        setEstadoDoMapa(estadoQueVoltou); // Guarda o estado temporário
+        setReservaSelecionada(reservaAlvo); // Abre o modal
+      }
+
+      // Limpa o estado da navegação
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, reservas]); // Depende de reservas para garantir que já carregaram
 
   // --- HELPERS ---
   function getPisoFromNome(nomeSala) {
@@ -92,7 +115,10 @@ export default function MinhasReservas() {
     return (
       <div 
         className={`reserva-row ativa ${aDecorrer ? "em-curso" : ""}`} 
-        onClick={() => setReservaSelecionada(r)}
+        onClick={() => {
+            setEstadoDoMapa(null); // Reseta estado antigo ao abrir manualmente
+            setReservaSelecionada(r);
+        }}
       >
         <div className="date-badge">
           <span className="date-day">{dia.split("-")[2]}</span>
@@ -223,14 +249,20 @@ export default function MinhasReservas() {
               salaInfo={{ 
                 sala: reservaSelecionada.sala, 
                 piso: getPisoFromNome(reservaSelecionada.sala),
-                lugares: 15 // Hack: Como a lista não traz capacidade, assumimos 15 por defeito
+                lugares: 15,
+                // ✅ Passa o estado preservado para dentro do modal
+                estadoPreservado: estadoDoMapa 
               }}
               reserva={reservaSelecionada}
               user={user}
-              onClose={() => setReservaSelecionada(null)}
+              onClose={() => {
+                  setReservaSelecionada(null);
+                  setEstadoDoMapa(null); // Limpa o estado ao fechar
+              }}
               onSuccess={() => {
                 setReservaSelecionada(null);
-                carregarReservas(); // Atualiza a lista após editar/cancelar
+                setEstadoDoMapa(null);
+                carregarReservas(); 
               }}
             />
           )

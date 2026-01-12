@@ -1,102 +1,141 @@
 /* src/pages/Mapa.css */
 
-/* src/pages/Mapa.css */
-
-/* --- 1. APENAS PARA A PÁGINA MAPA (.page-mapa) --- */
-
-/* Fundo escuro SÓ nesta página */
+/* =========================================
+   1. PÁGINA CLARA (#f8fafc)
+   ========================================= */
 .dashboard-container.page-mapa {
-  background-color: #0f172a; 
-  min-height: 100vh;
+  background-color: #f8fafc !important; 
+  height: 100vh;
+  overflow: hidden; 
 }
 
-/* Título branco SÓ nesta página */
+/* Título Azul Escuro */
 .page-mapa .dashboard-title {
-  color: #ffffff;
+  color: #1e293b !important;
 }
 
-/* Tabs (Piso 1, Piso 2...) - AGORA ESPECÍFICAS PARA O MAPA */
+/* Área Principal */
+.page-mapa .main-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 20px;
+  overflow: hidden;
+  /* ❌ REMOVIDO: align-items: center; (Isto é que estava a estragar o header) */
+}
+
+/* Ajuste do Header para garantir que ocupa a largura toda */
+.page-mapa .dashboard-header {
+  width: 100%;
+  /* Mantém o alinhamento original do Dashboard (justify-content: space-between) */
+}
+
+/* =========================================
+   2. CONTROLOS (ESTILO CLARO)
+   ========================================= */
+
+/* Botão Voltar */
+.page-mapa .mapa-back {
+  margin-top: 8px;
+  background: #ffffff;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.page-mapa .mapa-back:hover {
+  background: #fff7ed;
+  color: #E38B2C;
+  border-color: #E38B2C;
+}
+
+/* Tabs */
 .page-mapa .tabs {
-  display: flex; gap: 10px; margin-bottom: 20px;
+  display: flex; 
+  gap: 10px; 
+  margin-bottom: 20px;
 }
 
-/* ✅ AQUI ESTÁ O TRUQUE: Adicionei .page-mapa antes */
 .page-mapa .tab {
-  background: #334155; /* Fundo Escuro */
-  color: #94a3b8;      /* Texto Cinza */
-  border: none;
+  background: #ffffff !important; 
+  color: #64748b !important;      
+  border: 1px solid #e2e8f0 !important;
   padding: 10px 20px; 
   border-radius: 8px; 
   font-weight: 700; 
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: none;    /* Remove sombras do estilo light */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03) !important;
 }
 
 .page-mapa .tab:hover {
-  background: #475569; /* Ligeiramente mais claro */
-  color: white;
+  background: #f8fafc !important;
+  color: #E38B2C !important;
+  border-color: #E38B2C !important;
 }
 
 .page-mapa .tab.active {
-  background: #E38B2C; 
-  color: white; 
+  background: #E38B2C !important; 
+  color: white !important; 
+  border-color: #E38B2C !important;
   transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(227, 139, 44, 0.4);
+  box-shadow: 0 4px 10px rgba(227, 139, 44, 0.3) !important;
 }
 
-/* Contentor do Mapa (A caixa preta onde está a imagem) */
+/* =========================================
+   3. O MAPA (CENTRADO & ESCURO)
+   ========================================= */
+
+/* A caixa do mapa centra-se a ela própria com margin: 0 auto */
 .mapa-wrapper {
   position: relative;
-  width: 95%;
-  max-width: 1100px;
-  background: #0f172a; /* Fundo preto/azul escuro */
-  border: 2px solid #334155;
+  
+  /* Lógica "Anti-Scroll" */
+  width: fit-content;        
+  height: auto;
+  max-width: 95%;            
+  max-height: calc(100vh - 180px); /* Altura disponível */
+
+  /* Visual de Moldura Escura */
+  background: #0f172a;
+  border: 4px solid #ffffff; 
   border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5); /* Sombra dramática */
-  margin: 0 auto; /* Centrar */
+  
+  /* ✅ AQUI ESTÁ A CORREÇÃO: Centra o mapa horizontalmente */
+  margin: 0 auto; 
 }
 
 .mapa-imagem {
-  width: 100%;
-  height: auto;
   display: block;
-  opacity: 0.85; /* Imagem ligeiramente escurecida */
+  max-height: calc(100vh - 188px); 
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  opacity: 0.9;
+  object-fit: contain;
 }
 
-/* --- 2. ESTILOS DOS PONTOS --- */
+/* =========================================
+   4. PONTOS (MANTIDOS IGUAIS)
+   ========================================= */
 
 .mapa-dot {
   position: absolute;
   transform: translate(-50%, -50%);
   z-index: 10;
-  cursor: pointer; /* Cursor de mão */
+  cursor: pointer;
   transition: transform 0.2s ease;
 }
+.mapa-dot:hover { transform: translate(-50%, -50%) scale(1.2); z-index: 20; }
 
-/* Efeito de Crescer no Hover (Geral) */
-.mapa-dot:hover {
-  transform: translate(-50%, -50%) scale(1.2);
-  z-index: 20;
-}
-
-.mapa-back{
-  margin-top: 8px;
-  background: #0f172a;
-  color: #fff;
-  border: 2px solid #E38B2C;
-  border-radius: 12px;
-  padding: 8px 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.mapa-back:hover{
-  filter: brightness(1.06);
-}
-
-/* === ENTRADA (VERDE) - HOVER ONLY === */
+/* Entrada */
 .dot-entrada {
   width: 16px; height: 16px;
   background-color: #22c55e;
@@ -105,113 +144,47 @@
   box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
   display: flex; justify-content: center;
 }
-
-/* Tooltip da Entrada (Escondido por defeito) */
 .dot-entrada .dot-tooltip {
-  position: absolute;
-  top: 25px; /* Fica em baixo do ponto */
-  
-  background: rgba(0, 0, 0, 0.9); /* Fundo preto transparente */
-  color: #22c55e; /* Texto verde */
-  
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  white-space: nowrap;
-  pointer-events: none;
-  
-  /* Lógica de aparecer */
-  opacity: 0;
-  transform: translateY(-5px);
-  transition: all 0.2s ease;
+  position: absolute; top: 25px;
+  background: rgba(0, 0, 0, 0.9); color: #22c55e;
+  padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;
+  text-transform: uppercase; white-space: nowrap; pointer-events: none;
+  opacity: 0; transform: translateY(-5px); transition: all 0.2s ease;
 }
+.dot-entrada:hover .dot-tooltip { opacity: 1; transform: translateY(0); }
 
-/* Quando passas o rato no ponto verde, mostra o tooltip */
-.dot-entrada:hover .dot-tooltip {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-
-/* === DESTINO (BRANCO) - PERMANENTE & PEQUENO === */
+/* Destino */
 .dot-destino {
-  width: 16px;  /* Tamanho reduzido (era 24px) */
-  height: 16px; 
-  
-  background-color: white;
-  border-radius: 50%;
-  
-  /* Sombra reduzida */
+  width: 16px; height: 16px; 
+  background-color: white; border-radius: 50%;
   box-shadow: 0 0 15px 4px rgba(255, 255, 255, 0.6); 
-  
   animation: pulse 2s infinite;
   display: flex; justify-content: center;
 }
-
-/* Tooltip do Destino (Sempre visível) */
 .dot-destino .dot-tooltip {
-  position: absolute;
-  bottom: 26px; /* Ajustado à bolinha mais pequena */
-  
-  background-color: black;
-  color: white;
-  
-  padding: 6px 12px;
-  border-radius: 6px;
-  text-align: center;
-  min-width: 80px;
+  position: absolute; bottom: 26px;
+  background-color: black; color: white;
+  padding: 6px 12px; border-radius: 6px; text-align: center; min-width: 80px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-  
-  /* Centrar Tooltip */
-  left: 50%; 
-  transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center;
-  
-  /* Garante que aparece */
-  opacity: 1; 
-  pointer-events: auto;
-}
-
-/* Setinha da caixa preta */
-.dot-destino .dot-tooltip::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
   left: 50%; transform: translateX(-50%);
-  border-width: 5px 5px 0; border-style: solid;
-  border-color: black transparent transparent transparent;
+  opacity: 1; pointer-events: auto;
 }
-
-.dot-destino strong {
-  display: block; font-size: 1.1rem; font-weight: 900; color: #38bdf8; line-height: 1.1;
+.dot-destino .dot-tooltip::after {
+  content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+  border-width: 5px 5px 0; border-style: solid; border-color: black transparent transparent transparent;
 }
+.dot-destino strong { display: block; font-size: 1.1rem; font-weight: 900; color: #38bdf8; line-height: 1.1; }
+.dot-destino .dot-status { display: block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: white; margin-top: 2px; }
 
-.dot-destino .dot-status {
-  display: block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: white; margin-top: 2px;
-}
-
-/* Aviso de erro (caso falte coordenada) */
+/* Aviso */
 .mapa-warning {
   position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,0.85); color: #fbbf24; padding: 10px 20px;
   border-radius: 8px; font-weight: 700; pointer-events: none; border: 1px solid #fbbf24;
 }
 
-/* Animação ajustada (Anel mais curto: 8px) */
 @keyframes pulse {
-  0% { 
-    transform: translate(-50%, -50%) scale(0.9); 
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); 
-  }
-  70% { 
-    transform: translate(-50%, -50%) scale(1); 
-    /* O anel de brilho agora só estende 8px */
-    box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); 
-  }
-  100% { 
-    transform: translate(-50%, -50%) scale(0.9); 
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); 
-  }
+  0% { transform: translate(-50%, -50%) scale(0.9); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+  70% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+  100% { transform: translate(-50%, -50%) scale(0.9); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 }

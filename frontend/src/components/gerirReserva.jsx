@@ -1,7 +1,7 @@
-import { useState } from "react";
-import "./gerirReserva.css";
-import { FaTimes, FaTrash, FaSave, FaMapMarkedAlt, FaChevronRight } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import "./gerirReserva.css"; 
+import { FaTimes, FaTrash, FaSave, FaMapMarkedAlt, FaChevronRight, FaExclamationTriangle, FaStopCircle } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function GerirReserva({ 
   salaInfo,      
@@ -11,73 +11,143 @@ export default function GerirReserva({
   onSuccess      
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-  const [dia, setDia] = useState(reserva.dia);
-  const [horaInicio, setHoraInicio] = useState(reserva.hora_inicio);
-  const [horaFim, setHoraFim] = useState(reserva.hora_fim);
-  const [pessoas, setPessoas] = useState(reserva.pessoas);
-  const [motivo, setMotivo] = useState(reserva.motivo || "");
+  const dadosSalvos = salaInfo.estadoPreservado || {};
+
+  const [dia, setDia] = useState(dadosSalvos.dia || reserva.dia);
+  const [horaInicio, setHoraInicio] = useState(dadosSalvos.horaInicio || reserva.hora_inicio);
+  const [horaFim, setHoraFim] = useState(dadosSalvos.horaFim || reserva.hora_fim);
+  const [pessoas, setPessoas] = useState(dadosSalvos.pessoas || reserva.pessoas);
+  const [motivo, setMotivo] = useState(dadosSalvos.motivo || reserva.motivo || "");
   
+  const [showConfirm, setShowConfirm] = useState(false);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Lista de horários
+  // --- LÓGICA DE TEMPO REAL ---
+  const now = new Date();
+  const hojeISO = now.toISOString().split("T")[0];
+  const agoraStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+  // ✅ VERIFICA SE ESTÁ A DECORRER
+  const isDecorrer = (dia === hojeISO && horaInicio <= agoraStr && horaFim > agoraStr);
+
   const horarios = [];
-  for (let h = 8; h <= 22; h++) {
+  for (let h = 8; h <= 23; h++) {
     const hh = String(h).padStart(2, "0");
     horarios.push(`${hh}:00`);
-    if (h < 22) horarios.push(`${hh}:30`);
+    if (h < 23) horarios.push(`${hh}:30`);
   }
+
+  const horariosInicioDisponiveis = horarios.filter(h => {
+    if (h === "23:00") return false;
+    if (dia === hojeISO && !isDecorrer) { // Só filtra passado se não estiver a decorrer
+       return h >= agoraStr || h === reserva.hora_inicio || h === horaInicio;
+    }
+    return true;
+  });
+
+  const horariosFimDisponiveis = horarios.filter(h => h > horaInicio);
+
+  const handleChangeInicio = (e) => {
+    const novoInicio = e.target.value;
+    setHoraInicio(novoInicio);
+    if (horaFim <= novoInicio) {
+      const index = horarios.indexOf(novoInicio);
+      if (index !== -1 && index < horarios.length - 1) {
+        setHoraFim(horarios[index + 1]);
+      } else {
+        const ultimoSlot = horarios[horarios.length - 1]; 
+        if (novoInicio < ultimoSlot) setHoraFim(ultimoSlot);
+      }
+    }
+  };
 
   const handleAtualizar = async () => {
     setLoading(true);
     setMsg("");
+    const dadosParaEnviar = {
+      dia, hora_inicio: horaInicio, hora_fim: horaFim,
+      pessoas: Number(pessoas), responsavel: user.username, motivo
+    };
+
     try {
       const res = await fetch(`${API_BASE}/api/reservas/${reserva._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dia, hora_inicio: horaInicio, hora_fim: horaFim,
-          pessoas: Number(pessoas), responsavel: user.username, motivo
-        }),
+        body: JSON.stringify(dadosParaEnviar),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        alert("Reserva atualizada com sucesso!");
-        if (onSuccess) onSuccess();
-      } else {
-        setMsg(data.message || "Erro ao atualizar.");
-      }
+      if (res.ok && data.success) { if (onSuccess) onSuccess(); } 
+      else { setMsg(data.message || "Erro ao atualizar."); }
     } catch (error) { setMsg("Erro de conexão."); } 
     finally { setLoading(false); }
   };
 
-  const handleCancelar = async () => {
-    if (!window.confirm("Tens a certeza que queres cancelar esta reserva?")) return;
+  // ✅ NOVA FUNÇÃO: TERMINAR RESERVA AGORA
+  const handleTerminarAgora = async () => {
+    setLoading(true);
+    
+    // Calcula o final do slot atual (ex: são 14:15 -> fim = 14:30)
+    const h = now.getHours();
+    const m = now.getMinutes();
+    let novoFim = "";
+    
+    if (m < 30) novoFim = `${String(h).padStart(2, "0")}:30`;
+    else novoFim = `${String(h + 1).padStart(2, "0")}:00`;
+
+    // Se já estivermos no último slot, não faz nada ou termina à hora atual
+    if (novoFim > horaFim) novoFim = horaFim;
+
+    const dadosParaEnviar = {
+      ...reserva, // Mantém os outros dados
+      hora_fim: novoFim // Atualiza só o fim para "agora"
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/reservas/${reserva._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dadosParaEnviar),
+      });
+      if (res.ok) { if (onSuccess) onSuccess(); } 
+      else { setMsg("Erro ao terminar reserva."); }
+    } catch (e) { setMsg("Erro de conexão."); } 
+    finally { setLoading(false); }
+  };
+
+  const handlePreCancelar = () => { setShowConfirm(true); };
+
+  const handleConfirmarCancelamento = async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/reservas/${reserva._id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (res.ok) {
-        alert("Reserva cancelada.");
-        if (onSuccess) onSuccess(); 
-      } else {
-        setMsg(data.message || "Erro ao cancelar.");
-      }
+      if (res.ok) { if (onSuccess) onSuccess(); } 
+      else { setMsg("Erro ao cancelar."); }
     } catch (e) { setMsg("Erro de conexão."); } 
     finally { setLoading(false); }
+  };
+
+  const handleVerMapa = () => {
+    navigate("/mapa", { 
+      state: { 
+        pisoDestino: salaInfo.piso, salaDestino: salaInfo.sala,
+        origem: "reserva",
+        from: location.pathname + location.search,
+        estadoPreservado: { dia, horaInicio, horaFim, pessoas, motivo }
+      } 
+    });
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         
-        {/* HEADER ROXO */}
         <div className="modal-header">
           <div className="header-title-group">
-            <h2>Gerir Reserva</h2>
-            <span className="status-badge minha">MINHA RESERVA</span>
+            <h2>{isDecorrer ? "Reserva em Curso" : "Gerir Reserva"}</h2>
           </div>
           <button className="btn-close" onClick={onClose}><FaTimes /></button>
         </div>
@@ -85,72 +155,98 @@ export default function GerirReserva({
         <div className="modal-body">
           {msg && <div className="msg-error">{msg}</div>}
 
-          {/* FORMULÁRIO COM O NOVO DESIGN */}
           <div className="form-grid-compact">
             <div className="form-group">
               <label className="field-label">Dia</label>
-              <input type="date" className="field-control" value={dia} onChange={e => setDia(e.target.value)} />
+              <input type="date" className="field-control" 
+                value={dia} onChange={e => setDia(e.target.value)} 
+                min={hojeISO} 
+                disabled={isDecorrer} // ✅ Bloqueado se a decorrer
+              />
             </div>
             <div className="form-group">
               <label className="field-label">Pessoas</label>
-              <input type="number" className="field-control" min="1" max={salaInfo.lugares} value={pessoas} onChange={e => setPessoas(e.target.value)} />
+              <input type="number" className="field-control" min="1" max={salaInfo.lugares} 
+                value={pessoas} onChange={e => setPessoas(e.target.value)} 
+                disabled={isDecorrer} // ✅ Bloqueado
+              />
             </div>
+            
             <div className="form-group">
               <label className="field-label">Início</label>
-              <select className="field-control" value={horaInicio} onChange={e => setHoraInicio(e.target.value)}>
-                {horarios.map(h => <option key={h} value={h}>{h}</option>)}
+              <select className="field-control" value={horaInicio} onChange={handleChangeInicio} disabled={isDecorrer}>
+                {horariosInicioDisponiveis.map(h => <option key={h} value={h}>{h}</option>)}
               </select>
             </div>
+
             <div className="form-group">
               <label className="field-label">Fim</label>
-              <select className="field-control" value={horaFim} onChange={e => setHoraFim(e.target.value)}>
-                {horarios.map(h => <option key={h} value={h}>{h}</option>)}
+              <select className="field-control" value={horaFim} onChange={e => setHoraFim(e.target.value)} disabled={isDecorrer}>
+                {horariosFimDisponiveis.map(h => <option key={h} value={h}>{h}</option>)}
               </select>
             </div>
+            
             <div className="form-group full-width">
               <label className="field-label">Motivo (Opcional)</label>
-              <input type="text" className="field-control" value={motivo} onChange={e => setMotivo(e.target.value)} placeholder="Ex: Reunião de grupo..." />
+              <input type="text" className="field-control" 
+                value={motivo} onChange={e => setMotivo(e.target.value)} 
+                placeholder="Ex: Reunião de grupo..." 
+                disabled={isDecorrer} 
+              />
             </div>
           </div>
 
-          {/* INFO CARD DA SALA */}
+          {isDecorrer && (
+            <div style={{ textAlign: 'center', fontSize: '0.85rem', color: '#64748b', margin: '-10px 0 10px 0' }}>
+              A reserva está a decorrer.
+            </div>
+          )}
+
           <div className="info-card">
              <div className="info-stats">
-               <div className="stat-item">
-                 <span className="stat-label">SALA</span>
-                 <span className="stat-value">{salaInfo.sala}</span>
-               </div>
-               <div className="stat-item">
-                 <span className="stat-label">PISO</span>
-                 <span className="stat-value">{salaInfo.piso}</span>
-               </div>
-               <div className="stat-item">
-                 <span className="stat-label">CAPACIDADE</span>
-                 <span className="stat-value">{salaInfo.lugares}</span>
-               </div>
+               <div className="stat-item"><span className="stat-label">SALA</span><span className="stat-value">{salaInfo.sala}</span></div>
+               <div className="stat-item"><span className="stat-label">PISO</span><span className="stat-value">{salaInfo.piso}</span></div>
+               <div className="stat-item"><span className="stat-label">CAPACIDADE</span><span className="stat-value">{salaInfo.lugares}</span></div>
              </div>
-             
-             {/* Link Mapa Estilizado */}
-             <div 
-               className="map-row" 
-               onClick={() => navigate("/mapa", { state: { pisoDestino: salaInfo.piso, salaDestino: salaInfo.sala } })}
-             >
-               <FaMapMarkedAlt className="map-icon" />
-               <span className="map-text">Ver localização na planta</span>
-               <FaChevronRight className="map-arrow" />
+             <div className="map-row" onClick={handleVerMapa}>
+               <FaMapMarkedAlt className="map-icon" /><span className="map-text">Ver localização na planta</span><FaChevronRight className="map-arrow" />
              </div>
           </div>
 
-          {/* RODAPÉ COM BOTÕES */}
+          {/* ✅ RODAPÉ DINÂMICO */}
           <div className="modal-footer">
-            <button className="btn-cancelar" onClick={handleCancelar} disabled={loading}>
-              <FaTrash /> Cancelar
-            </button>
-            
-            <button className="btn-guardar" onClick={handleAtualizar} disabled={loading}>
-              <FaSave /> {loading ? "A guardar..." : "Guardar Alterações"}
-            </button>
+            {isDecorrer ? (
+              // Modo "A Decorrer": Apenas botão de terminar
+              <button className="btn-terminar" onClick={handleTerminarAgora} disabled={loading}>
+                <FaStopCircle /> Terminar Reserva
+              </button>
+            ) : (
+              // Modo "Futuro": Botões normais
+              <>
+                <button className="btn-cancelar" onClick={handlePreCancelar} disabled={loading}>
+                  <FaTrash /> Cancelar
+                </button>
+                <button className="btn-guardar" onClick={handleAtualizar} disabled={loading}>
+                  <FaSave /> {loading ? "A guardar..." : "Guardar"}
+                </button>
+              </>
+            )}
           </div>
+
+          {showConfirm && (
+            <div className="confirm-overlay">
+              <div className="confirm-box">
+                <FaExclamationTriangle size={32} color="#dc2626" style={{ marginBottom: 12 }} />
+                <h3 className="confirm-title">Cancelar Reserva?</h3>
+                <p className="confirm-text">A sala ficará livre para outros utilizadores. Esta ação é irreversível.</p>
+                <div className="confirm-actions">
+                  <button className="btn-nao" onClick={() => setShowConfirm(false)}>Não, voltar</button>
+                  <button className="btn-sim" onClick={handleConfirmarCancelamento}>Sim, cancelar</button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
