@@ -1,278 +1,248 @@
+/* src/pages/Landing.css */
+
 .landing {
   min-height: 100vh;
   position: relative;
   overflow: hidden;
   color: #fff;
+  font-family: 'Inter', system-ui, sans-serif;
 
-  background: radial-gradient(circle at 35% 20%, rgba(255, 140, 0, 0.22), transparent 45%),
-              radial-gradient(circle at 80% 55%, rgba(0, 180, 255, 0.18), transparent 52%),
-              linear-gradient(135deg, #0b1324, #0a1c2e);
+  /* Fundo "Cosmic" Laranja e Azul (Mantido igual) */
+  background-color: #0f172a;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(227, 139, 44, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(15, 23, 42, 1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(227, 139, 44, 0.1) 0px, transparent 50%);
 }
 
-.landing-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.12);
-  pointer-events: none;
-}
-
-/* Header (marca) */
+/* Header */
 .landing-header {
-  position: relative;
-  padding: 26px 36px;
-  z-index: 2;
+  padding: 30px 40px;
+  position: absolute; /* Mudado para absolute para não "empurrar" o conteúdo para baixo */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
 }
 
-.landing-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  opacity: 0.95;
-}
-
-.landing-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  font-weight: 900;
-  color: #ff8c00;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-}
-
-.landing-title {
-  font-weight: 900;
-  font-size: 22px;
-  line-height: 1.1;
-}
-
-.landing-subtitle {
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  color: #ff8c00;
-}
-
-/* Layout principal */
+/* --- LAYOUT PRINCIPAL (Ajuste de Centragem) --- */
 .landing-main {
   position: relative;
-  z-index: 2;
-  min-height: calc(100vh - 96px);
+  z-index: 5;
+  height: 100vh; /* Ocupa o ecrã todo */
+  width: 100%;
+  
   display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: 26px;
-  padding: 0 36px 28px;
+  grid-template-columns: 1fr 420px; /* Definimos a largura do card aqui */
+  gap: 60px; /* Mais espaço entre texto e card */
+  
+  /* Isto garante que o card não fica colado à direita */
+  padding: 0 8vw; /* Padding dinâmico nas laterais (empurra o card para a esquerda) */
+  
+  align-content: center; /* Centra verticalmente o bloco todo */
+  align-items: center;   /* Alinha os itens na linha verticalmente */
 }
 
-/* Hero à esquerda */
+/* --- HERO (ESQUERDA) --- */
 .landing-hero {
-  align-self: center;
-  max-width: 640px;
-  padding: 12px 4px;
+  max-width: 650px;
 }
 
 .landing-hero h1 {
-  margin: 0;
-  font-size: 52px;
-  font-weight: 950;
-  letter-spacing: -0.02em;
-
-  /* ✅ antes estava a ficar “apagado” */
-  color: #ff8c00;
-  text-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  font-size: 3.8rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  color: #ffffff;
 }
 
-.landing-hero h2 {
-  margin: 6px 0 14px;
-  font-size: 40px;
-  font-weight: 900;
-  opacity: 0.98;
-  letter-spacing: -0.02em;
-
-  /* ✅ também em laranja, um pouco mais suave */
-  color: rgba(255, 140, 0, 0.9);
-  text-shadow: 0 10px 30px rgba(0,0,0,0.45);
+.text-gradient {
+  background: linear-gradient(135deg, #E38B2C 0%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
 }
 
 .landing-hero p {
-  margin: 0;
-  max-width: 520px;
+  font-size: 1.15rem;
   line-height: 1.6;
-  font-size: 16px;
-  color: rgba(255,255,255,0.78);
+  color: #cbd5e1;
+  max-width: 550px;
+  margin-bottom: 30px;
 }
 
-/* ✅ Painel lateral direito (mais legível) */
+/* --- CARD DE VIDRO (AJUSTADO) --- */
 .landing-panel {
-  align-self: flex-start;        /* fica no topo */
-  height: fit-content;           /* altura só do conteúdo */
-  margin-top: 40px;              /* respiro visual */
+  /* Fundo ligeiramente mais claro para contraste */
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  
+  backdrop-filter: blur(25px); /* Mais blur */
+  -webkit-backdrop-filter: blur(25px);
+  
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Borda mais visível */
+  border-radius: 24px;
+  
+  /* Sombra suave para destacar do fundo escuro */
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+  
 
-  border-radius: 22px;
-  background: rgba(255,255,255,0.88);
-  border: 1px solid rgba(255,255,255,0.60);
-  box-shadow: 0 18px 70px rgba(0,0,0,0.35);
-
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  display: block;                /* remove centragem vertical */
+  margin-right: 40px; 
+  
+  transition: transform 0.3s ease;
 }
 
+.landing-panel:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.25);
+}
 
 .panel-content {
-  width: 100%;
-  padding: 32px 28px;
-
-  /* ✅ texto escuro (contraste) */
-  color: #0b1324;
+  padding: 40px;
+  color: #ffffff; /* Garante que tudo é branco por defeito */
 }
 
+/* Títulos dentro do card bem brancos */
 .panel-content h3 {
-  margin: 0 0 10px;
-  font-size: 20px;
-  font-weight: 900;
-  color: #0b1324;
+  margin: 0 0 12px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff; 
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
+/* Texto descritivo mais claro */
 .panel-text {
-  margin: 0 0 18px;
-  line-height: 1.55;
-  color: #334155;
+  color: #e2e8f0; /* Cinza muito claro, quase branco */
+  margin-bottom: 30px;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 /* Botões */
 .panel-actions {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
-}
-
-.btn-primary,
-.btn-secondary {
-  text-decoration: none;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  height: 44px;
-  padding: 0 18px;
-  border-radius: 12px;
-  font-weight: 900;
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  margin-bottom: 30px;
 }
 
 .btn-primary {
-  background: #e8892a;
-  color: #ffffff;
-  box-shadow: 0 12px 26px rgba(232, 137, 42, 0.35);
+  background: #E38B2C;
+  color: white;
+  text-decoration: none;
+  padding: 16px; /* Botão mais alto um pouco */
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(227, 139, 44, 0.4); /* Glow mais forte */
+  border: none;
+}
+
+.btn-primary:hover {
+  background: #d97706;
+  transform: scale(1.02);
 }
 
 .btn-secondary {
-  background: #ffffff;
-  color: #0b1324;
-  border: 1px solid rgba(11, 19, 36, 0.18);
+  background: rgba(255, 255, 255, 0.1); /* Fundo semi-transparente */
+  color: #ffffff;
+  text-decoration: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Borda branca clara */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.btn-primary:hover,
 .btn-secondary:hover {
-  transform: translateY(-1px);
-  opacity: 0.95;
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ffffff;
 }
 
+/* Divisor */
 .panel-divider {
   height: 1px;
-  width: 100%;
-  background: rgba(11, 19, 36, 0.10);
-  margin: 18px 0;
+  background: rgba(255, 255, 255, 0.15);
+  margin-bottom: 25px;
 }
 
+/* Lista */
 .panel-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: grid;
-  gap: 10px;
-  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .panel-list li {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #0f172a;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: #f1f5f9; /* Branco sujo */
+  font-weight: 500;
 }
 
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: #16a34a;
-  flex: 0 0 auto;
+.check-icon {
+  color: #34d399; /* Verde menta brilhante (melhor contraste no escuro) */
+  font-size: 1.2rem;
+  filter: drop-shadow(0 0 5px rgba(52, 211, 153, 0.4));
 }
 
-.panel-footer {
-  margin-top: 26px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(11, 19, 36, 0.10);
-  font-weight: 700;
-  color: #475569;
-  font-size: 13px;
-}
-
-/* Footer mobile (no desktop não é preciso) */
+/* Footer Mobile */
 .landing-footer-mobile {
   display: none;
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.8rem;
 }
 
-/* Responsivo */
-@media (max-width: 980px) {
+/* RESPONSIVIDADE */
+@media (max-width: 1024px) {
+  .landing-header {
+    position: relative; /* Volta ao normal em mobile */
+  }
+
   .landing-main {
-    grid-template-columns: 1fr;
-    min-height: auto;
+    height: auto;
+    min-height: calc(100vh - 100px);
+    grid-template-columns: 1fr; /* Coluna única */
+    padding: 40px 20px;
+    justify-items: center;
+    text-align: center;
+    gap: 50px;
   }
 
   .landing-panel {
-    height: auto;
+    width: 100%;
+    max-width: 400px;
+    margin-right: 0; /* Remove a margem extra em mobile */
   }
 
   .landing-hero h1 {
-    font-size: 42px;
+    font-size: 2.8rem;
   }
-
-  .landing-hero h2 {
-    font-size: 32px;
-  }
-
-  .panel-footer {
-    display: none;
-  }
-
+  
   .landing-footer-mobile {
-    display: flex;
-    justify-content: center;
-    padding: 18px 22px 26px;
-    color: rgba(255,255,255,0.65);
-    font-weight: 700;
+    display: block;
     position: relative;
-    z-index: 2;
+    padding-bottom: 40px;
   }
-}
-
-@media (max-width: 520px) {
-  .landing-header,
-  .landing-main {
-    padding-left: 18px;
-    padding-right: 18px;
-  }
-
-  .landing-hero h1 {
-    font-size: 36px;
-  }
-
-  .landing-hero h2 {
-    font-size: 28px;
+  
+  .panel-list {
+    align-items: flex-start; /* Alinha a lista à esquerda dentro do card mobile */
+    text-align: left;
   }
 }

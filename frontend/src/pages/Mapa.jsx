@@ -15,8 +15,7 @@ export default function Mapa() {
     
   const salaDestino = useMemo(() => String(salaDestinoRaw || "").trim(), [salaDestinoRaw]);
 
-  // ✅ VERIFICA SE VIEMOS DE UM MODAL DE RESERVA
-  // Se location.state.origem não existir (ex: vindo da Sidebar), isto dá false.
+  // Se viemos de uma reserva ou da sidebar
   const isReservaFlow = location.state?.origem === "reserva";
 
   const handleVoltar = () => {
@@ -24,15 +23,8 @@ export default function Mapa() {
     const estadoPreservado = location.state?.estadoPreservado; 
 
     if (from && isReservaFlow) {
-      // Volta e reabre o modal com os dados
-      navigate(from, {
-        state: { 
-          reabrirSala: salaDestinoRaw,
-          reabrirComEstado: estadoPreservado 
-        }
-      });
+      navigate(from, { state: { reabrirSala: salaDestinoRaw, reabrirComEstado: estadoPreservado } });
     } else {
-      // Fallback de segurança (caso o botão aparecesse por engano)
       navigate(-1);
     }
   };
@@ -56,17 +48,14 @@ export default function Mapa() {
 
       <main className="main-content">
         <header className="dashboard-header">
-          <div>
-            <h1 className="dashboard-title">Planta da Escola</h1>
-
-            {/* ✅ SÓ MOSTRA O BOTÃO SE VIERMOS DA RESERVA */}
+          {/* Botão Voltar (Absolute à esquerda) */}
+          <div className="header-left-actions">
             {isReservaFlow && (
-              <button className="mapa-back" onClick={handleVoltar}>
-                ← Voltar à Reserva
-              </button>
+              <button className="mapa-back" onClick={handleVoltar}>← Voltar</button>
             )}
           </div>
 
+          {/* Tabs centradas */}
           <div className="tabs">
             {[1, 2, 3].map((num) => (
               <button
@@ -80,40 +69,47 @@ export default function Mapa() {
           </div>
         </header>
 
+        {/* ✅ MUDANÇA CRÍTICA AQUI:
+           O 'mapa-wrapper' centra tudo.
+           O 'mapa-escala' ajusta-se exatamente ao tamanho da imagem.
+           As coordenadas agora são relativas ao 'mapa-escala', logo batem certo com a imagem.
+        */}
         <div className="mapa-wrapper">
-          <img
-            src={`/assets/piso${pisoAtivo}.svg`}
-            alt={`Mapa Piso ${pisoAtivo}`}
-            className="mapa-imagem"
-          />
+          <div className="mapa-escala">
+            
+            <img
+              src={`/assets/piso${pisoAtivo}.svg`}
+              alt={`Mapa Piso ${pisoAtivo}`}
+              className="mapa-imagem"
+            />
 
-          {pisoAtivo === ENTRADA.piso && (
-            <div className="mapa-dot dot-entrada" style={{ top: ENTRADA.top, left: ENTRADA.left }}>
-              <div className="dot-tooltip">
-                <strong>ENTRADA</strong>
+            {pisoAtivo === ENTRADA.piso && (
+              <div className="mapa-dot dot-entrada" style={{ top: ENTRADA.top, left: ENTRADA.left }}>
+                <div className="dot-tooltip"><strong>ENTRADA</strong></div>
               </div>
-            </div>
-          )}
+            )}
 
-          {pontoDestino && (
-            <div
-              className="mapa-dot dot-destino"
-              style={{ top: pontoDestino.top, left: pontoDestino.left }}
-            >
-              <div className="dot-tooltip">
-                <strong>{pontoDestino.sala}</strong>
-                <span className="dot-status">DESTINO</span>
+            {pontoDestino && (
+              <div
+                className="mapa-dot dot-destino"
+                style={{ top: pontoDestino.top, left: pontoDestino.left }}
+              >
+                <div className="dot-tooltip">
+                  <strong>{pontoDestino.sala}</strong>
+                  <span className="dot-status">DESTINO</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {showMissingWarning && (
-            <div className="mapa-warning">
-               A sala <strong>{salaDestino}</strong> não se encontra no piso{" "}
-              <strong>{pisoAtivo}</strong>.
-            </div>
-          )}
+          </div>
         </div>
+
+        {showMissingWarning && (
+            <div className="mapa-warning">
+               A sala <strong>{salaDestino}</strong> não se encontra no piso <strong>{pisoAtivo}</strong>.
+            </div>
+        )}
+
       </main>
     </div>
   );

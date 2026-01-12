@@ -1,4 +1,7 @@
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import LoadingScreen from "./components/LoadingScreen"; 
 
 import Login from "./pages/Login";
 import Registar from "./pages/Registar"; 
@@ -7,14 +10,9 @@ import Perfil from "./pages/Perfil";
 import Favoritos from "./pages/Favoritos";
 import MinhasReservas from "./pages/minhasReservas";
 import Mapa from "./pages/Mapa";
-
-// ✅ NOVO: página de histórico
 import HistoricoReservas from "./pages/HistoricoReservas.jsx";
-
-// ✅ NOVO: Landing Page (página inicial antes do login)
 import Landing from "./pages/Landing.jsx";
 
-// ✅ 1. IMPORTAR O PROVIDER
 import { FiltrosProvider } from "./context/FiltrosContext"; 
 
 function RotaProtegida({ children }) {
@@ -23,9 +21,22 @@ function RotaProtegida({ children }) {
 }
 
 export default function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <BrowserRouter>
-      {/* ✅ 2. ENVOLVER AS ROTAS COM O PROVIDER */}
       <FiltrosProvider>
         <Routes>
           {/* --- ROTAS PÚBLICAS --- */}
@@ -70,7 +81,6 @@ export default function App() {
             }
           />
 
-          {/* ✅ NOVO: rota do histórico */}
           <Route
             path="/historico-reservas"
             element={
@@ -89,7 +99,6 @@ export default function App() {
             } 
           />
 
-          {/* ✅ se estiver logado e cair numa rota inválida, vai para dashboard; senão, landing */}
           <Route
             path="*"
             element={

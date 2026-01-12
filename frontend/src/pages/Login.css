@@ -1,89 +1,38 @@
 /* src/pages/Login.css */
 
+/* Reset básico */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+/* --- LAYOUT DA PÁGINA --- */
 .loginPage {
-  min-height: 100vh;
-  background: #1e293b; /* Fundo Azul Escuro */
-  position: relative;
-  overflow: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
+  height: 100vh;
+  width: 100vw;
+  
+  /* Fundo Azul Escuro com Luz Laranja no Topo */
+  background-color: #0f172a;
+  background-image: radial-gradient(
+    circle at 50% 0%, 
+    rgba(255, 176, 40, 0.236) 0%, 
+    transparent 50%
+  );
+  
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* --- BOLA DECORATIVA --- */
-.orangeCircle {
-  position: absolute;
-  left: -150px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, #E38B2C 0%, #d35400 100%);
-  border-radius: 50%;
-  opacity: 0.5;
-  filter: blur(80px);
-  z-index: 0;
-}
-
-/* --- CONTENTOR CENTRAL --- */
+/* Wrapper do conteúdo (Logo + Card) */
 .loginContent {
-  position: relative;
-  z-index: 10;
   width: 100%;
   max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   padding: 20px;
-}
-
-/* --- LOGÓTIPO (FORÇADO) --- */
-.loginPage .brand {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 15px;
-  margin-bottom: 35px;
-  width: 100%;
-}
-
-/* Ícone */
-.loginPage .logo-icon {
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Texto */
-.loginPage .brandTitle {
   display: flex;
   flex-direction: column;
-  line-height: 1;
-  text-align: left;
-}
-
-/* "FreeRoom" -> BRANCO E GRANDE */
-.loginPage .brandTitle span:first-child {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #ffffff !important; /* Cor Branca Obrigatória */
-  letter-spacing: -1px;
-  margin-bottom: 2px;
-}
-
-/* "ESTG" -> LARANJA E ESPAÇADO */
-.loginPage .brandTitle .highlight {
-  color: #E38B2C !important; /* Cor Laranja Obrigatória */
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  align-items: center;
 }
 
 /* --- CARTÃO --- */
@@ -93,6 +42,7 @@
   padding: 40px;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
 }
 
 .loginTitle {
@@ -124,12 +74,13 @@
   width: 100%;
   padding: 14px;
   border: 2px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 1rem;
   outline: none;
   background: #f8fafc;
   transition: all 0.2s;
   color: #1e293b;
+  box-sizing: border-box; /* Garante que padding não aumenta largura */
 }
 
 .input:focus {
@@ -138,13 +89,26 @@
   box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1);
 }
 
+/* Mensagens de Erro */
+.error-msg {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #be123c;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* --- BOTÃO --- */
 .btn {
   width: 100%;
   padding: 14px;
   background: #E38B2C;
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
@@ -157,6 +121,7 @@
   transform: translateY(-2px);
 }
 
+/* --- RODAPÉ DO CARD --- */
 .card-footer {
   margin-top: 20px;
   text-align: center;
@@ -164,6 +129,8 @@
   color: #64748b;
 }
 
+/* Links (Span ou A) */
+.card-footer span,
 .card-footer a {
   color: #E38B2C;
   text-decoration: none;

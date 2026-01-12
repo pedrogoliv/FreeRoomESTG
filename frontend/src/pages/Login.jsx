@@ -1,12 +1,12 @@
-// src/pages/Login.jsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import Logo from "../components/logo";
 import "./Login.css";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState(""); // A tua variável original de erro
+  const [msg, setMsg] = useState("");
 
   const navigate = useNavigate();
 
@@ -15,7 +15,7 @@ export default function Login() {
     setMsg("");
 
     if (!username || !password) {
-      setMsg("⚠️ Preenche username e password.");
+      setMsg("Username e password inválidos.");
       return;
     }
 
@@ -42,22 +42,11 @@ export default function Login() {
 
   return (
     <div className="loginPage">
-
       <div className="loginContent">
         
-        <div className="brand">
-          <div className="logo-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M9 3V21" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M15 10V14" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          
-          <div className="brandTitle">
-            <span>FreeRoom</span>
-            <span className="highlight">ESTG</span>
-          </div>
+        {/* ✅ 2. LOGÓTIPO LIMPO E CENTRADO */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+          <Logo />
         </div>
 
         <div className="loginCard">
@@ -84,7 +73,6 @@ export default function Login() {
               />
             </div>
 
-            {/* ✅ CORREÇÃO AQUI: A mensagem agora está num div centrado */}
             {msg && <div className="error-msg">{msg}</div>}
 
             <button className="btn" type="submit">

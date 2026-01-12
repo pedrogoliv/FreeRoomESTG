@@ -1,3 +1,5 @@
+/* src/components/Sidebar.css */
+
 .sidebar {
   width: 280px;
   height: 100vh;
@@ -12,70 +14,37 @@
   z-index: 10;
 }
 
-/* --- PARTE DE CIMA (Logo + Nav) --- */
+/* --- TOPO --- */
 .sidebarTop {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 32px;
 }
 
-/* --- LOGÓTIPO  --- */
+/* --- LOGO (Brand) --- */
 .brand {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Alinha à esquerda com o menu */
-  width: 100%;
-  gap: 14px; /* O mesmo espaço que existe entre ícone e texto nos botões */
+  /* Voltar a alinhar à esquerda (padrão) */
+  justify-content: flex-start; 
   
-  /* IMPORTANTE: Padding igual aos botões do menu (.navItem) para alinhar tudo */
+  /* ✅ IMPORTANTE: Padding igual ao .navItem para alinhar tudo à esquerda */
   padding: 12px 16px; 
-  margin-bottom: 20px;
+  
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s ease;
+  min-height: 70px; 
 }
 
-/* Caixa do ícone */
-.logo-icon {
-  width: 42px;
-  height: 42px;
-  /* Removemos o fundo escuro para ficar mais limpo, ou usamos um muito subtil */
-  background: linear-gradient(135deg, rgba(227, 139, 44, 0.15), rgba(227, 139, 44, 0.05));
-  border: 1px solid rgba(227, 139, 44, 0.3);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: #E38B2C; /* Cor do ícone SVG */
+.brand:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
 }
 
-.brandTitle {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  line-height: 1;
-  /* Garante que usa a mesma fonte do resto da app */
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-}
-
-
-.brandTitle span:first-child {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -1px;
-  margin-bottom: 2px;
-}
-
-/* "ESTG" */
-.brandTitle .highlight {
-  color: #E38B2C;
-  font-size: 0.85rem; 
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  margin-left: 1px; 
-}
-
-/* --- NAVEGAÇÃO (MANTIDA IGUAL) --- */
+/* --- NAVEGAÇÃO --- */
 .nav {
   display: flex;
   flex-direction: column;
@@ -84,40 +53,53 @@
 
 .navItem {
   display: flex;
-  align-items: center;
+  align-items: center; /* Centra verticalmente */
   gap: 14px;
-  padding: 14px 16px;
+  padding: 12px 16px; /* Padding igual ao Brand */
   border-radius: 12px;
   color: #94a3b8;
   text-decoration: none;
   font-weight: 600;
   font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease-in-out;
   border: 1px solid transparent;
+  line-height: 1; 
 }
 
+/* O ÍCONE (Caixa Fixa para alinhar texto) */
 .navItem .icon {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s;
+  
+  /* Ajuste ótico vertical */
+  transform: translateY(-1px); 
+}
+
+/* O TEXTO (Ajuste ótico) */
+.navItem span:not(.icon) {
+  position: relative;
+  top: 1px; /* Empurra o texto 1px para baixo para alinhar com o ícone */
 }
 
 .navItem:hover {
   background: rgba(255, 255, 255, 0.05);
   color: #f8fafc;
-  transform: translateX(4px);
+  transform: translateX(4px); /* Se não quiseres que mova para o lado ao passar o rato, apaga esta linha */
 }
 
 .navItem:hover .icon {
   transform: scale(1.1);
 }
 
+/* Estado Ativo */
 .navItem.active {
   background: #E38B2C;
   color: #ffffff;
-  box-shadow: 0 8px 20px rgba(227, 139, 44, 0.3);
+  box-shadow: 0 4px 12px rgba(227, 139, 44, 0.3);
   font-weight: 700;
 }
 
@@ -125,24 +107,22 @@
   color: #fff;
 }
 
-/* --- RODAPÉ (Perfil + Botão Sair) --- */
+/* --- RODAPÉ --- */
 .sidebarBottom {
   border-top: 1px solid #334155;
   padding-top: 20px;
-  /* Adicionado Flex para empilhar o Perfil e o Sair */
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Espaço entre o botão de perfil e o de sair */
+  gap: 10px;
 }
 
-/* Ajuste para o botão de logout alinhar visualmente com o navItem do perfil */
 .logoutBtn {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Mudado para flex-start para alinhar texto à esq */
-  gap: 14px; /* Igual ao .navItem */
-  padding: 14px 16px; /* Igual ao .navItem */
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 12px 16px;
   border-radius: 12px;
   background: transparent;
   border: 1px solid #334155;
@@ -152,6 +132,12 @@
   transition: all 0.2s ease;
   font-size: 0.95rem;
   font-family: 'Inter', sans-serif;
+  line-height: 1;
+}
+
+.logoutBtn span:not(.logoutIcon) {
+  position: relative;
+  top: 1px;
 }
 
 .logoutBtn:hover {
@@ -162,8 +148,10 @@
 }
 
 .logoutIcon {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  width: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transform: translateY(-1px);
 }

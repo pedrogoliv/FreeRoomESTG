@@ -71,11 +71,11 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ username: String(username).trim() });
 
     if (!user) {
-      return res.status(401).json({ success: false, message: "Utilizador não encontrado" });
+      return res.status(401).json({ success: false, message: "Utilizador não encontrado." });
     }
 
     if (user.password !== password) {
-      return res.status(401).json({ success: false, message: "Password errada" });
+      return res.status(401).json({ success: false, message: "Password errada." });
     }
 
     return res.json({

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
+import Logo from "../components/logo";
 import "./Registar.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
@@ -62,9 +63,8 @@ export default function Registar() {
     e.preventDefault();
     setMsg("");
 
-    // ✅ Validação Simplificada (sem email e confirmPassword)
     if (!cursoOption || !numero || !username || !password) {
-      setMsg("⚠️ Preenche todos os campos.");
+      setMsg("É necessário preencher todos os campos.");
       return;
     }
 
@@ -75,7 +75,7 @@ export default function Registar() {
     }
 
     if (password.length < 3) {
-      setMsg("⚠️ A password deve ter pelo menos 3 caracteres.");
+      setMsg("A password deve ter pelo menos 3 caracteres.");
       return;
     }
 
@@ -109,23 +109,11 @@ export default function Registar() {
 
   return (
     <div className="loginPage">
-
       <div className="loginContent">
         
-        {/* LOGÓTIPO */}
-        <div className="brand">
-          <div className="logo-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M9 3V21" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M15 10V14" stroke="#E38B2C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          
-          <div className="brandTitle">
-            <span>FreeRoom</span>
-            <span className="highlight">ESTG</span>
-          </div>
+        {/* ✅ 2. LOGÓTIPO LIMPO E CENTRADO */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+           <Logo />
         </div>
 
         <div className="loginCard">
@@ -170,7 +158,6 @@ export default function Registar() {
               />
             </div>
 
-
             <div>
               <label className="label">Password</label>
               <input
@@ -182,7 +169,6 @@ export default function Registar() {
               />
             </div>
 
-            {/* Mensagem de Erro */}
             {msg && <div className="error-msg">{msg}</div>}
 
             <button className="btn" type="submit" disabled={loading || cursosLoading}>

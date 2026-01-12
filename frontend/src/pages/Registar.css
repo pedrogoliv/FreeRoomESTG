@@ -1,7 +1,4 @@
-/* ===========================
-   Página Registar - FreeRoom
-   (Versão Clean Gradient - Sem Scroll)
-   =========================== */
+/* src/pages/Registar.css */
 
 html, body {
   height: 100%;
@@ -14,7 +11,7 @@ html, body {
   width: 100vw;
   overflow: hidden; /* Remove scroll */
   
-  /* FUNDO: Azul escuro com uma "luz" laranja no canto superior direito */
+  /* FUNDO: Azul escuro com "luz" laranja no topo */
   background-color: #0f172a;
   background-image: radial-gradient(
     circle at 50% 0%, 
@@ -29,15 +26,10 @@ html, body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* (Removemos ::before e ::after e .orangeCircle - o background acima faz o trabalho) */
-
-/* --- LAYOUT --- */
-
 .loginContent {
   position: relative;
   z-index: 10;
   width: 100%;
-  /* Padding pequeno para garantir que cabe em ecrãs pequenos */
   padding: 20px;
   box-sizing: border-box;
   display: flex;
@@ -46,50 +38,17 @@ html, body {
   justify-content: center;
 }
 
-/* Brand */
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.logo-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.5); /* Mais subtil */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.brandTitle {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-  font-weight: 900;
-  color: #ffffff;
-  font-size: 1.6rem;
-}
-
-.brandTitle .highlight {
-  color: #E38B2C;
-  font-size: 1rem;
-  font-weight: 900;
-}
+/* ❌ APAGUEI AS CLASSES .brand, .logo-icon, .brandTitle POIS O COMPONENTE <Logo /> TRATA DISSO */
 
 /* Card */
 .loginCard {
   width: 100%;
-  max-width: 400px; /* Largura controlada */
+  max-width: 400px;
   background: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3); /* Sombra boa */
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3);
   border: 1px solid #e2e8f0;
-  
-  padding: 30px; /* Espaço interno confortável */
+  padding: 30px;
   box-sizing: border-box;
 }
 
@@ -108,7 +67,7 @@ html, body {
 .loginForm {
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Espaço uniforme */
+  gap: 12px;
 }
 
 /* Labels */
@@ -120,7 +79,7 @@ html, body {
   color: #64748b;
 }
 
-/* Inputs Genéricos (Para ficarem iguais ao Select) */
+/* Inputs */
 .input {
   width: 100%;
   height: 44px;
@@ -141,7 +100,7 @@ html, body {
   background: #ffffff;
 }
 
-/* Mensagens */
+/* Mensagens de Erro */
 .error-msg {
   background: #fff1f2;
   border: 1px solid #fecdd3;
@@ -153,7 +112,7 @@ html, body {
   text-align: center;
 }
 
-/* Botão */
+/* Botão Principal */
 .btn {
   height: 48px;
   margin-top: 10px;
@@ -166,11 +125,9 @@ html, body {
   cursor: pointer;
   transition: 0.2s ease;
   box-shadow: 0 4px 10px rgba(227, 139, 44, 0.2);
-
   display: flex;
-  align-items: center;     /* Centra na vertical */
-  justify-content: center; /* Centra na horizontal */
-  padding: 0;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn:hover {
@@ -184,21 +141,60 @@ html, body {
 }
 
 /* Footer Link */
-.loginCard div[style*="text-align: center"] {
-  margin-top: 15px !important;
+.card-footer {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #64748b;
 }
 
 /* ===========================
-   React-Select (Mantido igual)
+   Estilos do React-Select 
    =========================== */
 .select-container { font-size: 0.95rem; }
-.select__control { border: 2px solid #e2e8f0 !important; background: #f8fafc !important; border-radius: 12px !important; min-height: 44px !important; padding-left: 6px; box-shadow: none !important; transition: all 0.2s !important; }
-.select__control--is-focused { border-color: #E38B2C !important; background: #ffffff !important; box-shadow: none !important; }
-.select__single-value { color: #1e293b !important; font-weight: 500 !important; }
+
+.select__control { 
+  border: 2px solid #e2e8f0 !important; 
+  background: #f8fafc !important; 
+  border-radius: 12px !important; 
+  min-height: 44px !important; 
+  padding-left: 6px; 
+  box-shadow: none !important; 
+  transition: all 0.2s !important; 
+}
+
+.select__control--is-focused { 
+  border-color: #E38B2C !important; 
+  background: #ffffff !important; 
+}
+
+.select__single-value { 
+  color: #1e293b !important; 
+  font-weight: 500 !important; 
+}
+
 .select__indicator { color: #64748b !important; }
 .select__indicator:hover { color: #1e293b !important; }
-.select__menu { border-radius: 12px !important; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important; border: 1px solid #e2e8f0 !important; z-index: 100 !important; }
-.select__option { padding: 12px 14px !important; font-weight: 500 !important; }
-.select__option--is-focused { background: rgba(227, 139, 44, 0.12) !important; color: #E38B2C !important; }
-.select__option--is-selected { background: #E38B2C !important; color: white !important; }
 
+.select__menu { 
+  border-radius: 12px !important; 
+  overflow: hidden; 
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important; 
+  border: 1px solid #e2e8f0 !important; 
+  z-index: 100 !important; 
+}
+
+.select__option { 
+  padding: 12px 14px !important; 
+  font-weight: 500 !important; 
+}
+
+.select__option--is-focused { 
+  background: rgba(227, 139, 44, 0.12) !important; 
+  color: #E38B2C !important; 
+}
+
+.select__option--is-selected { 
+  background: #E38B2C !important; 
+  color: white !important; 
+}

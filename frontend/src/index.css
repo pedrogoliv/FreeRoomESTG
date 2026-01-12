@@ -1,63 +1,111 @@
 /* =========================================
-   1. IMPORTAR FONTE INTER (Do Google Fonts)
-   Trazemos os pesos: 400(Normal), 500(Medium), 600, 700, 800(ExtraBold), 900(Black)
+   1. CARREGAMENTO DE FONTES LOCAIS (Pasta Public)
    ========================================= */
+
+@font-face {
+  font-family: 'Doto';
+  src: url('/assets/fonts/Doto-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/assets/fonts/BricolageGrotesque.ttf') format('truetype');
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 /* =========================================
-   2. VARIÁVEIS DE COR (Opcional, mas dá jeito)
+   2. VARIÁVEIS E RESET
    ========================================= */
 :root {
   --cor-laranja: #E38B2C;
   --cor-azul-escuro: #1e293b;
-  --cor-fundo-claro: #f6f7fb; /* Cor de fundo suave para dashboards */
+  --cor-fundo-claro: #f6f7fb;
 }
 
-/* =========================================
-   3. RESET & APLICAÇÃO GERAL
-   ========================================= */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  
-  /* AQUI ESTÁ O SEGREDO: Aplica a Inter em TUDO */
-  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-family: 'Inter', sans-serif;
 }
 
-html, body, #root {
+/* =========================================
+   3. ESTILOS DO LOGO
+   ========================================= */
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+}
+
+/* ✅ ÍCONE TOTALMENTE LIMPO */
+.logo-box {
+  width: 40px; 
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.logo-box img {
   width: 100%;
   height: 100%;
-  overflow-x: hidden;
-  background-color: var(--cor-fundo-claro);
-  color: var(--cor-azul-escuro);
-  -webkit-font-smoothing: antialiased;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(227, 139, 44, 0.4));
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+/* ✅ FREEROOM COM DOTO */
+.logo-main {
+  font-family: 'Doto', sans-serif !important;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+/* ✅ ESTG. COM FUNDO BRANCO */
+.logo-badge {
+  font-family: 'Bricolage Grotesque', sans-serif !important;
+  font-size: 0.7rem;
+  font-weight: 800;
+  
+  /* Mudanças aqui para ficar branco */
+  color: var(--cor-azul-escuro); /* Letra escura para ler no branco */
+  background: #ffffff;           /* Fundo branco puro */
+  
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  width: fit-content;
+  margin-top: 2px;
 }
 
 /* =========================================
-   4. TIPOGRAFIA FORTE (ESTILO LOGIN)
+   4. RESTO DA APP
    ========================================= */
-
-/* TÍTULOS (H1, H2...) -> FICAM COMO O "BEM-VINDO" */
-h1, h2, h3, h4 {
-  font-weight: 900 !important; /* Black (Muito grosso) */
-  letter-spacing: -0.5px;      /* Letras um bocadinho mais juntas */
-  color: var(--cor-azul-escuro);
+h1, h2, h3 {
+  font-weight: 900 !important;
+  letter-spacing: -0.5px;
 }
 
-/* BOTÕES, LABELS E INPUTS -> FICAM COMO "USERNAME" / "ENTRAR" / "VER HISTÓRICO" */
-button, input, select, textarea, label, .btn {
-  font-weight: 800 !important; /* Extra Bold */
+button, input, .btn {
+  font-weight: 800 !important;
 }
-
-/* TEXTOS NORMAIS (Parágrafos, descrições) */
-p, span, div {
-  font-weight: 500; /* Medium (Para não ficar demasiado fino e ilegível) */
-}
-
-/* =========================================
-   5. UTILITÁRIOS
-   ========================================= */
-/* Se precisares de forçar algo a ser laranja */
-.text-orange { color: var(--cor-laranja); }
-.bg-orange { background-color: var(--cor-laranja); }

@@ -1,7 +1,7 @@
 /* src/pages/Mapa.css */
 
 /* =========================================
-   1. PÁGINA CLARA (#f8fafc)
+   1. PÁGINA
    ========================================= */
 .dashboard-container.page-mapa {
   background-color: #f8fafc !important; 
@@ -9,43 +9,52 @@
   overflow: hidden; 
 }
 
-/* Título Azul Escuro */
-.page-mapa .dashboard-title {
-  color: #1e293b !important;
-}
-
-/* Área Principal */
 .page-mapa .main-content {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding-bottom: 20px;
+  padding-bottom: 10px; /* Menos padding em baixo */
   overflow: hidden;
-  /* ❌ REMOVIDO: align-items: center; (Isto é que estava a estragar o header) */
-}
-
-/* Ajuste do Header para garantir que ocupa a largura toda */
-.page-mapa .dashboard-header {
-  width: 100%;
-  /* Mantém o alinhamento original do Dashboard (justify-content: space-between) */
 }
 
 /* =========================================
-   2. CONTROLOS (ESTILO CLARO)
+   2. HEADER (Agora centrado e compacto)
    ========================================= */
+.page-mapa .dashboard-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0px 20px;       /* Sem padding vertical */
+  position: relative;
+  min-height: 40px;        /* Altura mínima muito reduzida */
+  z-index: 50;             /* Garante que os botões ficam ACIMA do mapa */
+  background-color: #f8fafc; /* Garante que o mapa não se vê através do header */
+}
 
-/* Botão Voltar */
+/* Botão Voltar (Posicionado à esquerda sem empurrar as tabs) */
+.page-mapa .header-left-actions {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
 .page-mapa .mapa-back {
-  margin-top: 8px;
   background: #ffffff;
   color: #64748b;
   border: 1px solid #cbd5e1;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 8px 12px;
-  font-weight: 800;
+  font-weight: 700;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .page-mapa .mapa-back:hover {
@@ -54,18 +63,18 @@
   border-color: #E38B2C;
 }
 
-/* Tabs */
+/* Tabs (Piso 1, 2, 3) */
 .page-mapa .tabs {
   display: flex; 
   gap: 10px; 
-  margin-bottom: 20px;
+  margin: 0;
 }
 
 .page-mapa .tab {
   background: #ffffff !important; 
-  color: #64748b !important;      
+  color: #64748b !important;       
   border: 1px solid #e2e8f0 !important;
-  padding: 10px 20px; 
+  padding: 8px 24px;       /* Mais largos para facilitar o clique */
   border-radius: 8px; 
   font-weight: 700; 
   cursor: pointer;
@@ -88,33 +97,32 @@
 }
 
 /* =========================================
-   3. O MAPA (CENTRADO & ESCURO)
+   3. O MAPA (MAIOR)
    ========================================= */
 
-/* A caixa do mapa centra-se a ela própria com margin: 0 auto */
 .mapa-wrapper {
   position: relative;
-  
-  /* Lógica "Anti-Scroll" */
   width: fit-content;        
   height: auto;
-  max-width: 95%;            
-  max-height: calc(100vh - 180px); /* Altura disponível */
+  max-width: 98%;            
+  
+  /* MUDANÇA AQUI: Ajuste fino na altura */
+  max-height: calc(100vh - 80px); 
 
-  /* Visual de Moldura Escura */
+  /* MUDANÇA AQUI: Adicionei margin-top negativo para puxar a caixa para cima */
+  margin: -10px auto 0 auto; 
+  
   background: #0f172a;
   border: 4px solid #ffffff; 
   border-radius: 16px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
   overflow: hidden;
-  
-  /* ✅ AQUI ESTÁ A CORREÇÃO: Centra o mapa horizontalmente */
-  margin: 0 auto; 
 }
 
 .mapa-imagem {
   display: block;
-  max-height: calc(100vh - 188px); 
+  /* MUDANÇA AQUI: Ajuste correspondente à imagem interna */
+  max-height: calc(100vh - 90px); 
   max-width: 100%;
   width: auto;
   height: auto;
@@ -122,69 +130,16 @@
   object-fit: contain;
 }
 
-/* =========================================
-   4. PONTOS (MANTIDOS IGUAIS)
-   ========================================= */
-
-.mapa-dot {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
+/* ... (O resto do CSS dos pontos/dots mantém-se igual) ... */
+.mapa-dot { position: absolute; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; transition: transform 0.2s ease; }
 .mapa-dot:hover { transform: translate(-50%, -50%) scale(1.2); z-index: 20; }
-
-/* Entrada */
-.dot-entrada {
-  width: 16px; height: 16px;
-  background-color: #22c55e;
-  border: 2px solid white;
-  border-radius: 50%;
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
-  display: flex; justify-content: center;
-}
-.dot-entrada .dot-tooltip {
-  position: absolute; top: 25px;
-  background: rgba(0, 0, 0, 0.9); color: #22c55e;
-  padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;
-  text-transform: uppercase; white-space: nowrap; pointer-events: none;
-  opacity: 0; transform: translateY(-5px); transition: all 0.2s ease;
-}
+.dot-entrada { width: 16px; height: 16px; background-color: #22c55e; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 15px rgba(34, 197, 94, 0.8); display: flex; justify-content: center; }
+.dot-entrada .dot-tooltip { position: absolute; top: 25px; background: rgba(0, 0, 0, 0.9); color: #22c55e; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; pointer-events: none; opacity: 0; transform: translateY(-5px); transition: all 0.2s ease; }
 .dot-entrada:hover .dot-tooltip { opacity: 1; transform: translateY(0); }
-
-/* Destino */
-.dot-destino {
-  width: 16px; height: 16px; 
-  background-color: white; border-radius: 50%;
-  box-shadow: 0 0 15px 4px rgba(255, 255, 255, 0.6); 
-  animation: pulse 2s infinite;
-  display: flex; justify-content: center;
-}
-.dot-destino .dot-tooltip {
-  position: absolute; bottom: 26px;
-  background-color: black; color: white;
-  padding: 6px 12px; border-radius: 6px; text-align: center; min-width: 80px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-  left: 50%; transform: translateX(-50%);
-  opacity: 1; pointer-events: auto;
-}
-.dot-destino .dot-tooltip::after {
-  content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
-  border-width: 5px 5px 0; border-style: solid; border-color: black transparent transparent transparent;
-}
+.dot-destino { width: 16px; height: 16px; background-color: white; border-radius: 50%; box-shadow: 0 0 15px 4px rgba(255, 255, 255, 0.6); animation: pulse 2s infinite; display: flex; justify-content: center; }
+.dot-destino .dot-tooltip { position: absolute; bottom: 26px; background-color: black; color: white; padding: 6px 12px; border-radius: 6px; text-align: center; min-width: 80px; box-shadow: 0 4px 10px rgba(0,0,0,0.6); left: 50%; transform: translateX(-50%); opacity: 1; pointer-events: auto; }
+.dot-destino .dot-tooltip::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 5px 5px 0; border-style: solid; border-color: black transparent transparent transparent; }
 .dot-destino strong { display: block; font-size: 1.1rem; font-weight: 900; color: #38bdf8; line-height: 1.1; }
 .dot-destino .dot-status { display: block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: white; margin-top: 2px; }
-
-/* Aviso */
-.mapa-warning {
-  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-  background: rgba(0,0,0,0.85); color: #fbbf24; padding: 10px 20px;
-  border-radius: 8px; font-weight: 700; pointer-events: none; border: 1px solid #fbbf24;
-}
-
-@keyframes pulse {
-  0% { transform: translate(-50%, -50%) scale(0.9); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
-  70% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
-  100% { transform: translate(-50%, -50%) scale(0.9); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-}
+.mapa-warning { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fbbf24; padding: 10px 20px; border-radius: 8px; font-weight: 700; pointer-events: none; border: 1px solid #fbbf24; }
+@keyframes pulse { 0% { transform: translate(-50%, -50%) scale(0.9); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); } 100% { transform: translate(-50%, -50%) scale(0.9); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }

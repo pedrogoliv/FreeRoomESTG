@@ -1,0 +1,45 @@
+/* src/components/LoadingScreen.css */
+
+.loading-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0f172a; /* Azul escuro */
+  
+  /* Centrar tudo */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  
+  /* Espaço entre o logo e o spinner */
+  gap: 40px; 
+  
+  z-index: 99999;
+}
+
+/* TRUQUE DE ESCALA: 
+   Como o componente <Logo /> tem um tamanho fixo (definido no logo.css),
+   usamos o transform: scale() para o aumentar no Loading Screen
+   sem ter de reescrever o CSS do componente original.
+*/
+.loading-logo-scale {
+  transform: scale(1.5); /* Aumenta o logo em 50% (1.5x) */
+  display: flex;
+  justify-content: center;
+}
+
+/* Spinner (Mantido igual) */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.05);
+  border-top-color: #E38B2C;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
