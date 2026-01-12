@@ -6,6 +6,7 @@ export default function Landing() {
     <div className="landing">
       <div className="landing-overlay" />
 
+      {/* topo esquerdo: marca */}
       <header className="landing-header">
         <div className="landing-brand">
           <div className="landing-logo" aria-hidden="true">▮▮</div>
@@ -17,7 +18,7 @@ export default function Landing() {
       </header>
 
       <main className="landing-main">
-        {/* ✅ NÃO MEXER: lado esquerdo */}
+        {/* lado esquerdo (limpo): slogan curto, sem “caixa” */}
         <section className="landing-hero">
           <h1>Encontra salas livres</h1>
           <h2>em tempo real</h2>
@@ -26,31 +27,38 @@ export default function Landing() {
           </p>
         </section>
 
-        {/* ✅ NOVO: coluna clean sem card */}
-        <aside className="landing-cta" aria-label="Acesso rápido">
-          <div className="cta-top">
+        {/* painel direito (do topo ao fundo) */}
+        <aside className="landing-panel" aria-label="Acesso rápido">
+          <div className="panel-content">
             <h3>Começar</h3>
-            <p>
+            <p className="panel-text">
               Entra para consultar salas, reservar horários e ver a planta da escola.
             </p>
 
-            <div className="cta-actions">
+            <div className="panel-actions">
               <Link className="btn-primary" to="/login">Entrar</Link>
               <Link className="btn-secondary" to="/registar">Criar conta</Link>
             </div>
-          </div>
 
-          <ul className="cta-list">
-            <li><span className="dot" /> Disponibilidade instantânea</li>
-            <li><span className="dot" /> Planta da escola</li>
-            <li><span className="dot" /> Reservas e histórico</li>
-          </ul>
+            <div className="panel-divider" />
 
-          <div className="cta-footer">
-            FreeRoom ESTG • Projeto académico
+            <ul className="panel-list">
+              <li><span className="dot" /> Disponibilidade instantânea</li>
+              <li><span className="dot" /> Planta da escola</li>
+              <li><span className="dot" /> Reservas e histórico</li>
+            </ul>
+
+            <div className="panel-footer">
+              FreeRoom ESTG • Projeto académico
+            </div>
           </div>
         </aside>
       </main>
+
+      {/* footer só para mobile (no desktop o texto vai no painel) */}
+      <footer className="landing-footer-mobile">
+        <span>FreeRoom ESTG • Projeto académico</span>
+      </footer>
     </div>
   );
 }

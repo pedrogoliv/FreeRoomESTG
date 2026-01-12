@@ -16,7 +16,7 @@
   pointer-events: none;
 }
 
-/* Header */
+/* Header (marca) */
 .landing-header {
   position: relative;
   padding: 26px 36px;
@@ -55,7 +55,7 @@
   color: #ff8c00;
 }
 
-/* Layout */
+/* Layout principal */
 .landing-main {
   position: relative;
   z-index: 2;
@@ -64,10 +64,9 @@
   grid-template-columns: 1fr 420px;
   gap: 26px;
   padding: 0 36px 28px;
-  align-items: center;
 }
 
-/* ✅ ESQUERDA (igual ao que gostaste) */
+/* Hero à esquerda */
 .landing-hero {
   align-self: center;
   max-width: 640px;
@@ -79,6 +78,8 @@
   font-size: 52px;
   font-weight: 950;
   letter-spacing: -0.02em;
+
+  /* ✅ antes estava a ficar “apagado” */
   color: #ff8c00;
   text-shadow: 0 10px 30px rgba(0,0,0,0.45);
 }
@@ -89,6 +90,8 @@
   font-weight: 900;
   opacity: 0.98;
   letter-spacing: -0.02em;
+
+  /* ✅ também em laranja, um pouco mais suave */
   color: rgba(255, 140, 0, 0.9);
   text-shadow: 0 10px 30px rgba(0,0,0,0.45);
 }
@@ -101,31 +104,47 @@
   color: rgba(255,255,255,0.78);
 }
 
-/* ✅ DIREITA CLEAN (sem card) */
-.landing-cta {
-  align-self: center;
-  justify-self: end;
-  width: 420px;
+/* ✅ Painel lateral direito (mais legível) */
+.landing-panel {
+  align-self: flex-start;        /* fica no topo */
+  height: fit-content;           /* altura só do conteúdo */
+  margin-top: 40px;              /* respiro visual */
 
-  /* ligeiro destaque sem “caixa” */
-  padding: 10px 6px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(255,255,255,0.60);
+  box-shadow: 0 18px 70px rgba(0,0,0,0.35);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  display: block;                /* remove centragem vertical */
 }
 
-.cta-top h3 {
+
+.panel-content {
+  width: 100%;
+  padding: 32px 28px;
+
+  /* ✅ texto escuro (contraste) */
+  color: #0b1324;
+}
+
+.panel-content h3 {
   margin: 0 0 10px;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
-  color: rgba(255,255,255,0.92);
+  color: #0b1324;
 }
 
-.cta-top p {
+.panel-text {
   margin: 0 0 18px;
   line-height: 1.55;
-  color: rgba(255,255,255,0.75);
+  color: #334155;
 }
 
 /* Botões */
-.cta-actions {
+.panel-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
@@ -152,9 +171,9 @@
 }
 
 .btn-secondary {
-  background: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.92);
-  border: 1px solid rgba(255,255,255,0.14);
+  background: #ffffff;
+  color: #0b1324;
+  border: 1px solid rgba(11, 19, 36, 0.18);
 }
 
 .btn-primary:hover,
@@ -163,21 +182,27 @@
   opacity: 0.95;
 }
 
-/* Lista */
-.cta-list {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0 0;
-  display: grid;
-  gap: 12px;
-  font-weight: 800;
+.panel-divider {
+  height: 1px;
+  width: 100%;
+  background: rgba(11, 19, 36, 0.10);
+  margin: 18px 0;
 }
 
-.cta-list li {
+.panel-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.panel-list li {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: rgba(255,255,255,0.86);
+  color: #0f172a;
 }
 
 .dot {
@@ -188,27 +213,29 @@
   flex: 0 0 auto;
 }
 
-/* Footer clean */
-.cta-footer {
-  margin-top: 18px;
+.panel-footer {
+  margin-top: 26px;
   padding-top: 14px;
-  border-top: 1px solid rgba(255,255,255,0.14);
+  border-top: 1px solid rgba(11, 19, 36, 0.10);
   font-weight: 700;
-  color: rgba(255,255,255,0.62);
+  color: #475569;
   font-size: 13px;
+}
+
+/* Footer mobile (no desktop não é preciso) */
+.landing-footer-mobile {
+  display: none;
 }
 
 /* Responsivo */
 @media (max-width: 980px) {
   .landing-main {
     grid-template-columns: 1fr;
-    align-items: start;
+    min-height: auto;
   }
 
-  .landing-cta {
-    width: 100%;
-    justify-self: start;
-    margin-top: 18px;
+  .landing-panel {
+    height: auto;
   }
 
   .landing-hero h1 {
@@ -217,6 +244,20 @@
 
   .landing-hero h2 {
     font-size: 32px;
+  }
+
+  .panel-footer {
+    display: none;
+  }
+
+  .landing-footer-mobile {
+    display: flex;
+    justify-content: center;
+    padding: 18px 22px 26px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 700;
+    position: relative;
+    z-index: 2;
   }
 }
 
