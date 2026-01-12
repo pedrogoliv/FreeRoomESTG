@@ -2,7 +2,7 @@
 
 ![Status](https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow)
 ![IPVC](https://img.shields.io/badge/Instituição-ESTG%20|%20IPVC-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
+
 
 **Aplicação web colaborativa para gestão e visualização de ocupação de salas na ESTG.**
 
