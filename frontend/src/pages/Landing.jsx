@@ -1,21 +1,27 @@
 import { Link } from "react-router-dom";
 import { FaCheckCircle, FaArrowRight, FaUserPlus } from "react-icons/fa";
-import Logo from "../components/logo";
 import "./Landing.css";
 
 export default function Landing() {
   return (
     <div className="landing">
-      {/* Overlay para dar textura/escurecer um pouco o video/bg se tiveres */}
       <div className="landing-overlay" />
 
-      <header className="landing-header">
-        <Logo />
-      </header>
+
 
       <main className="landing-main">
         {/* LADO ESQUERDO */}
         <section className="landing-hero">
+          
+          {/* ✅ NOVO: Logo Grande Branco Hero */}
+          <div className="hero-brand">
+            <img src="/livro512x512.png" alt="Livro FreeRoom" className="hero-icon" />
+            <div className="hero-text-stack">
+              <span className="hero-title">FreeRoom</span>
+              <span className="hero-badge">ESTG</span>
+            </div>
+          </div>
+
           <h1>
             Encontra salas livres <br />
             <span className="text-gradient">em tempo real</span>
@@ -25,7 +31,7 @@ export default function Landing() {
           </p>
         </section>
 
-        {/* LADO DIREITO (CARD DE VIDRO) */}
+        {/* LADO DIREITO (CARD DE VIDRO) - Mantido igual */}
         <aside className="landing-panel">
           <div className="panel-content">
             <h3>Começar agora</h3>

@@ -1,6 +1,5 @@
 /* src/components/detalhesSala.css */
 
-/* --- FUNDO E MODAL --- */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -28,7 +27,6 @@
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* --- HEADER --- */
 .modal-header {
   padding: 16px 20px !important;
   margin: 0 !important;
@@ -67,7 +65,6 @@
 .status-badge.ocupada { background: #fee2e2; color: #dc2626; }
 .status-badge.disponivel { background: #dcfce7; color: #16a34a; }
 
-/* Botões do Header */
 .header-actions { display: flex; align-items: center; gap: 8px; }
 
 .btn-header-fav {
@@ -98,7 +95,6 @@
 }
 .btn-close:hover { background: #fee2e2; color: #ef4444; }
 
-/* --- BODY COMPACTO --- */
 .modal-body {
   padding: 16px 20px !important;
   margin-top: 0 !important;
@@ -109,7 +105,6 @@
   gap: 12px; 
 }
 
-/* Grelha de Inputs */
 .form-grid-compact {
   display: grid;
   grid-template-columns: 1fr 1fr; 
@@ -151,7 +146,6 @@ input[type="date"].field-control { font-family: inherit; }
 
 .full-width { grid-column: span 2; }
 
-/* --- INFO CARD --- */
 .info-card {
   background: #f8fafc;
   border-radius: 12px;
@@ -188,13 +182,11 @@ input[type="date"].field-control { font-family: inherit; }
 .map-text { font-size: 0.8rem; font-weight: 600; color: #475569; }
 .map-arrow { font-size: 0.7rem; color: #cbd5e1; }
 
-/* --- RODAPÉ / BOTÃO --- */
 .modal-footer-single {
   margin-top: auto; 
   padding-top: 5px;
 }
 
-/* ✅ CORREÇÃO AQUI: Nome da classe agora bate certo com o JSX */
 .btn-reservar-main { 
   width: 100%;
   background: #E38B2C;
@@ -215,7 +207,6 @@ input[type="date"].field-control { font-family: inherit; }
 .btn-reservar-main:hover { filter: brightness(1.05); transform: translateY(-1px); }
 .btn-reservar-main:active { transform: scale(0.98); }
 
-/* ESTADO DESATIVADO (Botão Bloqueado) */
 .btn-reservar-main:disabled {
   background-color: #cbd5e1; 
   color: #94a3b8;            

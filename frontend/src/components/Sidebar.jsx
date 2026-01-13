@@ -16,18 +16,15 @@ export default function Sidebar() {
     <aside className="sidebar">
       <div className="sidebarTop">
         
-        {/* --- LOGÓTIPO REUTILIZÁVEL --- */}
         <div className="brand">
-           <Logo /> {/* ✅ 2. Usar o Logo aqui (muito mais limpo!) */}
+           <Logo />
         </div>
 
         <nav className="nav">
-          {/* ... o resto da navegação continua igual ... */}
           <NavLink to="/dashboard" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
             <span className="icon"><FaHome /></span>
             <span>Página Inicial</span>
           </NavLink>
-          {/* ... outros links ... */}
            <NavLink to="/favoritos" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
             <span className="icon"><FaHeart /></span>
             <span>Favoritos</span>
@@ -46,7 +43,6 @@ export default function Sidebar() {
       </div>
 
       <div className="sidebarBottom">
-         {/* ... footer igual ... */}
          <NavLink to="/perfil" className={({ isActive }) => "navItem" + (isActive ? " active" : "")}>
             <span className="icon"><FaUser /></span>
             <span>Meu Perfil</span>

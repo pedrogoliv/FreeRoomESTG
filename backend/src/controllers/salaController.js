@@ -4,7 +4,6 @@ const FERIADOS = require("../config/feriadosPT");
 
 const CAP_BASE = 15;
 
-// --- Helpers Locais ---
 const isWeekend = (isoDate) => {
   const d = new Date(`${isoDate}T00:00:00`);
   const day = d.getDay();
@@ -18,12 +17,10 @@ const toMinutes = (t) => {
   return h * 60 + m;
 };
 
-// ✅ CORRIGIDO AQUI TAMBÉM: Sem penalidade!
 const consumoReserva = (pessoas) => {
   return Number(pessoas) || 1;
 };
 
-// --- Controllers ---
 
 exports.getFeriados = (req, res) => {
   res.json({ success: true, feriados: Array.from(FERIADOS) });
@@ -39,10 +36,8 @@ exports.getSalasLivres = async (req, res) => {
       return res.json([]);
     }
 
-    // Lista base de salas (podes expandir isto ou buscar de uma coleção Sala se criares no futuro)
     let dbSalas = [{ nome: "S.1.1", piso: 1, lugares: CAP_BASE }];
 
-    // Descobrir todas as salas conhecidas na coleção de Ocupação
     const todasSalasNaBD = await Ocupacao.distinct("sala");
     todasSalasNaBD.forEach((nomeDaSala) => {
       if (!dbSalas.find((s) => s.nome === nomeDaSala)) {
@@ -53,17 +48,14 @@ exports.getSalasLivres = async (req, res) => {
       }
     });
 
-    // 1. Salas ocupadas por AULAS no horário pedido
     const ocupadasAula = await Ocupacao.find({
       dia,
       hora_inicio: { $lte: hora },
       hora_fim: { $gt: hora },
     }).distinct("sala");
 
-    // 2. Reservas para esse dia
     const reservasDia = await Reserva.find({ dia, status: "ativa" });
 
-    // Calcular consumo de capacidade por sala
     const consumoPorSala = {};
     const hNow = toMinutes(hora);
 
@@ -77,11 +69,9 @@ exports.getSalasLivres = async (req, res) => {
       }
     }
 
-    // Construir resposta
     const resultado = dbSalas.map((s) => {
       const salaNome = s.nome;
 
-      // Se tem aula, está totalmente ocupada
       if (ocupadasAula.includes(salaNome)) {
         return { ...s, sala: salaNome, status: "Ocupada", lugaresDisponiveis: 0 };
       }
@@ -110,7 +100,6 @@ exports.getAllSalas = async (req, res) => {
     const salasOcup = await Ocupacao.distinct("sala");
     const salasRes = await Reserva.distinct("sala");
 
-    // Unir listas e remover duplicados
     const salas = Array.from(new Set([...salasOcup, ...salasRes]))
       .filter(Boolean)
       .sort((a, b) => String(a).localeCompare(String(b)));
@@ -169,7 +158,6 @@ exports.getSalaStatus = async (req, res) => {
       return res.status(400).json({ success: false, message: "Hora inválida." });
     }
 
-    // --- 1. Verificar Aulas ---
     const aulasDia = await Ocupacao.find({ sala, dia });
 
     const aulaAgora = aulasDia.find((a) => {
@@ -189,7 +177,6 @@ exports.getSalaStatus = async (req, res) => {
       });
     }
 
-    // --- 2. Verificar Reservas ---
     const reservasDia = await Reserva.find({ sala, dia, status: "ativa" });
 
     let consumoAgora = 0;
@@ -205,8 +192,6 @@ exports.getSalaStatus = async (req, res) => {
     const livresAgora = Math.max(0, CAP_BASE - consumoAgora);
     const statusAgora = livresAgora > 0 ? "Livre" : "Ocupada";
 
-    // --- 3. Calcular "mudaEm" (Timeline) ---
-    // Recolher todos os pontos de mudança (início e fim de aulas e reservas)
     const pontos = new Set();
     for (const a of aulasDia) {
       pontos.add(a.hora_inicio);
@@ -222,7 +207,6 @@ exports.getSalaStatus = async (req, res) => {
       .filter((x) => Number.isFinite(x.m))
       .sort((a, b) => a.m - b.m);
 
-    // Função interna para simular o estado em qualquer minuto futuro
     const avaliar = async (tMin) => {
       const aula = aulasDia.find((a) => {
         const ini = toMinutes(a.hora_inicio);
@@ -245,9 +229,8 @@ exports.getSalaStatus = async (req, res) => {
     };
 
     let mudaEm = null;
-    // Procurar no futuro quando é que o status muda
     for (const p of pontosOrdenados) {
-      if (p.m <= hNow) continue; // ignorar passado
+      if (p.m <= hNow) continue;
       const st = await avaliar(p.m);
       if (st.status !== statusAgora) {
         mudaEm = p.t;

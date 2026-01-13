@@ -17,13 +17,12 @@
 .modal-content {
   background: white;
   width: 100%;
-  max-width: 460px; /* Largura ideal */
+  max-width: 460px;
   border-radius: 20px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   position: relative;
   display: flex;
   flex-direction: column;
-  /* Garante que não ultrapassa a altura do ecrã */
   max-height: 95vh; 
   overflow: hidden; 
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -37,7 +36,7 @@
   align-items: center;
   background: #fff;
   border-bottom: 1px solid #e0e7ff !important;
-  flex-shrink: 0; /* Impede o header de encolher */
+  flex-shrink: 0;
 }
 
 .header-title-group {
@@ -81,18 +80,18 @@
 /* --- BODY (Conteúdo) --- */
 .modal-body {
   padding: 20px 24px;
-  overflow-y: auto; /* Scroll só aparece se o ecrã for muito pequeno */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 15px; /* Espaço equilibrado entre blocos */
+  gap: 15px;
 }
 
 /* Grelha de Inputs */
 .form-grid-compact {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px; /* Espaço lateral entre inputs */
-  row-gap: 10px; /* Espaço vertical um pouco menor para poupar altura */
+  gap: 15px;
+  row-gap: 10px;
 }
 
 .field-label {
@@ -111,12 +110,11 @@
   border: 1px solid #e2e8f0;
   background: #f8fafc;
   
-  /* Altura de 42px é segura e bonita */
   height: 42px; 
-  padding: 0 12px; /* Padding lateral */
+  padding: 0 12px; 
   
   border-radius: 10px;
-  font-size: 0.95rem; /* Texto legível */
+  font-size: 0.95rem;
   color: #1e293b;
   font-weight: 600;
   outline: none;
@@ -143,7 +141,7 @@
   background: #f8fafc;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  padding: 12px 16px; /* Compacto mas espaçoso */
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -178,13 +176,13 @@
 .modal-footer {
   display: flex;
   gap: 12px;
-  margin-top: 5px; /* Empurra um pouco para baixo */
+  margin-top: 5px;
   padding-top: 5px;
 }
 
 /* Botões Gerais */
 .btn-cancelar, .btn-guardar, .btn-terminar {
-  height: 46px; /* Botões altos e fáceis de clicar */
+  height: 46px;
   border-radius: 12px;
   font-size: 0.95rem;
   font-weight: 700;
@@ -214,11 +212,10 @@
 .btn-guardar:hover { filter: brightness(1.1); transform: translateY(-1px); }
 .btn-guardar:disabled { background: #a5a6f6; cursor: not-allowed; transform: none; }
 
-/* ✅ NOVO BOTÃO: TERMINAR RESERVA */
 .btn-terminar {
-  flex: 1; /* Ocupa largura total */
+  flex: 1;
   width: 100%;
-  background: #1e293b; /* Slate 800 (Escuro) */
+  background: #1e293b;
   color: white;
   border: none;
   box-shadow: 0 4px 15px rgba(30, 41, 59, 0.25);

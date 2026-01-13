@@ -1,13 +1,14 @@
 /* src/pages/Landing.css */
 
+/* --- 1. CONFIGURAÇÃO GERAL E FUNDO --- */
 .landing {
   min-height: 100vh;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
   color: #fff;
   font-family: 'Inter', system-ui, sans-serif;
 
-  /* Fundo "Cosmic" Laranja e Azul (Mantido igual) */
+  /* Fundo "Cosmic" Laranja e Azul */
   background-color: #0f172a;
   background-image: 
     radial-gradient(at 0% 0%, rgba(227, 139, 44, 0.15) 0px, transparent 50%),
@@ -15,41 +16,97 @@
     radial-gradient(at 100% 100%, rgba(227, 139, 44, 0.1) 0px, transparent 50%);
 }
 
-/* Header */
+/* Header (Logo pequeno no canto) */
 .landing-header {
   padding: 30px 40px;
-  position: absolute; /* Mudado para absolute para não "empurrar" o conteúdo para baixo */
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 10;
 }
 
-/* --- LAYOUT PRINCIPAL (Ajuste de Centragem) --- */
+/* --- 2. LAYOUT PRINCIPAL (GRID) --- */
 .landing-main {
   position: relative;
   z-index: 5;
-  height: 100vh; /* Ocupa o ecrã todo */
+  min-height: 100vh;
   width: 100%;
   
   display: grid;
-  grid-template-columns: 1fr 420px; /* Definimos a largura do card aqui */
-  gap: 60px; /* Mais espaço entre texto e card */
+  grid-template-columns: 1fr 420px; /* Texto à esquerda, Card fixo à direita */
+  gap: 60px;
   
-  /* Isto garante que o card não fica colado à direita */
-  padding: 0 8vw; /* Padding dinâmico nas laterais (empurra o card para a esquerda) */
+  /* Padding lateral responsivo */
+  padding: 0 8vw;
   
-  align-content: center; /* Centra verticalmente o bloco todo */
-  align-items: center;   /* Alinha os itens na linha verticalmente */
+  align-content: center;
+  align-items: center;
 }
 
-/* --- HERO (ESQUERDA) --- */
+/* --- 3. LADO ESQUERDO (HERO & NOVO LOGO) --- */
 .landing-hero {
   max-width: 650px;
 }
 
+/* ✅ NOVO: Bloco do Logo Grande Branco */
+.hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px; /* Espaço até ao texto "Encontra salas..." */
+}
+
+/* A imagem do livro grande */
+.hero-icon {
+  height: 80px; /* Tamanho do livro */
+  width: auto;
+  
+  /* FILTRO MÁGICO: Transforma qualquer cor em BRANCO PURO e dá brilho */
+  filter: brightness(0) invert(1) drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+  
+  transition: transform 0.3s ease;
+}
+
+.hero-brand:hover .hero-icon {
+  transform: scale(1.05) rotate(-5deg);
+}
+
+/* Wrapper do texto FreeRoom + Badge */
+.hero-text-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1;
+}
+
+.hero-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -1.5px;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.hero-badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a; /* Azul escuro para contraste */
+  background: #ffffff; /* Fundo branco */
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  width: fit-content;
+  letter-spacing: 2px;
+  margin-top: 5px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+/* Título Principal (Encontra salas...) */
 .landing-hero h1 {
-  font-size: 3.8rem;
+  font-size: 3.5rem; /* Ajustado ligeiramente para equilibrar com o logo */
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 24px;
@@ -58,6 +115,7 @@
 
 .text-gradient {
   background: linear-gradient(135deg, #E38B2C 0%, #f59e0b 100%);
+    background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
@@ -71,23 +129,15 @@
   margin-bottom: 30px;
 }
 
-/* --- CARD DE VIDRO (AJUSTADO) --- */
+/* --- 4. LADO DIREITO (CARD DE VIDRO) --- */
 .landing-panel {
-  /* Fundo ligeiramente mais claro para contraste */
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  
-  backdrop-filter: blur(25px); /* Mais blur */
+  backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  
-  border: 1px solid rgba(255, 255, 255, 0.15); /* Borda mais visível */
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 24px;
-  
-  /* Sombra suave para destacar do fundo escuro */
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
-  
-
   margin-right: 40px; 
-  
   transition: transform 0.3s ease;
 }
 
@@ -98,10 +148,9 @@
 
 .panel-content {
   padding: 40px;
-  color: #ffffff; /* Garante que tudo é branco por defeito */
+  color: #ffffff;
 }
 
-/* Títulos dentro do card bem brancos */
 .panel-content h3 {
   margin: 0 0 12px;
   font-size: 1.6rem;
@@ -110,9 +159,8 @@
   text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-/* Texto descritivo mais claro */
 .panel-text {
-  color: #e2e8f0; /* Cinza muito claro, quase branco */
+  color: #e2e8f0;
   margin-bottom: 30px;
   font-size: 1rem;
   line-height: 1.5;
@@ -130,7 +178,7 @@
   background: #E38B2C;
   color: white;
   text-decoration: none;
-  padding: 16px; /* Botão mais alto um pouco */
+  padding: 16px;
   border-radius: 12px;
   font-weight: 700;
   font-size: 1rem;
@@ -138,7 +186,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  box-shadow: 0 4px 20px rgba(227, 139, 44, 0.4); /* Glow mais forte */
+  box-shadow: 0 4px 20px rgba(227, 139, 44, 0.4);
   border: none;
 }
 
@@ -148,13 +196,13 @@
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.1); /* Fundo semi-transparente */
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
   text-decoration: none;
   padding: 16px;
   border-radius: 12px;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.3); /* Borda branca clara */
+  border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -166,14 +214,13 @@
   border-color: #ffffff;
 }
 
-/* Divisor */
 .panel-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.15);
   margin-bottom: 25px;
 }
 
-/* Lista */
+/* Lista de Vantagens */
 .panel-list {
   list-style: none;
   padding: 0;
@@ -188,12 +235,12 @@
   align-items: center;
   gap: 12px;
   font-size: 0.95rem;
-  color: #f1f5f9; /* Branco sujo */
+  color: #f1f5f9;
   font-weight: 500;
 }
 
 .check-icon {
-  color: #34d399; /* Verde menta brilhante (melhor contraste no escuro) */
+  color: #34d399;
   font-size: 1.2rem;
   filter: drop-shadow(0 0 5px rgba(52, 211, 153, 0.4));
 }
@@ -209,40 +256,62 @@
   font-size: 0.8rem;
 }
 
-/* RESPONSIVIDADE */
+/* --- 5. RESPONSIVIDADE (MOBILE/TABLET) --- */
 @media (max-width: 1024px) {
   .landing-header {
-    position: relative; /* Volta ao normal em mobile */
+    position: relative;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
   }
 
   .landing-main {
     height: auto;
-    min-height: calc(100vh - 100px);
-    grid-template-columns: 1fr; /* Coluna única */
-    padding: 40px 20px;
+    min-height: calc(100vh - 80px);
+    grid-template-columns: 1fr;
+    padding: 20px;
+    padding-bottom: 80px; /* Espaço para o footer */
     justify-items: center;
     text-align: center;
-    gap: 50px;
+    gap: 40px;
+  }
+
+  /* Ajustes do Logo Grande em Mobile */
+  .hero-brand {
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  
+  .hero-icon {
+    height: 60px;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .landing-hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .landing-hero p {
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .landing-panel {
     width: 100%;
     max-width: 400px;
-    margin-right: 0; /* Remove a margem extra em mobile */
+    margin-right: 0;
   }
 
-  .landing-hero h1 {
-    font-size: 2.8rem;
+  .panel-list {
+    align-items: flex-start;
+    text-align: left;
   }
-  
+
   .landing-footer-mobile {
     display: block;
-    position: relative;
-    padding-bottom: 40px;
-  }
-  
-  .panel-list {
-    align-items: flex-start; /* Alinha a lista à esquerda dentro do card mobile */
-    text-align: left;
   }
 }

@@ -39,12 +39,10 @@ export default function App() {
     <BrowserRouter>
       <FiltrosProvider>
         <Routes>
-          {/* --- ROTAS PÚBLICAS --- */}
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registar" element={<Registar />} /> 
 
-          {/* --- ROTAS PROTEGIDAS --- */}
           <Route
             path="/dashboard"
             element={

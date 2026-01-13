@@ -1,6 +1,5 @@
 const Curso = require("../models/Curso");
 
-// Lista completa retirada do teu server.js original
 const CURSOS_SEED = [
   "Design de Ambientes",
   "Design do Produto",

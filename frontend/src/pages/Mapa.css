@@ -18,18 +18,18 @@
 }
 
 /* =========================================
-   2. HEADER (Agora centrado e compacto)
+   2. HEADER
    ========================================= */
 .page-mapa .dashboard-header {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0px 20px;       /* Sem padding vertical */
+  padding: 0px 20px;     
   position: relative;
-  min-height: 40px;        /* Altura mínima muito reduzida */
-  z-index: 50;             /* Garante que os botões ficam ACIMA do mapa */
-  background-color: #f8fafc; /* Garante que o mapa não se vê através do header */
+  min-height: 40px;       
+  z-index: 50;           
+  background-color: #f8fafc; 
 }
 
 /* Botão Voltar (Posicionado à esquerda sem empurrar as tabs) */
@@ -74,7 +74,7 @@
   background: #ffffff !important; 
   color: #64748b !important;       
   border: 1px solid #e2e8f0 !important;
-  padding: 8px 24px;       /* Mais largos para facilitar o clique */
+  padding: 8px 24px;    
   border-radius: 8px; 
   font-weight: 700; 
   cursor: pointer;
@@ -97,7 +97,7 @@
 }
 
 /* =========================================
-   3. O MAPA (MAIOR)
+   3. O MAPA 
    ========================================= */
 
 .mapa-wrapper {
@@ -106,10 +106,8 @@
   height: auto;
   max-width: 98%;            
   
-  /* MUDANÇA AQUI: Ajuste fino na altura */
   max-height: calc(100vh - 80px); 
 
-  /* MUDANÇA AQUI: Adicionei margin-top negativo para puxar a caixa para cima */
   margin: -10px auto 0 auto; 
   
   background: #0f172a;
@@ -121,8 +119,7 @@
 
 .mapa-imagem {
   display: block;
-  /* MUDANÇA AQUI: Ajuste correspondente à imagem interna */
-  max-height: calc(100vh - 90px); 
+  max-height: calc(100vh - 110px); 
   max-width: 100%;
   width: auto;
   height: auto;
@@ -141,5 +138,5 @@
 .dot-destino .dot-tooltip::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 5px 5px 0; border-style: solid; border-color: black transparent transparent transparent; }
 .dot-destino strong { display: block; font-size: 1.1rem; font-weight: 900; color: #38bdf8; line-height: 1.1; }
 .dot-destino .dot-status { display: block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: white; margin-top: 2px; }
-.mapa-warning { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fbbf24; padding: 10px 20px; border-radius: 8px; font-weight: 700; pointer-events: none; border: 1px solid #fbbf24; }
+.mapa-warning { position: absolute; bottom: 30px; left: 58%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fbbf24; padding: 10px 20px; border-radius: 8px; font-weight: 700; pointer-events: none; border: 1px solid #fbbf24; }
 @keyframes pulse { 0% { transform: translate(-50%, -50%) scale(0.9); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); } 100% { transform: translate(-50%, -50%) scale(0.9); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }

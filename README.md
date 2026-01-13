@@ -15,7 +15,8 @@ O sistema permite consultar horários de salas (com base em dados importados do 
 * 📍 **Mapa Interativo:** Visualização das plantas dos pisos (1, 2 e 3) com indicação visual das salas.
 * 📅 **Consulta de Horários:** Base de dados populada via *web scraping* (ON.IPVC) com a informação letiva das salas.
 * 🔒 **Sistema de Reservas:** Permite aos alunos marcar salas como "Ocupadas" diretamente na aplicação.
-* ⚡ **Gestão Centralizada:** O estado da sala (Livre/Ocupada) cruza o horário letivo importado com as reservas manuais.
+* ⚡ **Tempo Real:** Atualização instantânea da ocupação das salas via WebSockets (Socket.IO).
+* ⚙️ **Gestão Centralizada:** O estado da sala (Livre/Ocupada) cruza o horário letivo importado com as reservas manuais.
 
 ---
 
@@ -23,14 +24,16 @@ O sistema permite consultar horários de salas (com base em dados importados do 
 
 ### **Backend (API)**
 * **Node.js & Express** - Servidor e API REST.
-* **MongoDB (Atlas)** - Base de dados NoSQL (Armazena horários e reservas).
-* **Burpsuite/Postman** - Utilizado para extração inicial de dados.
+* **MongoDB (Atlas)** - Base de dados.
+* **Socket.IO** - Comunicação em tempo real entre servidor e cliente.
+* **Bcrypt.js** - Hashing e segurança de passwords.
 * **Dotenv** - Gestão de variáveis de ambiente.
 
 ### **Frontend (Interface)**
 * **React.js** - Biblioteca para construção da UI.
 * **Vite** - Build tool rápida.
-* **CSS Modules** - Estilização dos componentes e mapas.
+* **Socket.IO Client** - Receção de eventos em tempo real.
+* **CSS Modules** - Estilização responsiva e componentes visuais.
 
 ---
 
@@ -83,6 +86,20 @@ FreeRoomESTG/
 ├── .gitignore       # Ficheiros ignorados pelo Git
 └── README.md        # Documentação do projeto
 ```
+
+---
+
+## 🤖 Declaração de Uso de IA
+
+Neste projeto, foi utilizada exclusivamente a ferramenta de Inteligência Artificial **Google Gemini** para auxílio no desenvolvimento de funcionalidades específicas e resolução de problemas técnicos.
+
+**Utilização Específica:**
+* **Frontend (CSS/React):** Apoio na estruturação do design responsivo, correções de carregamento de fontes e implementação de efeitos visuais (*glassmorphism*) na Landing Page.
+* **Tempo Real (Socket.IO):** Geração de exemplos de implementação para a comunicação bidirecional entre o Backend e o Dashboard (`emit` e `on`), permitindo a atualização automática da ocupação.
+* **Segurança (Auth):** Explicação e exemplos de código para a integração do `bcryptjs` no middleware do Mongoose para encriptação de passwords.
+
+**Reflexão e Adaptação:**
+O conteúdo gerado pela IA funcionou como ponto de partida e material de consulta técnica. Todo o código foi analisado, testado e significativamente adaptado para corresponder à arquitetura MVC do projeto e às regras de negócio específicas da ESTG. A gestão de estados no React e a lógica de validação de conflitos de horários exigiram intervenção manual e depuração por parte do grupo.
 
 ---
 

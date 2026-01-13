@@ -26,12 +26,10 @@ export default function GerirReserva({
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // --- LÓGICA DE TEMPO REAL ---
   const now = new Date();
   const hojeISO = now.toISOString().split("T")[0];
   const agoraStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
-  // ✅ VERIFICA SE ESTÁ A DECORRER
   const isDecorrer = (dia === hojeISO && horaInicio <= agoraStr && horaFim > agoraStr);
 
   const horarios = [];
@@ -43,7 +41,7 @@ export default function GerirReserva({
 
   const horariosInicioDisponiveis = horarios.filter(h => {
     if (h === "23:00") return false;
-    if (dia === hojeISO && !isDecorrer) { // Só filtra passado se não estiver a decorrer
+    if (dia === hojeISO && !isDecorrer) {
        return h >= agoraStr || h === reserva.hora_inicio || h === horaInicio;
     }
     return true;
@@ -86,24 +84,31 @@ export default function GerirReserva({
     finally { setLoading(false); }
   };
 
-  // ✅ NOVA FUNÇÃO: TERMINAR RESERVA AGORA
   const handleTerminarAgora = async () => {
     setLoading(true);
-    
-    // Calcula o final do slot atual (ex: são 14:15 -> fim = 14:30)
-    const h = now.getHours();
-    const m = now.getMinutes();
-    let novoFim = "";
-    
-    if (m < 30) novoFim = `${String(h).padStart(2, "0")}:30`;
-    else novoFim = `${String(h + 1).padStart(2, "0")}:00`;
+    setMsg("");
 
-    // Se já estivermos no último slot, não faz nada ou termina à hora atual
-    if (novoFim > horaFim) novoFim = horaFim;
+    const timeNow = new Date();
+    const h = timeNow.getHours();
+    const m = timeNow.getMinutes();
+    
+    let novoFim = "";
+    if (m < 30) {
+      novoFim = `${String(h).padStart(2, "0")}:30`;
+    } else {
+      novoFim = `${String(h + 1).padStart(2, "0")}:00`;
+    }
+
+    if (novoFim > reserva.hora_fim) novoFim = reserva.hora_fim;
+
 
     const dadosParaEnviar = {
-      ...reserva, // Mantém os outros dados
-      hora_fim: novoFim // Atualiza só o fim para "agora"
+      dia: reserva.dia,
+      hora_inicio: reserva.hora_inicio,
+      hora_fim: novoFim,
+      pessoas: reserva.pessoas,
+      responsavel: user.username,
+      motivo: reserva.motivo
     };
 
     try {
@@ -112,10 +117,21 @@ export default function GerirReserva({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dadosParaEnviar),
       });
-      if (res.ok) { if (onSuccess) onSuccess(); } 
-      else { setMsg("Erro ao terminar reserva."); }
-    } catch (e) { setMsg("Erro de conexão."); } 
-    finally { setLoading(false); }
+
+      const data = await res.json();
+
+      if (res.ok) {
+        if (onSuccess) onSuccess();
+      } else {
+        console.error("Erro backend:", data);
+        setMsg(data.message || "Erro ao terminar reserva.");
+      }
+    } catch (e) {
+      console.error(e);
+      setMsg("Erro de conexão.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePreCancelar = () => { setShowConfirm(true); };
@@ -161,14 +177,14 @@ export default function GerirReserva({
               <input type="date" className="field-control" 
                 value={dia} onChange={e => setDia(e.target.value)} 
                 min={hojeISO} 
-                disabled={isDecorrer} // ✅ Bloqueado se a decorrer
+                disabled={isDecorrer}
               />
             </div>
             <div className="form-group">
               <label className="field-label">Pessoas</label>
               <input type="number" className="field-control" min="1" max={salaInfo.lugares} 
                 value={pessoas} onChange={e => setPessoas(e.target.value)} 
-                disabled={isDecorrer} // ✅ Bloqueado
+                disabled={isDecorrer}
               />
             </div>
             
@@ -213,15 +229,12 @@ export default function GerirReserva({
              </div>
           </div>
 
-          {/* ✅ RODAPÉ DINÂMICO */}
           <div className="modal-footer">
             {isDecorrer ? (
-              // Modo "A Decorrer": Apenas botão de terminar
               <button className="btn-terminar" onClick={handleTerminarAgora} disabled={loading}>
                 <FaStopCircle /> Terminar Reserva
               </button>
             ) : (
-              // Modo "Futuro": Botões normais
               <>
                 <button className="btn-cancelar" onClick={handlePreCancelar} disabled={loading}>
                   <FaTrash /> Cancelar

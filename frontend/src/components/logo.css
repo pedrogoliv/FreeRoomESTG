@@ -1,26 +1,19 @@
-/* src/components/logo.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 
-/* --- 1. IMPORTAÇÃO DA FONTE (Inter) --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-
-/* --- 2. VARIÁVEIS DE COR --- */
 :root {
   --logo-orange: #E38B2C;
   --logo-white: #ffffff;
-  --logo-badge-bg: rgba(30, 41, 59, 0.6); /* Fundo escuro semitransparente */
+  --logo-badge-bg: rgba(30, 41, 59, 0.6);
 }
 
-/* --- 3. CONTAINER GERAL --- */
 .logo-container {
   display: flex;
   align-items: center;
   gap: 12px;
   width: fit-content;
-  /* Aplica a fonte Inter a tudo aqui dentro */
-  font-family: 'Inter', sans-serif; 
+  font-family: 'Inter', sans-serif !important; 
 }
 
-/* --- 4. CAIXA LARANJA (ÍCONE) --- */
 .logo-icon-box {
   width: 48px;
   height: 48px;
@@ -38,42 +31,39 @@
   object-fit: contain;
 }
 
-/* --- 5. TEXTOS --- */
 .logo-text-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  /* Garante que tudo encosta à esquerda */
   align-items: flex-start; 
   line-height: 1;
 }
 
-/* FREEROOM */
 .logo-main-text {
-  font-family: 'Inter', sans-serif; /* Mesma fonte */
+  font-family: 'Inter', sans-serif;
   font-size: 1.5rem;
-  font-weight: 800; /* Extra Bold para ficar grosso como na imagem */
+  
+  font-weight: 900; 
+  letter-spacing: -1px; 
+  
   color: var(--logo-white);
-  letter-spacing: -0.5px;
 }
 
-/* ESTG */
 .logo-badge-text {
-  font-family: 'Inter', sans-serif; /* Mesma fonte */
+  font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
-  font-weight: 700; /* Bold */
-  text-transform: uppercase;
   
+  font-weight: 800; 
+  letter-spacing: 1.5px;
+  
+  text-transform: uppercase;
   color: var(--logo-orange);
   background-color: var(--logo-badge-bg);
   
-  padding: 3px 6px; /* Padding reduzido */
+  padding: 3px 6px;
   border-radius: 6px;
-  
   margin-top: 5px;
   width: fit-content;
   
-  /* TRUQUE DE ALINHAMENTO ÓTICO: */
-  /* Como tem padding, puxamos um pouco para a esquerda para o 'E' alinhar com o 'F' */
   margin-left: -3px; 
 }

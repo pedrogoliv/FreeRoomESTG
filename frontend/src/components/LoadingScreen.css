@@ -5,32 +5,26 @@
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #0f172a; /* Azul escuro */
+  background-color: #0f172a;
   
-  /* Centrar tudo */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   
-  /* Espaço entre o logo e o spinner */
   gap: 40px; 
   
   z-index: 99999;
 }
 
-/* TRUQUE DE ESCALA: 
-   Como o componente <Logo /> tem um tamanho fixo (definido no logo.css),
-   usamos o transform: scale() para o aumentar no Loading Screen
-   sem ter de reescrever o CSS do componente original.
-*/
+
 .loading-logo-scale {
-  transform: scale(1.5); /* Aumenta o logo em 50% (1.5x) */
+  transform: scale(1.5);
   display: flex;
   justify-content: center;
 }
 
-/* Spinner (Mantido igual) */
+/* Spinner */
 .spinner {
   width: 32px;
   height: 32px;

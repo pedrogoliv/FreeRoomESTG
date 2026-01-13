@@ -4,7 +4,6 @@ const FERIADOS = require("../config/feriadosPT");
 
 const CAP_BASE = 15;
 
-// --- Helpers ---
 
 const isWeekend = (isoDate) => {
   const d = new Date(`${isoDate}T00:00:00`);
@@ -23,17 +22,6 @@ const consumoReserva = (pessoas) => {
   return Number(pessoas) || 1;
 };
 
-const isValidTimeHHMM = (t) => typeof t === "string" && /^\d{2}:\d{2}$/.test(t);
-
-const addMinutesHHMM = (hhmm, minutesToAdd) => {
-  const [h, m] = hhmm.split(":").map(Number);
-  const total = h * 60 + m + minutesToAdd;
-  const nh = Math.floor(total / 60);
-  const nm = total % 60;
-  return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
-};
-
-// --- Handlers ---
 
 exports.criarReserva = async (req, res) => {
   try {
@@ -66,7 +54,6 @@ exports.criarReserva = async (req, res) => {
       return res.status(400).json({ erro: "Pessoas inválido." });
     }
 
-    // Conflict Checks
     const aulas = await Ocupacao.find({ sala, dia });
     const aulaConflito = aulas.some((a) => {
       const ini = toMinutes(a.hora_inicio);
@@ -104,6 +91,10 @@ exports.criarReserva = async (req, res) => {
       canceledAt: null,
     });
 
+    if (req.io) {
+      req.io.emit("atualizacao_mapa", { sala: sala });
+    }
+
     return res.status(201).json({ success: true, mensagem: "Reserva criada!", dados: novaReserva });
   } catch (err) {
     console.error("❌ Erro reserva:", err);
@@ -137,16 +128,14 @@ exports.updateReserva = async (req, res) => {
   try {
     const { reservaId } = req.params;
     
-
     const { 
       dia, 
       hora_inicio, 
-      hora_fim, // Agora lemos explicitamente a hora de fim
+      hora_fim, 
       pessoas, 
       motivo 
     } = req.body;
 
-    // 2. Buscar a reserva original
     const reserva = await Reserva.findById(reservaId);
     if (!reserva) {
       return res.status(404).json({ success: false, message: "Reserva não encontrada." });
@@ -155,22 +144,17 @@ exports.updateReserva = async (req, res) => {
       return res.status(400).json({ success: false, message: "Não podes editar uma reserva cancelada." });
     }
 
-    // 3. Definir os novos valores (ou manter os antigos se não vierem no pedido)
-    // IMPORTANTE: Usamos 'let' para poder alterar conforme a lógica
     let novoDia = dia !== undefined ? String(dia).trim() : reserva.dia;
     let novoIni = hora_inicio !== undefined ? String(hora_inicio).trim() : reserva.hora_inicio;
     let novoFim = hora_fim !== undefined ? String(hora_fim).trim() : reserva.hora_fim;
     
-    // Atualizar dados simples
     if (motivo !== undefined) reserva.motivo = String(motivo).trim();
     if (pessoas !== undefined) reserva.pessoas = Number(pessoas);
 
-    // 4. Se houver mudança de horário, validar TUDO
     const mudouHorario = (novoDia !== reserva.dia) || (novoIni !== reserva.hora_inicio) || (novoFim !== reserva.hora_fim);
 
     if (mudouHorario) {
 
-      // A. Validações Básicas
       if (isWeekend(novoDia)) return res.status(400).json({ success: false, message: "Fim-de-semana bloqueado." });
       if (isFeriado(novoDia)) return res.status(400).json({ success: false, message: "Feriado bloqueado." });
 
@@ -184,7 +168,6 @@ exports.updateReserva = async (req, res) => {
         return res.status(400).json({ success: false, message: "A hora de fim deve ser depois do início." });
       }
 
-      // B. Verificar Conflitos com AULAS (Ocupacao)
       const aulas = await Ocupacao.find({ sala: reserva.sala, dia: novoDia });
       const conflitoAula = aulas.some((a) => {
         const aIni = toMinutes(a.hora_inicio);
@@ -195,9 +178,8 @@ exports.updateReserva = async (req, res) => {
         return res.status(409).json({ success: false, message: "Existe uma aula nesse horário." });
       }
 
-      // C. Verificar Conflitos com OUTRAS RESERVAS
       const outrasReservas = await Reserva.find({
-        _id: { $ne: reserva._id }, // Ignora a própria reserva que estamos a editar
+        _id: { $ne: reserva._id },
         sala: reserva.sala,
         dia: novoDia,
         status: "ativa"
@@ -209,10 +191,9 @@ exports.updateReserva = async (req, res) => {
         return minIni < rFim && minFim > rIni;
       });
 
-      // Calcular Capacidade
       const ocupado = overlap.reduce((sum, r) => sum + (r.pessoas || 1), 0);
       const capacidadeRestante = CAP_BASE - ocupado;
-      const minhasPessoas = reserva.pessoas || 1; // Já atualizámos o reserva.pessoas ali em cima
+      const minhasPessoas = reserva.pessoas || 1;
 
       if (minhasPessoas > capacidadeRestante) {
         return res.status(409).json({ 
@@ -221,15 +202,17 @@ exports.updateReserva = async (req, res) => {
         });
       }
 
-      // D. Se passou todas as validações, aplica as novas horas
       reserva.dia = novoDia;
       reserva.hora_inicio = novoIni;
       reserva.hora_fim = novoFim;
     }
 
-    // 5. Guardar na Base de Dados
     await reserva.save();
     
+    if (req.io) {
+      req.io.emit("atualizacao_mapa", { sala: reserva.sala });
+    }
+
     return res.json({ success: true, reserva });
 
   } catch (err) {
@@ -253,6 +236,10 @@ exports.deleteReserva = async (req, res) => {
     reserva.status = "cancelada";
     reserva.canceledAt = new Date();
     await reserva.save();
+
+    if (req.io) {
+      req.io.emit("atualizacao_mapa", { sala: reserva.sala });
+    }
 
     return res.json({ success: true, reserva });
   } catch (err) {

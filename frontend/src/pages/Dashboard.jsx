@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; 
 import { FaCheck } from "react-icons/fa"; 
+import io from "socket.io-client";
 
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
@@ -18,13 +19,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
-  // Reservas do utilizador
   const [minhasReservas, setMinhasReservas] = useState([]);
 
-  // Toast (favoritos)
   const [undoToast, setUndoToast] = useState(null);
 
-  // Toast (reserva confirmada)
   const [reservaToast, setReservaToast] = useState(null);
 
   useEffect(() => {
@@ -36,7 +34,6 @@ export default function Dashboard() {
   const [favoritosIds, setFavoritosIds] = useState([]);
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-  // Buscar Favoritos e Reservas
   useEffect(() => {
     if (user && user.username) {
       fetch(`${API_BASE}/api/favoritos/${user.username}`)
@@ -144,7 +141,7 @@ export default function Dashboard() {
       return;
     }
 
-    setLoading(true);
+
     fetch(
       `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(diaSelecionado)}&hora=${encodeURIComponent(horaSelecionada)}`
     )
@@ -160,6 +157,24 @@ export default function Dashboard() {
   }, [API_BASE, diaSelecionado, horaSelecionada, feriadosLoading, foraDeHoras, fimDeSemana, feriado]);
 
   useEffect(() => { refetchSalas(); }, [refetchSalas]);
+
+  useEffect(() => {
+    const socket = io(API_BASE);
+
+    socket.on("connect", () => {
+      console.log("🟢 Conectado ao servidor de Tempo Real");
+    });
+
+    socket.on("atualizacao_mapa", (dados) => {
+      console.log("🔔 Alguém reservou/libertou uma sala!", dados);
+      refetchSalas();
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [API_BASE, refetchSalas]);
+
 
   const salasFiltradas = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -244,18 +259,14 @@ export default function Dashboard() {
     });
   };
 
-  // ✅ 3. Lógica para reabrir a sala ao voltar do mapa (AGORA COM ESTADO PRESERVADO)
   useEffect(() => {
     if (location.state?.reabrirSala && salas.length > 0) {
       const nomeSala = location.state.reabrirSala;
-      
-      // ✅ Ler o estado que voltou do mapa
       const estadoQueVoltou = location.state?.reabrirComEstado;
 
       const salaParaAbrir = salas.find(s => String(s.sala) === String(nomeSala));
       
       if (salaParaAbrir) {
-        // Verifica se é uma "minha reserva"
         const minhaReserva = minhasReservas.find(
            (r) =>
              r.sala === salaParaAbrir.sala &&
@@ -265,14 +276,12 @@ export default function Dashboard() {
              r.hora_fim > horaSelecionada
          );
 
-        // ✅ Passamos "estadoPreservado" para dentro do objeto da sala
         setSalaSelecionada({ 
             ...salaParaAbrir, 
             reservaExistente: minhaReserva,
             estadoPreservado: estadoQueVoltou 
         });
         
-        // Limpa o estado para não reabrir se fizeres refresh à página
         window.history.replaceState({}, document.title);
       }
     }
@@ -316,10 +325,10 @@ export default function Dashboard() {
         </div>
 
         {loading || feriadosLoading ? (
-          <p>⏳ A carregar dados...</p>
+          <p>A carregar dados...</p>
         ) : foraDeHoras || fimDeSemana || feriado ? (
           <div className="fechado">
-            <h2>🚫 Reservas indisponíveis</h2>
+            <h2>Reservas indisponíveis</h2>
             {fimDeSemana ? <p>Não é possível reservar salas ao fim-de-semana.</p> : feriado ? <p>Não é possível reservar salas em feriados.</p> : <p>Seleciona um horário entre 08:00 e 22:30.</p>}
           </div>
         ) : (

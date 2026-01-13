@@ -1,4 +1,3 @@
-// src/controllers/authController.js
 const User = require("../models/User");
 const Curso = require("../models/Curso");
 
@@ -74,7 +73,9 @@ exports.login = async (req, res) => {
       return res.status(401).json({ success: false, message: "Utilizador não encontrado." });
     }
 
-    if (user.password !== password) {
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
       return res.status(401).json({ success: false, message: "Password errada." });
     }
 

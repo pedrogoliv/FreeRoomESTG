@@ -35,9 +35,6 @@ export default function DetalhesSala({
 
   const capacidade = Number(sala.lugares ?? 0);
 
-  // ✅ 1. RECUPERAR DADOS GUARDADOS (Se vierem do Mapa)
-  // Se 'estadoPreservado' existir (passado pelo Dashboard), usamos esses valores.
-  // Caso contrário, usamos os valores normais.
   const dadosSalvos = sala.estadoPreservado || {};
 
   const [diaSelecionado, setDiaSelecionado] = useState(dadosSalvos.dia || diaCtx);
@@ -46,7 +43,6 @@ export default function DetalhesSala({
   const [horaFim, setHoraFim] = useState(dadosSalvos.horaFim || "");
   const [motivo, setMotivo] = useState(dadosSalvos.motivo || "");
 
-  // Atualiza se o contexto mudar externamente (apenas se NÃO tivermos dados salvos específicos)
   useEffect(() => {
     if (!dadosSalvos.dia && diaCtx) setDiaSelecionado(diaCtx);
     if (!dadosSalvos.horaInicio && horaCtx) setHoraSelecionada(horaCtx);
@@ -87,7 +83,6 @@ export default function DetalhesSala({
   }, [diaSelecionado]);
 
   useEffect(() => {
-    // Só reseta a hora se a lista de horários mudar e a atual não for válida
     if (horarios.length > 0 && !horarios.includes(horaSelecionada)) {
       setHoraSelecionada(horarios[0]);
     }
@@ -103,13 +98,9 @@ export default function DetalhesSala({
       if (h < 23) slotsFim.push(`${hh}:30`);
     }
 
-    // Filtra apenas para ser maior que o início
     return slotsFim.filter((h) => h > horaSelecionada);
   }, [horaSelecionada]);
 
-  // ✅ Reset inteligente da Hora Fim
-  // Antes apagava sempre que o início mudava. Agora só apaga se o fim ficar inválido (menor que o início).
-  // Isto impede que a hora fim desapareça quando o componente monta com dados salvos.
   useEffect(() => {
     if (horaFim && horaSelecionada >= horaFim) {
         setHoraFim("");
@@ -205,7 +196,6 @@ export default function DetalhesSala({
     }
   }
 
-  // ✅ 2. FUNÇÃO NOVA: IR PARA O MAPA LEVANDO OS DADOS
   const handleVerMapa = () => {
     navigate("/mapa", {
       state: {
@@ -213,7 +203,6 @@ export default function DetalhesSala({
         salaDestino: sala.sala,
         from: location.pathname + location.search,
         scrollY: window.scrollY,
-        // ✅ ADICIONA ISTO: Identifica que viemos de um processo de reserva
         origem: "reserva", 
         
         estadoPreservado: {
@@ -310,7 +299,6 @@ export default function DetalhesSala({
               <div className="stat-item"><span className="stat-label">Capacidade</span><span className="stat-value">{capacidade}</span></div>
               <div className="stat-item"><span className="stat-label">Disponíveis</span><span className="stat-value">{diaLocalBloqueado || horarios.length === 0 ? "-" : (loadingStatus ? "..." : livresAgora)}</span></div>
             </div>
-            {/* ✅ 3. APLICAR A FUNÇÃO NO ONCLICK */}
             <div className="map-row" onClick={handleVerMapa}>
               <div className="map-icon"><FaMapMarkedAlt /></div>
               <div className="map-text">Ver localização na planta</div>
