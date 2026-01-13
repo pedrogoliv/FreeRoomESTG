@@ -10,35 +10,37 @@ export default function Login() {
 
   const navigate = useNavigate();
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setMsg("");
+async function handleSubmit(e) {
+  e.preventDefault();
+  setMsg("");
 
-    if (!username || !password) {
-      setMsg("Username e password inválidos.");
-      return;
-    }
-
-    try {
-      const response = await fetch("http://localhost:5000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        sessionStorage.setItem("user", JSON.stringify(data.user));
-        navigate("/dashboard");
-      } else {
-        setMsg(data.message || "Erro ao entrar.");
-      }
-    } catch (err) {
-      console.error(err);
-      setMsg("❌ O servidor está desligado?");
-    }
+  if (!username || !password) {
+    setMsg("Username e password inválidos.");
+    return;
   }
+
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      sessionStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/dashboard");
+    } else {
+      setMsg(data.message || "Erro ao entrar.");
+    }
+  } catch (err) {
+    console.error(err);
+    setMsg("❌ Erro de ligação ao servidor.");
+  }
+}
 
   return (
     <div className="loginPage">
