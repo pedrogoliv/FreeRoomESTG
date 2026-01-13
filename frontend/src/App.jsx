@@ -12,6 +12,7 @@ import MinhasReservas from "./pages/minhasReservas";
 import Mapa from "./pages/Mapa";
 import HistoricoReservas from "./pages/HistoricoReservas.jsx";
 import Landing from "./pages/Landing.jsx";
+import LoadingRedirect from "./pages/LoadingRedirect.jsx";
 
 import { FiltrosProvider } from "./context/FiltrosContext"; 
 
@@ -105,6 +106,7 @@ export default function App() {
                 : <Navigate to="/" replace />
             }
           />
+          <Route path="/loading" element={<LoadingRedirect />} />
         </Routes>
       </FiltrosProvider>
     </BrowserRouter>

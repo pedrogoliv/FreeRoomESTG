@@ -10,10 +10,8 @@ export default function Landing() {
 
 
       <main className="landing-main">
-        {/* LADO ESQUERDO */}
         <section className="landing-hero">
           
-          {/* ✅ NOVO: Logo Grande Branco Hero */}
           <div className="hero-brand">
             <img src="/livro512x512.png" alt="Livro FreeRoom" className="hero-icon" />
             <div className="hero-text-stack">
@@ -31,7 +29,6 @@ export default function Landing() {
           </p>
         </section>
 
-        {/* LADO DIREITO (CARD DE VIDRO) - Mantido igual */}
         <aside className="landing-panel">
           <div className="panel-content">
             <h3>Começar agora</h3>
