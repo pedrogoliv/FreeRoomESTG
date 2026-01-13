@@ -249,7 +249,7 @@ export default function Dashboard() {
         show: true,
         type: "add",
         salaId: idDaSala,
-        text: "Adicionado aos favoritos!",
+        text: "Sala adicionada aos favoritos!",
         timeoutId: timer,
       });
     }

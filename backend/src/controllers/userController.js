@@ -136,7 +136,33 @@ exports.toggleFavorito = async (req, res) => {
     const userAtualizado = await User.findOne({ username });
     res.json({ success: true, favoritos: userAtualizado.favoritos });
   } catch (error) {
-    console.error("🔥 ERRO:", error);
+    console.error("ERRO:", error);
     res.status(500).json({ success: false, message: "Erro no servidor" });
+  }
+};
+
+exports.uploadFoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Nenhuma imagem recebida." });
+    }
+
+    const fotoUrl = `/uploads/${req.file.filename}`;
+
+    const updatedUser = await User.findOneAndUpdate(
+      { username: req.params.username },
+      { foto: fotoUrl },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "Utilizador não encontrado." });
+    }
+
+    return res.json({ success: true, foto: fotoUrl, user: updatedUser });
+
+  } catch (err) {
+    console.error("❌ Erro upload foto:", err);
+    return res.status(500).json({ success: false, message: "Erro ao guardar foto." });
   }
 };

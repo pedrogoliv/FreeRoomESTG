@@ -133,15 +133,26 @@ export default function GerirReserva({
   setLoading(true);
   setMsg("");
 
-  // hora atual EXATA (termina já)
   const t = new Date();
   const pad2 = (n) => String(n).padStart(2, "0");
+  
+  // Calcula hora atual HH:MM
   let novoFim = `${pad2(t.getHours())}:${pad2(t.getMinutes())}`;
 
-  // segurança: nunca abaixo do início
-  if (novoFim < reserva.hora_inicio) novoFim = reserva.hora_inicio;
+  // --- CORREÇÃO AQUI ---
+  // Se a hora atual for menor ou IGUAL ao início, isso gera erro no backend.
+  // Forçamos o fim para ser, no mínimo, 1 minuto depois do início.
+  if (novoFim <= reserva.hora_inicio) {
+    // Vamos buscar os componentes da hora de início (ex: "14:30")
+    const [h, m] = reserva.hora_inicio.split(':').map(Number);
+    const dataAjustada = new Date();
+    dataAjustada.setHours(h);
+    dataAjustada.setMinutes(m + 1); // Adiciona 1 minuto ao início
+    
+    novoFim = `${pad2(dataAjustada.getHours())}:${pad2(dataAjustada.getMinutes())}`;
+  }
 
-  // segurança: nunca acima do fim original
+  // Segurança: nunca acima do fim original (para não estender a reserva sem querer)
   if (novoFim > reserva.hora_fim) novoFim = reserva.hora_fim;
 
   const dadosParaEnviar = {
@@ -151,31 +162,29 @@ export default function GerirReserva({
     pessoas: reserva.pessoas,
     responsavel: user.username,
     motivo: reserva.motivo,
-
-    // ✅ se o backend suportar
-    status: "terminada",
+    status: "terminada", // Apenas se o teu backend aceitar mudança direta de status
   };
 
-    try {
-      const res = await fetch(`${API_BASE}/api/reservas/${reserva._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dadosParaEnviar),
-      });
+  try {
+    const res = await fetch(`${API_BASE}/api/reservas/${reserva._id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dadosParaEnviar),
+    });
 
-      const data = await res.json().catch(() => ({}));
+    const data = await res.json().catch(() => ({}));
 
-      if (res.ok && (data.success === undefined || data.success === true)) {
-        if (onSuccess) onSuccess();
-      } else {
-        setMsg(data.message || data.erro || "Erro ao terminar reserva.");
-      }
-    } catch (e) {
-      setMsg("Erro de conexão.");
-    } finally {
-      setLoading(false);
+    if (res.ok && (data.success === undefined || data.success === true)) {
+      if (onSuccess) onSuccess();
+    } else {
+      setMsg(data.message || data.erro || "Erro ao terminar reserva.");
     }
-  };
+  } catch (e) {
+    setMsg("Erro de conexão.");
+  } finally {
+    setLoading(false);
+  }
+};
 
 
   // -------- cancelar --------
@@ -291,7 +300,6 @@ export default function GerirReserva({
                 className="field-control"
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
-                placeholder="Ex: Reunião de grupo..."
                 disabled={isDecorrer}
               />
             </div>

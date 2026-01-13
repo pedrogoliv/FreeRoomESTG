@@ -181,8 +181,8 @@ export default function Favoritos() {
           <p>⏳ A carregar favoritos...</p>
         ) : favoritosIds.length === 0 ? (
           <div className="empty-state">
-            <h3>⭐ Ainda não tens favoritos</h3>
-            <p>Vai ao Dashboard e adiciona salas aos favoritos.</p>
+            <h3>Ainda não tens favoritos.</h3>
+            <p>Adiciona salas aos favoritos na página inicial.</p>
           </div>
         ) : (
           <div className="grid-salas">

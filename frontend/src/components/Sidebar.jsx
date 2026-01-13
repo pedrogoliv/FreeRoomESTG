@@ -31,19 +31,19 @@ export default function Sidebar() {
           </NavLink>
 
           <NavLink
-            to="/favoritos"
-            className={({ isActive }) => "navItem" + (isActive ? " active" : "")}
-          >
-            <span className="icon"><FaHeart /></span>
-            <span>Favoritos</span>
-          </NavLink>
-
-          <NavLink
             to="/minhas-reservas"
             className={({ isActive }) => "navItem" + (isActive ? " active" : "")}
           >
             <span className="icon"><FaCalendarAlt /></span>
             <span>Reservas</span>
+          </NavLink>
+
+          <NavLink
+            to="/favoritos"
+            className={({ isActive }) => "navItem" + (isActive ? " active" : "")}
+          >
+            <span className="icon"><FaHeart /></span>
+            <span>Favoritos</span>
           </NavLink>
 
           <NavLink
