@@ -111,7 +111,6 @@ export default function Registar() {
     <div className="loginPage">
       <div className="loginContent">
         
-        {/* ✅ 2. LOGÓTIPO LIMPO E CENTRADO */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
            <Logo />
         </div>

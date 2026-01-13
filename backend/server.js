@@ -47,13 +47,7 @@ app.use((req, res, next) => {
   next();
 });
 
-io.on("connection", (socket) => {
-  console.log("🔌 Cliente conectado via Socket:", socket.id);
 
-  socket.on("disconnect", () => {
-    console.log("❌ Cliente desconectado:", socket.id);
-  });
-});
 
 connectDB();
 
