@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+app.use(cors()); // TEMPORARIO
 const mongoose = require("mongoose");
 const http = require("http");
 const { Server } = require("socket.io");
