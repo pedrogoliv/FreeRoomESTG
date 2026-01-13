@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; 
-import { FaCheck } from "react-icons/fa"; 
+import { useNavigate, useLocation } from "react-router-dom";
+import { FaCheck } from "react-icons/fa";
 import io from "socket.io-client";
 
 import Sidebar from "../components/Sidebar";
@@ -13,12 +13,12 @@ import "../components/detalhesSala.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 const socket = io(API_BASE_URL, {
-  autoConnect: false
+  autoConnect: false,
 });
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
 
   const [salas, setSalas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,6 @@ export default function Dashboard() {
   const [salaSelecionada, setSalaSelecionada] = useState(null);
   const [favoritosIds, setFavoritosIds] = useState([]);
   const API_BASE = API_BASE_URL;
-
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
@@ -53,14 +52,11 @@ export default function Dashboard() {
     }
   }, [user, API_BASE]);
 
-  const {
-    diaSelecionado,
-    setDiaSelecionado,
-    horaSelecionada,
-    setHoraSelecionada,
-  } = useFiltros();
+  const { diaSelecionado, setDiaSelecionado, horaSelecionada, setHoraSelecionada } = useFiltros();
 
-  function pad2(n) { return String(n).padStart(2, "0"); }
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
 
   function nextHalfHour() {
     const now = new Date();
@@ -71,10 +67,22 @@ export default function Dashboard() {
     return `${pad2((h + 1) % 24)}:00`;
   }
 
-  function hojeISO() { return new Date().toISOString().split("T")[0]; }
+  function hojeISO() {
+    return new Date().toISOString().split("T")[0];
+  }
 
   const hoje = hojeISO();
   const minHoraHoje = nextHalfHour();
+
+  useEffect(() => {
+    const justLoggedIn = sessionStorage.getItem("justLoggedIn") === "1";
+    if (!justLoggedIn) return;
+
+    setDiaSelecionado(hoje);
+    setHoraSelecionada(minHoraHoje);
+
+    sessionStorage.removeItem("justLoggedIn");
+  }, [setDiaSelecionado, setHoraSelecionada, hoje, minHoraHoje]);
 
   useEffect(() => {
     if (diaSelecionado < hoje) {
@@ -102,10 +110,16 @@ export default function Dashboard() {
         if (data?.success && Array.isArray(data.feriados)) setFERIADOS(new Set(data.feriados));
         else setFERIADOS(new Set());
       })
-      .catch(() => { if (alive) setFERIADOS(new Set()); })
-      .finally(() => { if (alive) setFeriadosLoading(false); });
+      .catch(() => {
+        if (alive) setFERIADOS(new Set());
+      })
+      .finally(() => {
+        if (alive) setFeriadosLoading(false);
+      });
 
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [API_BASE]);
 
   const isFeriado = (isoDate) => FERIADOS.has(isoDate);
@@ -146,9 +160,10 @@ export default function Dashboard() {
       return;
     }
 
-    
     fetch(
-      `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(diaSelecionado)}&hora=${encodeURIComponent(horaSelecionada)}`
+      `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(diaSelecionado)}&hora=${encodeURIComponent(
+        horaSelecionada
+      )}`
     )
       .then((res) => res.json())
       .then((dados) => {
@@ -161,8 +176,9 @@ export default function Dashboard() {
       });
   }, [API_BASE, diaSelecionado, horaSelecionada, feriadosLoading, foraDeHoras, fimDeSemana, feriado]);
 
-  useEffect(() => { refetchSalas(); }, [refetchSalas]);
-
+  useEffect(() => {
+    refetchSalas();
+  }, [refetchSalas]);
 
   useEffect(() => {
     socket.connect();
@@ -173,7 +189,7 @@ export default function Dashboard() {
 
     const onAtualizacao = (dados) => {
       console.log("🔔 Alguém reservou/libertou uma sala!", dados);
-      refetchSalas(); 
+      refetchSalas();
     };
 
     socket.on("connect", onConnect);
@@ -185,7 +201,6 @@ export default function Dashboard() {
       socket.disconnect();
     };
   }, [refetchSalas]);
-
 
   const salasFiltradas = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -222,9 +237,21 @@ export default function Dashboard() {
     }, 4000);
 
     if (isRemoving) {
-      setUndoToast({ show: true, type: "remove", salaId: idDaSala, text: "Removido dos favoritos.", timeoutId: timer });
+      setUndoToast({
+        show: true,
+        type: "remove",
+        salaId: idDaSala,
+        text: "Removido dos favoritos.",
+        timeoutId: timer,
+      });
     } else {
-      setUndoToast({ show: true, type: "add", salaId: idDaSala, text: "Adicionado aos favoritos!", timeoutId: timer });
+      setUndoToast({
+        show: true,
+        type: "add",
+        salaId: idDaSala,
+        text: "Adicionado aos favoritos!",
+        timeoutId: timer,
+      });
     }
 
     try {
@@ -253,18 +280,20 @@ export default function Dashboard() {
     const diaISO = payload?.diaISO || diaSelecionado;
     const horaInicio = payload?.horaInicio || horaSelecionada;
     const horaFim = payload?.horaFim || payload?.hora_fim || "";
-    const pessoasCount = payload?.pessoas || 1; 
+    const pessoasCount = payload?.pessoas || 1;
 
     const timer = setTimeout(() => setReservaToast(null), 6000);
 
     setReservaToast({
       show: true,
-      text: `Reserva confirmada para ${salaNome} (Dia ${diaISO} das ${horaInicio}${horaFim ? ` até ${horaFim}` : ""}).`,
+      text: `Reserva confirmada para ${salaNome} (Dia ${diaISO} das ${horaInicio}${
+        horaFim ? ` até ${horaFim}` : ""
+      }).`,
       data: {
         sala: salaNome,
         dia: diaISO,
         horario: `${horaInicio} - ${horaFim}`,
-        pessoas: pessoasCount
+        pessoas: pessoasCount,
       },
       timeoutId: timer,
     });
@@ -275,24 +304,24 @@ export default function Dashboard() {
       const nomeSala = location.state.reabrirSala;
       const estadoQueVoltou = location.state?.reabrirComEstado;
 
-      const salaParaAbrir = salas.find(s => String(s.sala) === String(nomeSala));
-      
+      const salaParaAbrir = salas.find((s) => String(s.sala) === String(nomeSala));
+
       if (salaParaAbrir) {
         const minhaReserva = minhasReservas.find(
-           (r) =>
-             r.sala === salaParaAbrir.sala &&
-             r.dia === diaSelecionado &&
-             r.status === "ativa" &&
-             r.hora_inicio <= horaSelecionada &&
-             r.hora_fim > horaSelecionada
-         );
+          (r) =>
+            r.sala === salaParaAbrir.sala &&
+            r.dia === diaSelecionado &&
+            r.status === "ativa" &&
+            r.hora_inicio <= horaSelecionada &&
+            r.hora_fim > horaSelecionada
+        );
 
-        setSalaSelecionada({ 
-            ...salaParaAbrir, 
-            reservaExistente: minhaReserva,
-            estadoPreservado: estadoQueVoltou 
+        setSalaSelecionada({
+          ...salaParaAbrir,
+          reservaExistente: minhaReserva,
+          estadoPreservado: estadoQueVoltou,
         });
-        
+
         window.history.replaceState({}, document.title);
       }
     }
@@ -304,17 +333,26 @@ export default function Dashboard() {
 
       <main className="main-content">
         <header className="dashboard-header">
-          <div><h1 className="dashboard-title">Salas em Tempo Real</h1></div>
+          <div>
+            <h1 className="dashboard-title">Salas em Tempo Real</h1>
+          </div>
           <div className="filters">
             <div className="filtro-box">
               <label>Dia</label>
-              <input type="date" value={diaSelecionado} min={hoje} onChange={(e) => setDiaSelecionado(e.target.value)} />
+              <input
+                type="date"
+                value={diaSelecionado}
+                min={hoje}
+                onChange={(e) => setDiaSelecionado(e.target.value)}
+              />
             </div>
             <div className="filtro-box">
               <label>Hora</label>
               <select value={horaSelecionada} onChange={(e) => setHoraSelecionada(e.target.value)}>
                 {listaHorariosFiltrada.map((horario) => (
-                  <option key={horario} value={horario}>{horario}</option>
+                  <option key={horario} value={horario}>
+                    {horario}
+                  </option>
                 ))}
               </select>
             </div>
@@ -323,12 +361,21 @@ export default function Dashboard() {
 
         <div className="controlsRow">
           <div className="search">
-            <input className="searchInput" placeholder="Procura o número de uma sala" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input
+              className="searchInput"
+              placeholder="Procura o número de uma sala"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
             <span className="searchIcon">🔎</span>
           </div>
           <div className="tabs">
             {["todas", "1", "2", "3"].map((piso) => (
-              <button key={piso} className={tab === piso ? "tab active" : "tab"} onClick={() => setTab(piso)}>
+              <button
+                key={piso}
+                className={tab === piso ? "tab active" : "tab"}
+                onClick={() => setTab(piso)}
+              >
                 {piso === "todas" ? "Todas as salas" : `Piso ${piso}`}
               </button>
             ))}
@@ -340,20 +387,42 @@ export default function Dashboard() {
         ) : foraDeHoras || fimDeSemana || feriado ? (
           <div className="fechado">
             <h2>🚫 Reservas indisponíveis</h2>
-            {fimDeSemana ? <p>Não é possível reservar salas ao fim-de-semana.</p> : feriado ? <p>Não é possível reservar salas em feriados.</p> : <p>Seleciona um horário entre 08:00 e 22:30.</p>}
+            {fimDeSemana ? (
+              <p>Não é possível reservar salas ao fim-de-semana.</p>
+            ) : feriado ? (
+              <p>Não é possível reservar salas em feriados.</p>
+            ) : (
+              <p>Seleciona um horário entre 08:00 e 22:30.</p>
+            )}
           </div>
         ) : (
           <>
             <div className="stats-container">
-              <div className="stat-card"><span className="stat-numero">{totalSalas}</span><span className="stat-label">Total de salas</span></div>
-              <div className="stat-card"><span className="stat-numero green">{totalLivres} <span className="dot greenDot" /></span><span className="stat-label">Disponíveis agora</span></div>
-              <div className="stat-card"><span className="stat-numero red">{totalOcupadas} <span className="dot redDot" /></span><span className="stat-label">Ocupadas agora</span></div>
+              <div className="stat-card">
+                <span className="stat-numero">{totalSalas}</span>
+                <span className="stat-label">Total de salas</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-numero green">
+                  {totalLivres} <span className="dot greenDot" />
+                </span>
+                <span className="stat-label">Disponíveis agora</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-numero red">
+                  {totalOcupadas} <span className="dot redDot" />
+                </span>
+                <span className="stat-label">Ocupadas agora</span>
+              </div>
             </div>
 
             <div className="grid-salas">
               {salasFiltradas.map((item) => {
                 const capacidade = Number(item.lugares ?? 15) || 15;
-                const livresAgora = Math.max(0, Math.min(capacidade, Number(item.lugaresDisponiveis ?? 0)));
+                const livresAgora = Math.max(
+                  0,
+                  Math.min(capacidade, Number(item.lugaresDisponiveis ?? 0))
+                );
                 const ocupadas = Math.max(0, Math.min(capacidade, capacidade - livresAgora));
                 let ocupClass = "ocup-green";
                 if (ocupadas >= 7 && ocupadas <= 10) ocupClass = "ocup-yellow";
@@ -371,7 +440,10 @@ export default function Dashboard() {
                 );
 
                 return (
-                  <div key={`${item.sala}-${item.piso}`} className={`card-sala ${minhaReserva ? "minha-reserva-border" : ""}`}>
+                  <div
+                    key={`${item.sala}-${item.piso}`}
+                    className={`card-sala ${minhaReserva ? "minha-reserva-border" : ""}`}
+                  >
                     <div className={`card-top ${minhaReserva ? "minha" : livre ? "livre" : "ocupada"}`}>
                       <span className="statusDot" />
                       <span>{minhaReserva ? "Minha Reserva" : livre ? "Disponível" : "Ocupada"}</span>
@@ -384,7 +456,9 @@ export default function Dashboard() {
                       <div className="ocup-bar" aria-hidden="true">
                         <div className={`ocup-fill ${ocupClass}`} style={{ width: `${pct}%` }} />
                       </div>
-                      <div className="ocup-hint">{livresAgora}/{capacidade} livres</div>
+                      <div className="ocup-hint">
+                        {livresAgora}/{capacidade} livres
+                      </div>
                       <button
                         className={minhaReserva ? "btn-details btn-manage" : "btn-details"}
                         onClick={() => setSalaSelecionada({ ...item, reservaExistente: minhaReserva })}
@@ -401,9 +475,13 @@ export default function Dashboard() {
 
         {undoToast && undoToast.show && (
           <div className={`undo-toast ${undoToast.type === "add" ? "success" : ""}`}>
-            <span>{undoToast.type === "add" ? "✅ " : "🗑️ "} {undoToast.text}</span>
+            <span>
+              {undoToast.type === "add" ? "✅ " : "🗑️ "} {undoToast.text}
+            </span>
             {undoToast.type === "remove" && (
-              <button className="undo-btn" onClick={handleUndo}>Desfazer</button>
+              <button className="undo-btn" onClick={handleUndo}>
+                Desfazer
+              </button>
             )}
           </div>
         )}

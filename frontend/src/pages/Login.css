@@ -1,92 +1,101 @@
 /* src/pages/Login.css */
 
-/* Reset básico */
 html, body {
   height: 100%;
   margin: 0;
 }
 
-/* --- LAYOUT DA PÁGINA --- */
 .loginPage {
+  position: relative;
   height: 100vh;
   width: 100vw;
-  
-  /* Fundo Azul Escuro com Luz Laranja no Topo */
+  overflow: hidden; /* Remove scroll */
+
+  /* FUNDO: Azul escuro com "luz" laranja no topo */
   background-color: #0f172a;
   background-image: radial-gradient(
-    circle at 50% 0%, 
-    rgba(255, 176, 40, 0.236) 0%, 
+    circle at 50% 0%,
+    rgba(255, 176, 40, 0.236) 0%,
     transparent 50%
   );
-  
+
+  /* Centralizar */
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Wrapper do conteúdo (Logo + Card) */
 .loginContent {
+  position: relative;
+  z-index: 10;
   width: 100%;
-  max-width: 400px;
   padding: 20px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
-/* --- CARTÃO --- */
+/* Card */
 .loginCard {
-  background: white;
   width: 100%;
-  padding: 40px;
+  max-width: 400px;
+  background: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3);
+  border: 1px solid #e2e8f0;
+  padding: 30px;
   box-sizing: border-box;
 }
 
+/* Título */
 .loginTitle {
-  margin: 0 0 30px 0;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #64748b;
+  margin: 0 0 20px 0;
   text-align: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1e293b;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
-/* --- FORMULÁRIO --- */
+/* Formulário */
 .loginForm {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
+/* Labels */
 .label {
   display: block;
+  margin: 0 0 4px 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #334155;
-  margin-bottom: 8px;
+  color: #64748b;
 }
 
+/* Inputs */
 .input {
   width: 100%;
-  padding: 14px;
-  border: 2px solid #e2e8f0;
+  height: 44px;
+  padding: 0 12px;
   border-radius: 12px;
-  font-size: 1rem;
-  outline: none;
+  border: 2px solid #e2e8f0;
   background: #f8fafc;
-  transition: all 0.2s;
+  outline: none;
+  box-sizing: border-box;
+  font-size: 0.95rem;
   color: #1e293b;
-  box-sizing: border-box; /* Garante que padding não aumenta largura */
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .input:focus {
   border-color: #E38B2C;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.1);
+  background: #ffffff;
 }
 
 /* Mensagens de Erro */
@@ -101,38 +110,103 @@ html, body {
   text-align: center;
 }
 
-/* --- BOTÃO --- */
+/* Botão Principal */
 .btn {
-  width: 100%;
-  padding: 14px;
+  height: 48px;
+  margin-top: 10px;
   background: #E38B2C;
-  color: white;
+  color: #ffffff;
   border: none;
   border-radius: 12px;
-  font-size: 1rem;
   font-weight: 800;
+  font-size: 1rem;
   cursor: pointer;
-  margin-top: 10px;
-  transition: all 0.2s;
+  transition: 0.2s ease;
+  box-shadow: 0 4px 10px rgba(227, 139, 44, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn:hover {
-  background: #d35400;
-  transform: translateY(-2px);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 
-/* --- RODAPÉ DO CARD --- */
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Footer Link */
 .card-footer {
-  margin-top: 20px;
+  margin-top: 15px;
   text-align: center;
   font-size: 0.9rem;
   color: #64748b;
 }
 
-/* Links (Span ou A) */
+/* Link do footer (o teu span) */
 .card-footer span,
 .card-footer a {
   color: #E38B2C;
-  text-decoration: none;
-  font-weight: 700;
+  text-decoration: underline;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* wrapper do input password para meter o botão */
+.passwordWrap {
+  position: relative;
+}
+
+/* espaço para o botão do olho */
+.passwordInput {
+  padding-right: 44px;
+}
+
+/* botão do olho */
+.togglePassBtn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  height: 32px;
+  width: 32px;
+  border-radius: 10px;
+
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #64748b;
+}
+
+.togglePassBtn:hover {
+  border-color: rgba(227, 139, 44, 0.45);
+  background: rgba(227, 139, 44, 0.10);
+  color: #E38B2C;
+}
+
+.togglePassBtn:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.togglePassBtn:focus {
+  outline: none;
+}
+
+.togglePassBtn:focus-visible {
+  border-color: rgba(227, 139, 44, 0.55);
+  box-shadow: 0 0 0 4px rgba(227, 139, 44, 0.12);
+}
+
+.input[list]::-webkit-calendar-picker-indicator {
+  opacity: 0; 
 }
