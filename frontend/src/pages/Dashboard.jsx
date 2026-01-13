@@ -80,13 +80,16 @@ export default function Dashboard() {
   const hoje = hojeISO();
   const amanha = amanhaISO();
   const minHoraHoje = nextHalfHour();
+  
+  const horasAtuais = new Date().getHours();
+  const isLateNight = minHoraHoje > "22:30" || (horasAtuais === 23 && minHoraHoje === "00:00");
 
   useEffect(() => {
     const justLoggedIn = sessionStorage.getItem("justLoggedIn") === "1";
     if (!justLoggedIn) return;
 
-    if (minHoraHoje > "22:30" || minHoraHoje < "08:00") {
-        if (minHoraHoje > "22:30") {
+    if (isLateNight || minHoraHoje < "08:00") {
+        if (isLateNight) {
              setDiaSelecionado(amanha);
              setHoraSelecionada("08:00");
         } else {
@@ -99,7 +102,7 @@ export default function Dashboard() {
     }
 
     sessionStorage.removeItem("justLoggedIn");
-  }, [setDiaSelecionado, setHoraSelecionada, hoje, amanha, minHoraHoje]);
+  }, [setDiaSelecionado, setHoraSelecionada, hoje, amanha, minHoraHoje, isLateNight]);
 
   useEffect(() => {
     if (diaSelecionado < hoje) {
@@ -171,7 +174,8 @@ export default function Dashboard() {
   }, [diaSelecionado, hoje, horaSelecionada, minHoraHoje, listaHorariosFiltrada, setHoraSelecionada]);
 
   const foraDeHoras = horaSelecionada < "08:00" || horaSelecionada > "22:30";
-  const diaAcabou = diaSelecionado === hoje && minHoraHoje > "22:30";
+  
+  const diaAcabou = diaSelecionado === hoje && isLateNight;
 
   const refetchSalas = useCallback(() => {
     if (feriadosLoading || foraDeHoras || fimDeSemana || feriado || diaAcabou) {
@@ -399,8 +403,10 @@ export default function Dashboard() {
           <p>⏳ A carregar dados...</p>
         ) : diaAcabou ? (
            <div className="dia-terminou-card">
-
-    
+            <span className="dia-terminou-icon" role="img" aria-label="sleeping face">
+                😴
+            </span>
+            
             <h2>O dia terminou!</h2>
             
             <p>
