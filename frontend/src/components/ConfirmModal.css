@@ -1,0 +1,165 @@
+.cm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: cmFadeIn 0.2s ease-out;
+  padding: 10px;
+}
+
+/* --- CARD --- */
+.cm-content {
+  background: #fff;
+  width: 100%;
+  max-width: 460px;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: cmSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+/* --- HEADER --- */
+.cm-header {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+.cm-headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cm-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.cm-title {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.cm-close {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.cm-close:hover {
+  background: #f1f5f9;
+  color: #ef4444;
+}
+
+/* --- BODY --- */
+.cm-body {
+  padding: 20px 24px;
+}
+
+.cm-message {
+  margin: 0;
+  font-size: 0.98rem;
+  color: #64748b;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+/* --- FOOTER --- */
+.cm-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 22px;
+  justify-content: flex-end;
+}
+
+.cm-btn {
+  height: 46px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+/* Botão "Não" */
+.cm-btnCancel {
+  background: #fff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+.cm-btnCancel:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+/* Botão "Sim" no estilo da app */
+.cm-btnConfirm {
+  background: #1e293b;
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 15px rgba(30, 41, 59, 0.25);
+}
+.cm-btnConfirm:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+.cm-btnConfirm:active {
+  transform: scale(0.98);
+}
+
+/* Variante “perigoso” */
+.cm-btnDanger {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+}
+.cm-btnDanger:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+.cm-btnDanger:active {
+  transform: scale(0.98);
+}
+
+@keyframes cmFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cmSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
