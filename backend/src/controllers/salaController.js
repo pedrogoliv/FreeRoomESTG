@@ -2,7 +2,17 @@ const Ocupacao = require("../models/OcupacaoRaw");
 const Reserva = require("../models/Reserva");
 const FERIADOS = require("../config/feriadosPT");
 
-const CAP_BASE = 15;
+// capacidade por prefixo da sala: A=25, S=20, L=15
+const capacidadePorSala = (nome = "") => {
+  const s = String(nome).trim().toUpperCase();
+  const clean = s.replace(/\s+/g, "").replace(/^\.+/, ""); // remove espaços e pontos no início
+  const prefix = clean[0];
+
+  if (prefix === "A") return 25;
+  if (prefix === "S") return 20;
+  if (prefix === "L") return 15;
+  return 15;
+};
 
 const isWeekend = (isoDate) => {
   const d = new Date(`${isoDate}T00:00:00`);
@@ -21,7 +31,6 @@ const consumoReserva = (pessoas) => {
   return Number(pessoas) || 1;
 };
 
-
 exports.getFeriados = (req, res) => {
   res.json({ success: true, feriados: Array.from(FERIADOS) });
 };
@@ -36,15 +45,21 @@ exports.getSalasLivres = async (req, res) => {
       return res.json([]);
     }
 
-    let dbSalas = [{ nome: "S.1.1", piso: 1, lugares: CAP_BASE }];
+    // seed mínimo (podes remover se quiseres, mas deixei como tinhas)
+    let dbSalas = [{ nome: "S.1.1", piso: 1, lugares: capacidadePorSala("S.1.1") }];
 
     const todasSalasNaBD = await Ocupacao.distinct("sala");
     todasSalasNaBD.forEach((nomeDaSala) => {
       if (!dbSalas.find((s) => s.nome === nomeDaSala)) {
         let pisoAdivinhado = "?";
-        const partes = nomeDaSala.split(".");
+        const partes = String(nomeDaSala).split(".");
         if (partes.length >= 2 && !isNaN(partes[1])) pisoAdivinhado = partes[1];
-        dbSalas.push({ nome: nomeDaSala, piso: pisoAdivinhado, lugares: CAP_BASE });
+
+        dbSalas.push({
+          nome: nomeDaSala,
+          piso: pisoAdivinhado,
+          lugares: capacidadePorSala(nomeDaSala),
+        });
       }
     });
 
@@ -71,17 +86,19 @@ exports.getSalasLivres = async (req, res) => {
 
     const resultado = dbSalas.map((s) => {
       const salaNome = s.nome;
+      const cap = capacidadePorSala(salaNome);
 
       if (ocupadasAula.includes(salaNome)) {
-        return { ...s, sala: salaNome, status: "Ocupada", lugaresDisponiveis: 0 };
+        return { ...s, sala: salaNome, lugares: cap, status: "Ocupada", lugaresDisponiveis: 0 };
       }
 
       const consumo = consumoPorSala[salaNome] || 0;
-      const livres = Math.max(0, CAP_BASE - consumo);
+      const livres = Math.max(0, cap - consumo);
 
       return {
         ...s,
         sala: salaNome,
+        lugares: cap,
         status: livres > 0 ? "Livre" : "Ocupada",
         lugaresDisponiveis: livres,
       };
@@ -112,7 +129,7 @@ exports.getAllSalas = async (req, res) => {
     const payload = salas.map((nome) => ({
       sala: String(nome),
       piso: parsePiso(nome),
-      lugares: CAP_BASE,
+      lugares: capacidadePorSala(nome),
     }));
 
     return res.json(payload);
@@ -158,6 +175,8 @@ exports.getSalaStatus = async (req, res) => {
       return res.status(400).json({ success: false, message: "Hora inválida." });
     }
 
+    const capSala = capacidadePorSala(sala);
+
     const aulasDia = await Ocupacao.find({ sala, dia });
 
     const aulaAgora = aulasDia.find((a) => {
@@ -189,7 +208,7 @@ exports.getSalaStatus = async (req, res) => {
       }
     }
 
-    const livresAgora = Math.max(0, CAP_BASE - consumoAgora);
+    const livresAgora = Math.max(0, capSala - consumoAgora);
     const statusAgora = livresAgora > 0 ? "Livre" : "Ocupada";
 
     const pontos = new Set();
@@ -224,7 +243,8 @@ exports.getSalaStatus = async (req, res) => {
           consumo += consumoReserva(p);
         }
       }
-      const livres = Math.max(0, CAP_BASE - consumo);
+
+      const livres = Math.max(0, capSala - consumo);
       return { status: livres > 0 ? "Livre" : "Ocupada", livres };
     };
 
