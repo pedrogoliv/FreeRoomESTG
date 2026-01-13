@@ -15,6 +15,7 @@ import Landing from "./pages/Landing.jsx";
 import LoadingRedirect from "./pages/LoadingRedirect.jsx";
 
 import { FiltrosProvider } from "./context/FiltrosContext"; 
+import { ToastProvider } from "./context/ToastContext"; 
 
 function RotaProtegida({ children }) {
   const user = sessionStorage.getItem("user");
@@ -39,75 +40,77 @@ export default function App() {
   return (
     <BrowserRouter>
       <FiltrosProvider>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/registar" element={<Registar />} /> 
+        <ToastProvider>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registar" element={<Registar />} /> 
 
-          <Route
-            path="/dashboard"
-            element={
-              <RotaProtegida>
-                <Dashboard />
-              </RotaProtegida>
-            }
-          />
+            <Route
+              path="/dashboard"
+              element={
+                <RotaProtegida>
+                  <Dashboard />
+                </RotaProtegida>
+              }
+            />
 
-          <Route
-            path="/favoritos"
-            element={
-              <RotaProtegida>
-                <Favoritos />
-              </RotaProtegida>
-            }
-          />
+            <Route
+              path="/favoritos"
+              element={
+                <RotaProtegida>
+                  <Favoritos />
+                </RotaProtegida>
+              }
+            />
 
-          <Route
-            path="/minhas-reservas"
-            element={
-              <RotaProtegida>
-                <MinhasReservas />
-              </RotaProtegida>
-            }
-          />
+            <Route
+              path="/minhas-reservas"
+              element={
+                <RotaProtegida>
+                  <MinhasReservas />
+                </RotaProtegida>
+              }
+            />
 
-          <Route
-            path="/perfil"
-            element={
-              <RotaProtegida>
-                <Perfil />
-              </RotaProtegida>
-            }
-          />
+            <Route
+              path="/perfil"
+              element={
+                <RotaProtegida>
+                  <Perfil />
+                </RotaProtegida>
+              }
+            />
 
-          <Route
-            path="/historico-reservas"
-            element={
-              <RotaProtegida>
-                <HistoricoReservas />
-              </RotaProtegida>
-            }
-          />
+            <Route
+              path="/historico-reservas"
+              element={
+                <RotaProtegida>
+                  <HistoricoReservas />
+                </RotaProtegida>
+              }
+            />
 
-          <Route 
-            path="/mapa" 
-            element={
-              <RotaProtegida>
-                <Mapa />
-              </RotaProtegida>
-            } 
-          />
+            <Route 
+              path="/mapa" 
+              element={
+                <RotaProtegida>
+                  <Mapa />
+                </RotaProtegida>
+              } 
+            />
 
-          <Route
-            path="*"
-            element={
-              sessionStorage.getItem("user")
-                ? <Navigate to="/dashboard" replace />
-                : <Navigate to="/" replace />
-            }
-          />
-          <Route path="/loading" element={<LoadingRedirect />} />
-        </Routes>
+            <Route
+              path="*"
+              element={
+                sessionStorage.getItem("user")
+                  ? <Navigate to="/dashboard" replace />
+                  : <Navigate to="/" replace />
+              }
+            />
+            <Route path="/loading" element={<LoadingRedirect />} />
+          </Routes>
+        </ToastProvider>
       </FiltrosProvider>
     </BrowserRouter>
   );

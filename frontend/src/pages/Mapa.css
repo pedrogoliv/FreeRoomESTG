@@ -13,7 +13,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding-bottom: 10px; /* Menos padding em baixo */
+  padding-bottom: 10px;
   overflow: hidden;
 }
 
@@ -32,7 +32,6 @@
   background-color: #f8fafc; 
 }
 
-/* Botão Voltar (Posicionado à esquerda sem empurrar as tabs) */
 .page-mapa .header-left-actions {
   position: absolute;
   left: 20px;
@@ -63,7 +62,6 @@
   border-color: #E38B2C;
 }
 
-/* Tabs (Piso 1, 2, 3) */
 .page-mapa .tabs {
   display: flex; 
   gap: 10px; 
@@ -96,9 +94,6 @@
   box-shadow: 0 4px 10px rgba(227, 139, 44, 0.3) !important;
 }
 
-/* =========================================
-   3. O MAPA 
-   ========================================= */
 
 .mapa-wrapper {
   position: relative;
@@ -127,7 +122,6 @@
   object-fit: contain;
 }
 
-/* ... (O resto do CSS dos pontos/dots mantém-se igual) ... */
 .mapa-dot { position: absolute; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; transition: transform 0.2s ease; }
 .mapa-dot:hover { transform: translate(-50%, -50%) scale(1.2); z-index: 20; }
 .dot-entrada { width: 16px; height: 16px; background-color: #22c55e; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 15px rgba(34, 197, 94, 0.8); display: flex; justify-content: center; }

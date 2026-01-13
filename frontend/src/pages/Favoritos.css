@@ -15,12 +15,11 @@
   color: #1e293b;
 }
 
-/* --- ESTILO DO CARTÃO DE FAVORITO --- */
 .card-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px; 
+  margin-bottom: 8px;
 }
 
 .sala-nome {
@@ -47,10 +46,9 @@
 
 .fav-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
-/* --- INFO BOX --- */
 .reserva-info-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -80,54 +78,4 @@
 .ri-value {
   color: #1e293b;
   font-weight: 700;
-}
-
-/* =========================================
-   NOTIFICAÇÃO "UNDO" (ADICIONADO)
-   ========================================= */
-.undo-toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #1e293b;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 50px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  z-index: 9999; 
-  font-size: 0.95rem;
-  animation: slideUpToast 0.3s ease-out;
-  border: 1px solid #334155;
-  min-width: 300px;
-}
-
-.undo-toast.success {
-  border-color: #22c55e;
-}
-
-.undo-btn {
-  background: transparent;
-  border: none;
-  color: #E38B2C;
-  font-weight: 800;
-  cursor: pointer;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  padding: 6px 12px;
-  border-radius: 20px;
-  transition: background 0.2s;
-}
-
-.undo-btn:hover {
-  background: rgba(227, 139, 44, 0.15);
-}
-
-@keyframes slideUpToast {
-  from { transform: translate(-50%, 20px); opacity: 0; }
-  to { transform: translate(-50%, 0); opacity: 1; }
 }

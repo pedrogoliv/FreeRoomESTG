@@ -3,9 +3,9 @@ import "./ConfirmarModal.css";
 
 export default function ConfirmarModal({
   open,
-  title = "Sair da aplicação?",
-  message = "Tens a certeza que queres sair? Vais ter de fazer login novamente.",
-  cancelText = "Não, voltar",
+  title = "Terminar sessão?",
+  message = "Tem a certeza que pretende sair?",
+  cancelText = "Voltar",
   confirmText = "Sim, sair",
   danger = false, 
   onCancel,

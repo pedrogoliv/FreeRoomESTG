@@ -8,7 +8,7 @@ import "./minhasReservas.css";
 export default function MinhasReservas() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ 2. Instanciar
+  const location = useLocation();
 
   const [user, setUser] = useState(null);
   const [reservas, setReservas] = useState([]);
@@ -16,7 +16,6 @@ export default function MinhasReservas() {
   const [msg, setMsg] = useState("");
   const [reservaSelecionada, setReservaSelecionada] = useState(null);
 
-  // Estado extra para guardar dados que vieram do mapa (motivo, horas, etc.)
   const [estadoDoMapa, setEstadoDoMapa] = useState(null);
 
   useEffect(() => {
@@ -46,25 +45,21 @@ export default function MinhasReservas() {
     carregarReservas();
   }, [carregarReservas]);
 
-  // --- LÓGICA DE REABERTURA (QUANDO VOLTA DO MAPA) ---
   useEffect(() => {
     if (location.state?.reabrirSala && reservas.length > 0) {
       const nomeSala = location.state.reabrirSala;
       const estadoQueVoltou = location.state.reabrirComEstado;
 
-      // Encontra a reserva correspondente a essa sala (a primeira ativa, por exemplo)
-      // Como estamos em "Minhas Reservas", é seguro assumir que queremos editar a reserva dessa sala
       const reservaAlvo = reservas.find(r => r.sala === nomeSala && !isPastReserva(r));
 
       if (reservaAlvo) {
-        setEstadoDoMapa(estadoQueVoltou); // Guarda o estado temporário
-        setReservaSelecionada(reservaAlvo); // Abre o modal
+        setEstadoDoMapa(estadoQueVoltou);
+        setReservaSelecionada(reservaAlvo);
       }
 
-      // Limpa o estado da navegação
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, reservas]); // Depende de reservas para garantir que já carregaram
+  }, [location.state, reservas]);
 
   // --- HELPERS ---
   function getPisoFromNome(nomeSala) {
@@ -92,15 +87,12 @@ export default function MinhasReservas() {
     return dtFim.getTime() < Date.now();
   }
 
-  // Separação das Reservas
   const reservasFuturas = reservas.filter(r => !isPastReserva(r));
   const reservasPassadas = reservas.filter(r => isPastReserva(r));
 
-  // Ordenação
   reservasFuturas.sort((a, b) => new Date(`${getDia(a)}T${getHoraInicio(a)}`) - new Date(`${getDia(b)}T${getHoraInicio(b)}`));
   reservasPassadas.sort((a, b) => new Date(`${getDia(b)}T${getHoraInicio(b)}`) - new Date(`${getDia(a)}T${getHoraInicio(a)}`));
 
-  // --- COMPONENTES VISUAIS (Cartões) ---
   function CardReservaAtiva({ r }) {
     const salaId = getSalaId(r);
     const dia = getDia(r);
@@ -115,7 +107,7 @@ export default function MinhasReservas() {
       <div 
         className={`reserva-row ativa ${aDecorrer ? "em-curso" : ""}`} 
         onClick={() => {
-            setEstadoDoMapa(null); // Reseta estado antigo ao abrir manualmente
+            setEstadoDoMapa(null);
             setReservaSelecionada(r);
         }}
       >
@@ -159,7 +151,6 @@ export default function MinhasReservas() {
     );
   }
 
-  // --- MODAL DE APENAS LEITURA (Para Histórico) ---
   function ModalVerHistorico({ reserva, onClose }) {
     const salaId = getSalaId(reserva);
     const piso = getPisoFromNome(salaId);
@@ -234,29 +225,25 @@ export default function MinhasReservas() {
           </div>
         )}
 
-        {/* ✅ 3. LÓGICA DE SELEÇÃO DE MODAL */}
         {reservaSelecionada && (
           isPastReserva(reservaSelecionada) ? (
-            // Se for passado -> Mostra apenas leitura
             <ModalVerHistorico 
               reserva={reservaSelecionada} 
               onClose={() => setReservaSelecionada(null)} 
             />
           ) : (
-            // Se for futuro -> Abre o GerirReserva (Editável)
             <GerirReserva
               salaInfo={{ 
                 sala: reservaSelecionada.sala, 
                 piso: getPisoFromNome(reservaSelecionada.sala),
                 lugares: 15,
-                // ✅ Passa o estado preservado para dentro do modal
                 estadoPreservado: estadoDoMapa 
               }}
               reserva={reservaSelecionada}
               user={user}
               onClose={() => {
                   setReservaSelecionada(null);
-                  setEstadoDoMapa(null); // Limpa o estado ao fechar
+                  setEstadoDoMapa(null);
               }}
               onSuccess={() => {
                 setReservaSelecionada(null);

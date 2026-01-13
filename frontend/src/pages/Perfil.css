@@ -5,9 +5,7 @@
 .dashboard-header { margin-bottom: 20px; }
 .dashboard-title { margin: 0; font-size: 1.8rem; font-weight: 900; color: #1e293b; }
 
-/* =========================================
-   PROFILE HERO (SECÇÃO DE TOPO)
-   ========================================= */
+
 .profile-hero {
   background: transparent;
   padding: 0 0 20px 0;
@@ -27,16 +25,13 @@
   text-align: center;
 }
 
-/* --- ZONA DA FOTO, LÁPIS E BOTÕES --- */
 
-/* Contentor relativo para posicionar o lápis e botões */
 .profile-pic-container {
     position: relative;
     width: 130px; 
     height: 130px;
 }
 
-/* Foto de Perfil */
 .profile-pic {
   width: 100%;
   height: 100%;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FaHome, FaHeart, FaCalendarAlt, FaUser, FaSignOutAlt, FaMap } from "react-icons/fa";
 import Logo from "./logo";
-import ConfirmModal from "./ConfirmModal";
+import ConfirmModal from "./ConfirmarModal";
 import "./Sidebar.css";
 
 export default function Sidebar() {
@@ -10,7 +10,6 @@ export default function Sidebar() {
   const [openLogout, setOpenLogout] = useState(false);
 
   function handleLogoutConfirm() {
-    // limpar sessão
     localStorage.removeItem("user");
     sessionStorage.removeItem("user");
 
@@ -65,10 +64,10 @@ export default function Sidebar() {
 
       <ConfirmModal
         open={openLogout}
-        title="Sair da aplicação?"
-        message="Tens a certeza que queres sair? Vais ter de fazer login novamente."
-        cancelText="Não, voltar"
-        confirmText="Sim, sair"
+        title="Terminar sessão"
+        message="Tem a certeza que pretende terminar sessão?"
+        cancelText="Voltar"
+        confirmText="Sim"
         onCancel={() => setOpenLogout(false)}
         onConfirm={handleLogoutConfirm}
       />

@@ -17,7 +17,6 @@ export default function Login() {
 
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-  // carregar usernames guardados
   useEffect(() => {
     try {
       const raw = localStorage.getItem(MEM_KEY);

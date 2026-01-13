@@ -20,7 +20,6 @@ function hojeISO() {
 }
 
 export function FiltrosProvider({ children }) {
-  // 1) Ler do localStorage (se existir), senão usar defaults
   const [diaSelecionado, setDiaSelecionado] = useState(() => {
     return localStorage.getItem("diaSelecionado") || hojeISO();
   });
@@ -29,7 +28,6 @@ export function FiltrosProvider({ children }) {
     return localStorage.getItem("horaSelecionada") || nextHalfHour();
   });
 
-  // 2) Guardar sempre que muda (para não dar reset ao refrescar/navegar)
   useEffect(() => {
     localStorage.setItem("diaSelecionado", diaSelecionado);
   }, [diaSelecionado]);

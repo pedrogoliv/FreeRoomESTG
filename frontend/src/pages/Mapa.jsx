@@ -15,7 +15,6 @@ export default function Mapa() {
     
   const salaDestino = useMemo(() => String(salaDestinoRaw || "").trim(), [salaDestinoRaw]);
 
-  // Se viemos de uma reserva ou da sidebar
   const isReservaFlow = location.state?.origem === "reserva";
 
   const handleVoltar = () => {
@@ -48,14 +47,12 @@ export default function Mapa() {
 
       <main className="main-content">
         <header className="dashboard-header">
-          {/* Botão Voltar (Absolute à esquerda) */}
           <div className="header-left-actions">
             {isReservaFlow && (
               <button className="mapa-back" onClick={handleVoltar}>← Voltar</button>
             )}
           </div>
 
-          {/* Tabs centradas */}
           <div className="tabs">
             {[1, 2, 3].map((num) => (
               <button
@@ -69,11 +66,6 @@ export default function Mapa() {
           </div>
         </header>
 
-        {/* ✅ MUDANÇA CRÍTICA AQUI:
-           O 'mapa-wrapper' centra tudo.
-           O 'mapa-escala' ajusta-se exatamente ao tamanho da imagem.
-           As coordenadas agora são relativas ao 'mapa-escala', logo batem certo com a imagem.
-        */}
         <div className="mapa-wrapper">
           <div className="mapa-escala">
             

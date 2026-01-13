@@ -6,12 +6,11 @@ import { useNavigate } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-// ✅ Estilos customizados para o React Select parecer um "badge" e corrigir o menu
 const customSelectStyles = {
   control: (base, state) => ({
     ...base,
     borderRadius: "99px",
-    padding: "2px 10px 2px 38px",
+    padding: "2px 10px 2px 30px",
     border: state.isFocused ? "1px solid #E38B2C" : "1px solid #e2e8f0",
     boxShadow: state.isFocused ? "0 0 0 2px rgba(227, 139, 44, 0.1)" : "none",
     minHeight: "42px",
@@ -26,10 +25,8 @@ const customSelectStyles = {
   indicatorSeparator: () => ({ display: "none" }),
   dropdownIndicator: (base) => ({ ...base, color: "#94a3b8", padding: "8px" }),
   placeholder: (base) => ({ ...base, color: "#94a3b8", fontWeight: "400" }),
-  valueContainer: (base) => ({ ...base, padding: "2px 0" }), // Remove padding extra
+  valueContainer: (base) => ({ ...base, padding: "2px 0" }),
 
-  // ✅ REVERTI OS ESTILOS DO MENU para o padrão (mais bonito/limpo)
-  // Removi as personalizações de 'menu', 'option' e 'singleValue' que estavam a dar a cor azul.
   menu: (base) => ({ 
     ...base, 
     borderRadius: "12px", 
@@ -46,9 +43,9 @@ const customSelectStyles = {
     padding: "10px 15px",
     cursor: "pointer",
     backgroundColor: state.isSelected 
-      ? "#f1f5f9" // Cor de fundo quando selecionado (cinza claro)
+      ? "#f1f5f9" 
       : state.isFocused 
-        ? "#f8fafc" // Cor de fundo no hover (cinza muito claro)
+        ? "#f8fafc"
         : "white",
     color: state.isSelected ? "#1e293b" : "#475569",
     ":active": {
@@ -58,7 +55,6 @@ const customSelectStyles = {
 };
 
 export default function Perfil() {
-  // ... (O resto do componente Perfil mantém-se EXATAMENTE igual ao anterior)
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -236,7 +232,7 @@ export default function Perfil() {
     ? `url(${previewUrl})` 
     : user?.foto 
       ? `url(${API_BASE}${user.foto})` 
-      : "none";
+      : `url(/assets/perfil.png)`;
 
   if (!user) return <div className="dashboard-container">Loading...</div>;
 
@@ -254,7 +250,6 @@ export default function Perfil() {
                   onClick={triggerFileSelect}
                   style={{ backgroundImage: bgImageStyle }}
                 >
-                  {!user.foto && !previewUrl && "👤"}
                   {isEditing && <div className="camera-overlay">📷</div>}
                   <input type="file" ref={fileInputRef} style={{ display: "none" }} accept="image/*" onChange={handleFileChange}/>
                 </div>
@@ -336,7 +331,6 @@ export default function Perfil() {
           </div>
         </div>
         
-         {/* MODAL */}
          {statsOpen && (
           <div className="modal-overlay" onClick={() => setStatsOpen(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>

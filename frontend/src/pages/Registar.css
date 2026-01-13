@@ -9,9 +9,8 @@ html, body {
   position: relative;
   height: 100vh;
   width: 100vw;
-  overflow: hidden; /* Remove scroll */
+  overflow: hidden;
   
-  /* FUNDO: Azul escuro com "luz" laranja no topo */
   background-color: #0f172a;
   background-image: radial-gradient(
     circle at 50% 0%, 
@@ -38,7 +37,6 @@ html, body {
   justify-content: center;
 }
 
-/* ❌ APAGUEI AS CLASSES .brand, .logo-icon, .brandTitle POIS O COMPONENTE <Logo /> TRATA DISSO */
 
 /* Card */
 .loginCard {
@@ -140,7 +138,6 @@ html, body {
   cursor: not-allowed;
 }
 
-/* Footer Link */
 .card-footer {
   margin-top: 15px;
   text-align: center;
@@ -148,9 +145,7 @@ html, body {
   color: #64748b;
 }
 
-/* ===========================
-   Estilos do React-Select 
-   =========================== */
+
 .select-container { font-size: 0.95rem; }
 
 .select__control { 

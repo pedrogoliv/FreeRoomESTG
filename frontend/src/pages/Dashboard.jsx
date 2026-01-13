@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaCheck } from "react-icons/fa";
 import io from "socket.io-client";
+import { useToast } from "../context/ToastContext";
 
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
@@ -25,12 +26,11 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
 
   const [minhasReservas, setMinhasReservas] = useState([]);
-
-  const [undoToast, setUndoToast] = useState(null);
   const [reservaToast, setReservaToast] = useState(null);
 
   const [salaSelecionada, setSalaSelecionada] = useState(null);
   const [favoritosIds, setFavoritosIds] = useState([]);
+  const { showToast } = useToast();
   const API_BASE = API_BASE_URL;
 
   useEffect(() => {
@@ -71,18 +71,35 @@ export default function Dashboard() {
     return new Date().toISOString().split("T")[0];
   }
 
+  function amanhaISO() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  }
+
   const hoje = hojeISO();
+  const amanha = amanhaISO();
   const minHoraHoje = nextHalfHour();
 
   useEffect(() => {
     const justLoggedIn = sessionStorage.getItem("justLoggedIn") === "1";
     if (!justLoggedIn) return;
 
-    setDiaSelecionado(hoje);
-    setHoraSelecionada(minHoraHoje);
+    if (minHoraHoje > "22:30" || minHoraHoje < "08:00") {
+        if (minHoraHoje > "22:30") {
+             setDiaSelecionado(amanha);
+             setHoraSelecionada("08:00");
+        } else {
+             setDiaSelecionado(hoje);
+             setHoraSelecionada("08:00");
+        }
+    } else {
+        setDiaSelecionado(hoje);
+        setHoraSelecionada(minHoraHoje);
+    }
 
     sessionStorage.removeItem("justLoggedIn");
-  }, [setDiaSelecionado, setHoraSelecionada, hoje, minHoraHoje]);
+  }, [setDiaSelecionado, setHoraSelecionada, hoje, amanha, minHoraHoje]);
 
   useEffect(() => {
     if (diaSelecionado < hoje) {
@@ -146,15 +163,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (diaSelecionado === hoje && horaSelecionada < minHoraHoje) {
-      const primeiraValida = listaHorariosFiltrada[0] || minHoraHoje;
-      if (primeiraValida) setHoraSelecionada(primeiraValida);
+      const primeiraValida = listaHorariosFiltrada[0];
+      if (primeiraValida) {
+          setHoraSelecionada(primeiraValida);
+      }
     }
   }, [diaSelecionado, hoje, horaSelecionada, minHoraHoje, listaHorariosFiltrada, setHoraSelecionada]);
 
   const foraDeHoras = horaSelecionada < "08:00" || horaSelecionada > "22:30";
+  const diaAcabou = diaSelecionado === hoje && minHoraHoje > "22:30";
 
   const refetchSalas = useCallback(() => {
-    if (feriadosLoading || foraDeHoras || fimDeSemana || feriado) {
+    if (feriadosLoading || foraDeHoras || fimDeSemana || feriado || diaAcabou) {
       setLoading(false);
       setSalas([]);
       return;
@@ -174,7 +194,7 @@ export default function Dashboard() {
         setSalas([]);
         setLoading(false);
       });
-  }, [API_BASE, diaSelecionado, horaSelecionada, feriadosLoading, foraDeHoras, fimDeSemana, feriado]);
+  }, [API_BASE, diaSelecionado, horaSelecionada, feriadosLoading, foraDeHoras, fimDeSemana, feriado, diaAcabou]);
 
   useEffect(() => {
     refetchSalas();
@@ -217,7 +237,7 @@ export default function Dashboard() {
   const totalLivres = salasFiltradas.filter((s) => s.status === "Livre").length;
   const totalOcupadas = totalSalas - totalLivres;
 
-  const toggleFavorito = async (idDaSala) => {
+  const toggleFavorito = async (idDaSala, silent = false) => {
     if (!user || !user.username) {
       alert("Erro de autenticação: Faz login novamente.");
       return;
@@ -230,28 +250,19 @@ export default function Dashboard() {
       return [...prevIds, idDaSala];
     });
 
-    if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
-
-    const timer = setTimeout(() => {
-      setUndoToast(null);
-    }, 4000);
-
-    if (isRemoving) {
-      setUndoToast({
-        show: true,
-        type: "remove",
-        salaId: idDaSala,
-        text: "Removido dos favoritos.",
-        timeoutId: timer,
-      });
-    } else {
-      setUndoToast({
-        show: true,
-        type: "add",
-        salaId: idDaSala,
-        text: "Sala adicionada aos favoritos!",
-        timeoutId: timer,
-      });
+    if (!silent) {
+      if (isRemoving) {
+        showToast({
+          text: "Removido dos favoritos.",
+          type: "remove",
+          onUndo: () => toggleFavorito(idDaSala, true) 
+        });
+      } else {
+        showToast({
+          text: "Sala adicionada aos favoritos!",
+          type: "add"
+        });
+      }
     }
 
     try {
@@ -263,12 +274,6 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Erro ao guardar favorito", error);
     }
-  };
-
-  const handleUndo = () => {
-    if (!undoToast || undoToast.type !== "remove") return;
-    toggleFavorito(undoToast.salaId);
-    setUndoToast(null);
   };
 
   const showReservaToast = (payload) => {
@@ -348,12 +353,20 @@ export default function Dashboard() {
             </div>
             <div className="filtro-box">
               <label>Hora</label>
-              <select value={horaSelecionada} onChange={(e) => setHoraSelecionada(e.target.value)}>
-                {listaHorariosFiltrada.map((horario) => (
-                  <option key={horario} value={horario}>
-                    {horario}
-                  </option>
-                ))}
+              <select 
+                value={diaAcabou ? "" : horaSelecionada} 
+                onChange={(e) => setHoraSelecionada(e.target.value)}
+                disabled={diaAcabou}
+              >
+                 {listaHorariosFiltrada.length === 0 && diaAcabou ? (
+                    <option>--:--</option>
+                ) : (
+                    listaHorariosFiltrada.map((horario) => (
+                    <option key={horario} value={horario}>
+                        {horario}
+                    </option>
+                    ))
+                )}
               </select>
             </div>
           </div>
@@ -384,6 +397,27 @@ export default function Dashboard() {
 
         {loading || feriadosLoading ? (
           <p>⏳ A carregar dados...</p>
+        ) : diaAcabou ? (
+           <div className="dia-terminou-card">
+
+    
+            <h2>O dia terminou!</h2>
+            
+            <p>
+                O horário de reservas para hoje já encerrou.
+                <br />Mas podes começar já a planear o dia de amanhã.
+            </p>
+            
+            <button 
+                className="btn-amanha-cta" 
+                onClick={() => {
+                    setDiaSelecionado(amanha);
+                    setHoraSelecionada("08:00");
+                }}
+            >
+                Ver disponibilidade para Amanhã →
+            </button>
+           </div>
         ) : foraDeHoras || fimDeSemana || feriado ? (
           <div className="fechado">
             <h2>🚫 Reservas indisponíveis</h2>
@@ -418,7 +452,8 @@ export default function Dashboard() {
 
             <div className="grid-salas">
               {salasFiltradas.map((item) => {
-                const capacidade = Number(item.lugares ?? 15) || 15;
+                const capacidade = Number(item.lugares); 
+                
                 const livresAgora = Math.max(
                   0,
                   Math.min(capacidade, Number(item.lugaresDisponiveis ?? 0))
@@ -473,25 +508,15 @@ export default function Dashboard() {
           </>
         )}
 
-        {undoToast && undoToast.show && (
-          <div className={`undo-toast ${undoToast.type === "add" ? "success" : ""}`}>
-            <span>
-              {undoToast.type === "add" ? "✅ " : "🗑️ "} {undoToast.text}
-            </span>
-            {undoToast.type === "remove" && (
-              <button className="undo-btn" onClick={handleUndo}>
-                Desfazer
-              </button>
-            )}
-          </div>
-        )}
-
         {reservaToast && reservaToast.show && (
           <div className="reserva-toast-container">
-            <div className="rt-icon">
-              <FaCheck />
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div className="rt-icon">
+                <FaCheck />
+              </div>
+              <span className="rt-text">{reservaToast.text}</span>
             </div>
-            <span className="rt-text">{reservaToast.text}</span>
+
             <button
               className="rt-action-btn"
               onClick={() => {

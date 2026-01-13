@@ -98,7 +98,6 @@ export default function HistoricoReservas() {
               const isCancelada = statusRaw === "cancelada";
               const isPassada = !isCancelada && isReservaPassada(r);
 
-              // ✅ 3 estados finais
               const statusFinal = isCancelada ? "cancelada" : isPassada ? "concluida" : "ativa";
 
               const badgeText =

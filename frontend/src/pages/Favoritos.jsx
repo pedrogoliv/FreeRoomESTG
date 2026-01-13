@@ -1,25 +1,23 @@
 import { useEffect, useState } from "react";
-// ✅ 1. Importar hooks de navegação
 import { useLocation, useNavigate } from "react-router-dom"; 
 import Sidebar from "../components/Sidebar";
 import DetalhesSala from "../components/detalhesSala";
 import "./Favoritos.css";
+import { useToast } from "../context/ToastContext";
 
 export default function Favoritos() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
   
-  // ✅ 2. Instanciar hooks
   const location = useLocation();
   const navigate = useNavigate();
+  
+  const { showToast } = useToast(); 
 
   const [user, setUser] = useState(null);
   const [favoritosIds, setFavoritosIds] = useState([]);
   const [loadingFav, setLoadingFav] = useState(true);
 
-  // Estado para notificação UNDO
-  const [undoToast, setUndoToast] = useState(null);
 
-  // Modal
   const [salaSelecionada, setSalaSelecionada] = useState(null);
   const [loadingSala, setLoadingSala] = useState(false);
   const [msg, setMsg] = useState("");
@@ -42,7 +40,6 @@ export default function Favoritos() {
       .finally(() => setLoadingFav(false));
   }, [user, API_BASE]);
 
-  // Função para descobrir o piso pelo nome (ex: A.2.1 -> 2)
   function getPisoFromNome(nomeSala) {
     if (!nomeSala) return "1";
     const match = nomeSala.match(/\.(\d+)\./);
@@ -50,8 +47,7 @@ export default function Favoritos() {
     return "1";
   }
 
-  // Função de remover com Undo
-  async function toggleFavorito(salaId) {
+  async function toggleFavorito(salaId, silent = false) {
     if (!user?.username) return;
     const sid = String(salaId);
     
@@ -62,28 +58,19 @@ export default function Favoritos() {
       return [...prev, sid];
     });
 
-    if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
-    
-    const timer = setTimeout(() => {
-      setUndoToast(null);
-    }, 4000);
-
-    if (isRemoving) {
-      setUndoToast({
-        show: true,
-        type: 'remove',
-        salaId: sid,
-        text: 'Removido dos favoritos.',
-        timeoutId: timer
-      });
-    } else {
-      setUndoToast({
-        show: true,
-        type: 'add',
-        salaId: sid,
-        text: 'Adicionado aos favoritos!',
-        timeoutId: timer
-      });
+    if (!silent) {
+      if (isRemoving) {
+        showToast({
+          text: 'Removido dos favoritos.',
+          type: 'remove',
+          onUndo: () => toggleFavorito(sid, true)
+        });
+      } else {
+        showToast({
+          text: 'Adicionado aos favoritos!',
+          type: 'add'
+        });
+      }
     }
 
     try {
@@ -97,12 +84,6 @@ export default function Favoritos() {
       setMsg("❌ Erro ao atualizar favorito.");
     }
   }
-
-  const handleUndo = () => {
-    if (!undoToast || undoToast.type !== 'remove') return;
-    toggleFavorito(undoToast.salaId);
-    setUndoToast(null);
-  };
 
   function getNowDiaHoraSlot() {
     const now = new Date();
@@ -145,23 +126,20 @@ export default function Favoritos() {
     }
   }
 
-  // ✅ 3. LÓGICA PARA REABRIR A SALA AO VOLTAR DO MAPA
   useEffect(() => {
     if (location.state?.reabrirSala) {
       const nomeSala = location.state.reabrirSala;
       const estadoQueVoltou = location.state.reabrirComEstado;
 
-      // Mesmo que ainda não tenhamos carregado tudo, podemos reconstruir o objeto básico da sala
       const pisoProvavel = getPisoFromNome(nomeSala);
       
       setSalaSelecionada({
         sala: nomeSala,
         piso: pisoProvavel,
-        lugares: 15, // Valor temporário até carregar, ou mantido se for fallback
-        estadoPreservado: estadoQueVoltou // ✅ Injeta os dados do formulário
+        lugares: 15, 
+        estadoPreservado: estadoQueVoltou 
       });
 
-      // Limpa o estado da navegação
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -218,20 +196,6 @@ export default function Favoritos() {
           </div>
         )}
 
-        {undoToast && undoToast.show && (
-          <div className={`undo-toast ${undoToast.type === "add" ? "success" : ""}`}>
-            <span>
-              {undoToast.type === "add" ? "✅ " : "🗑️ "} 
-              {undoToast.text}
-            </span>
-            
-            {undoToast.type === "remove" && (
-              <button className="undo-btn" onClick={handleUndo}>
-                Desfazer
-              </button>
-            )}
-          </div>
-        )}
 
         {salaSelecionada && (
           <DetalhesSala

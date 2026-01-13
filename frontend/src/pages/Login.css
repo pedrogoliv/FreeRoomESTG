@@ -9,9 +9,8 @@ html, body {
   position: relative;
   height: 100vh;
   width: 100vw;
-  overflow: hidden; /* Remove scroll */
+  overflow: hidden;
 
-  /* FUNDO: Azul escuro com "luz" laranja no topo */
   background-color: #0f172a;
   background-image: radial-gradient(
     circle at 50% 0%,
@@ -138,7 +137,6 @@ html, body {
   cursor: not-allowed;
 }
 
-/* Footer Link */
 .card-footer {
   margin-top: 15px;
   text-align: center;
@@ -146,7 +144,6 @@ html, body {
   color: #64748b;
 }
 
-/* Link do footer (o teu span) */
 .card-footer span,
 .card-footer a {
   color: #E38B2C;
@@ -155,12 +152,10 @@ html, body {
   cursor: pointer;
 }
 
-/* wrapper do input password para meter o botão */
 .passwordWrap {
   position: relative;
 }
 
-/* espaço para o botão do olho */
 .passwordInput {
   padding-right: 44px;
 }

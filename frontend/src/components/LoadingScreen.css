@@ -1,5 +1,3 @@
-/* src/components/LoadingScreen.css */
-
 .loading-container {
   position: fixed;
   inset: 0;
@@ -24,7 +22,6 @@
   justify-content: center;
 }
 
-/* Spinner */
 .spinner {
   width: 32px;
   height: 32px;

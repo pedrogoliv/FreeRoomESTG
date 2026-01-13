@@ -2,16 +2,19 @@ const Ocupacao = require("../models/OcupacaoRaw");
 const Reserva = require("../models/Reserva");
 const FERIADOS = require("../config/feriadosPT");
 
-// capacidade por prefixo da sala: A=25, S=20, L=15
-const capacidadePorSala = (nome = "") => {
-  const s = String(nome).trim().toUpperCase();
-  const clean = s.replace(/\s+/g, "").replace(/^\.+/, ""); // remove espaços e pontos no início
-  const prefix = clean[0];
+const gerarCapacidadeFixa = (nomeSala) => {
+  let hash = 0;
+  const str = String(nomeSala);
 
-  if (prefix === "A") return 25;
-  if (prefix === "S") return 20;
-  if (prefix === "L") return 15;
-  return 15;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+
+  const positivo = Math.abs(hash);
+
+  return (positivo % 21) + 5;
 };
 
 const isWeekend = (isoDate) => {
@@ -45,8 +48,7 @@ exports.getSalasLivres = async (req, res) => {
       return res.json([]);
     }
 
-    // seed mínimo (podes remover se quiseres, mas deixei como tinhas)
-    let dbSalas = [{ nome: "S.1.1", piso: 1, lugares: capacidadePorSala("S.1.1") }];
+    let dbSalas = [{ nome: "S.1.1", piso: 1, lugares: gerarCapacidadeFixa("S.1.1") }];
 
     const todasSalasNaBD = await Ocupacao.distinct("sala");
     todasSalasNaBD.forEach((nomeDaSala) => {
@@ -58,7 +60,7 @@ exports.getSalasLivres = async (req, res) => {
         dbSalas.push({
           nome: nomeDaSala,
           piso: pisoAdivinhado,
-          lugares: capacidadePorSala(nomeDaSala),
+          lugares: gerarCapacidadeFixa(nomeDaSala),
         });
       }
     });
@@ -86,7 +88,7 @@ exports.getSalasLivres = async (req, res) => {
 
     const resultado = dbSalas.map((s) => {
       const salaNome = s.nome;
-      const cap = capacidadePorSala(salaNome);
+      const cap = s.lugares || gerarCapacidadeFixa(salaNome);
 
       if (ocupadasAula.includes(salaNome)) {
         return { ...s, sala: salaNome, lugares: cap, status: "Ocupada", lugaresDisponiveis: 0 };
@@ -129,7 +131,7 @@ exports.getAllSalas = async (req, res) => {
     const payload = salas.map((nome) => ({
       sala: String(nome),
       piso: parsePiso(nome),
-      lugares: capacidadePorSala(nome),
+      lugares: gerarCapacidadeFixa(nome),
     }));
 
     return res.json(payload);
@@ -175,7 +177,7 @@ exports.getSalaStatus = async (req, res) => {
       return res.status(400).json({ success: false, message: "Hora inválida." });
     }
 
-    const capSala = capacidadePorSala(sala);
+    const capSala = gerarCapacidadeFixa(sala);
 
     const aulasDia = await Ocupacao.find({ sala, dia });
 

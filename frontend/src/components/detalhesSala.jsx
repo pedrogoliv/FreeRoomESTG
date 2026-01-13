@@ -162,6 +162,12 @@ export default function DetalhesSala({
     if (!Number.isInteger(n) || n < 1) { setMsg("⚠️ Nº de pessoas inválido."); return; }
     if (!isLivre) { setMsg("⚠️ Indisponível neste horário."); return; }
 
+
+    if (n > livresAgora) {
+      setMsg(`Capacidade máxima excedida. Disponível: ${livresAgora}.`);
+      return; 
+    }
+
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/reservar`, {
@@ -290,8 +296,8 @@ export default function DetalhesSala({
             </div>
           </div>
 
-          {diaLocalBloqueado && <div className="warning-block">⛔ Selecione um dia útil (Seg-Sex).</div>}
-          {horarios.length === 0 && !diaLocalBloqueado && <div className="warning-block">⛔ Não há mais horários disponíveis para hoje.</div>}
+          {diaLocalBloqueado && <div className="warning-block">Selecione um dia útil (Seg-Sex).</div>}
+          {horarios.length === 0 && !diaLocalBloqueado && <div className="warning-block">Não há mais horários disponíveis para hoje.</div>}
 
           <div className="info-card">
             <div className="info-stats">

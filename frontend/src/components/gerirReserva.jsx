@@ -34,13 +34,11 @@ export default function GerirReserva({
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // -------- helpers de data/hora --------
   const now = new Date();
   const hojeISO = now.toISOString().split("T")[0];
 
   const pad2 = (n) => String(n).padStart(2, "0");
 
-  // arredonda para o slot atual (00 ou 30) para ficar consistente com o teu sistema
   const agoraSlotStr = useMemo(() => {
     const h = now.getHours();
     const m = now.getMinutes();
@@ -64,7 +62,7 @@ export default function GerirReserva({
     return horarios.filter((h) => {
       if (h === "23:00") return false;
 
-      // se for hoje e não estiver a decorrer, bloqueia inícios no passado (mas mantém o original)
+      // se for hoje e não estiver a decorrer, bloqueia inícios no passado
       if (dia === hojeISO && !isDecorrer) {
         return h >= agoraSlotStr || h === reserva.hora_inicio || h === horaInicio;
       }
@@ -136,23 +134,18 @@ export default function GerirReserva({
   const t = new Date();
   const pad2 = (n) => String(n).padStart(2, "0");
   
-  // Calcula hora atual HH:MM
   let novoFim = `${pad2(t.getHours())}:${pad2(t.getMinutes())}`;
 
-  // --- CORREÇÃO AQUI ---
-  // Se a hora atual for menor ou IGUAL ao início, isso gera erro no backend.
-  // Forçamos o fim para ser, no mínimo, 1 minuto depois do início.
+
   if (novoFim <= reserva.hora_inicio) {
-    // Vamos buscar os componentes da hora de início (ex: "14:30")
     const [h, m] = reserva.hora_inicio.split(':').map(Number);
     const dataAjustada = new Date();
     dataAjustada.setHours(h);
-    dataAjustada.setMinutes(m + 1); // Adiciona 1 minuto ao início
+    dataAjustada.setMinutes(m + 1);
     
     novoFim = `${pad2(dataAjustada.getHours())}:${pad2(dataAjustada.getMinutes())}`;
   }
 
-  // Segurança: nunca acima do fim original (para não estender a reserva sem querer)
   if (novoFim > reserva.hora_fim) novoFim = reserva.hora_fim;
 
   const dadosParaEnviar = {
@@ -162,7 +155,7 @@ export default function GerirReserva({
     pessoas: reserva.pessoas,
     responsavel: user.username,
     motivo: reserva.motivo,
-    status: "terminada", // Apenas se o teu backend aceitar mudança direta de status
+    status: "terminada",
   };
 
   try {

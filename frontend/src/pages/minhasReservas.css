@@ -28,7 +28,6 @@
 /* Em Curso */
 .reserva-row.ativa.em-curso { border-left-color: #22c55e; background-color: #f0fdf4; }
 
-/* Container que alinha o Nome e a Etiqueta */
 .row-header {
   display: flex;
   align-items: center;
@@ -43,7 +42,6 @@
   margin-left: 55px;    
   margin-top: 20px;
 
-  /* Resto do visual */
   background: #22c55e; 
   color: white;
   font-size: 0.65rem; 
@@ -115,10 +113,10 @@
 }
 
 /* =========================================
-   CONFIRMAÇÃO DE CANCELAMENTO (NOVO)
+   CONFIRMAÇÃO DE CANCELAMENTO
    ========================================= */
 .confirm-overlay {
-  position: absolute; /* Fica dentro do modal principal */
+  position: absolute;
   inset: 0;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(2px);

@@ -2,8 +2,17 @@ const Reserva = require("../models/Reserva");
 const Ocupacao = require("../models/OcupacaoRaw");
 const FERIADOS = require("../config/feriadosPT");
 
-const CAP_BASE = 15;
-
+const gerarCapacidadeFixa = (nomeSala) => {
+  let hash = 0;
+  const str = String(nomeSala);
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  const positivo = Math.abs(hash);
+  return (positivo % 21) + 5;
+};
 
 const isWeekend = (isoDate) => {
   const d = new Date(`${isoDate}T00:00:00`);
@@ -21,7 +30,6 @@ const toMinutes = (t) => {
 const consumoReserva = (pessoas) => {
   return Number(pessoas) || 1;
 };
-
 
 exports.criarReserva = async (req, res) => {
   try {
@@ -73,7 +81,9 @@ exports.criarReserva = async (req, res) => {
 
     const consumoOcupado = reservasOverlap.reduce((sum, r) => sum + consumoReserva(r.pessoas ?? 1), 0);
     const consumoNovo = consumoReserva(nPessoas);
-    const sobra = CAP_BASE - consumoOcupado;
+
+    const capacidadeReal = gerarCapacidadeFixa(sala);
+    const sobra = capacidadeReal - consumoOcupado;
 
     if (consumoNovo > sobra) {
       return res.status(409).json({ erro: `Capacidade excedida. Disponível: ${Math.max(0, sobra)}.` });
@@ -122,7 +132,6 @@ exports.getReservasUser = async (req, res) => {
     return res.status(500).json({ success: false, message: "Erro no servidor" });
   }
 };
-
 
 exports.updateReserva = async (req, res) => {
   try {
@@ -192,7 +201,10 @@ exports.updateReserva = async (req, res) => {
       });
 
       const ocupado = overlap.reduce((sum, r) => sum + (r.pessoas || 1), 0);
-      const capacidadeRestante = CAP_BASE - ocupado;
+      
+      const capacidadeReal = gerarCapacidadeFixa(reserva.sala);
+      const capacidadeRestante = capacidadeReal - ocupado;
+      
       const minhasPessoas = reserva.pessoas || 1;
 
       if (minhasPessoas > capacidadeRestante) {
