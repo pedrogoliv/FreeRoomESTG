@@ -4,20 +4,20 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Logo from "../components/logo";
 import "./Login.css";
 
-const MEM_KEY = "login_usernames"; // lista de usernames guardada
+const MEM_KEY = "login_usernames";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [msg, setMsg] = useState("");
-
   const [savedUsers, setSavedUsers] = useState([]);
 
   const navigate = useNavigate();
 
-<<<<<<< HEAD
-  // ✅ carregar usernames guardados
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+  // carregar usernames guardados
   useEffect(() => {
     try {
       const raw = localStorage.getItem(MEM_KEY);
@@ -28,7 +28,6 @@ export default function Login() {
     }
   }, []);
 
-  // id do datalist (estável)
   const datalistId = useMemo(() => "usernames-datalist", []);
 
   function saveUsernameToMemory(u) {
@@ -36,7 +35,7 @@ export default function Login() {
     if (!clean) return;
 
     setSavedUsers((prev) => {
-      const next = [clean, ...prev.filter((x) => x !== clean)].slice(0, 8); // guarda máx 8
+      const next = [clean, ...prev.filter((x) => x !== clean)].slice(0, 8);
       localStorage.setItem(MEM_KEY, JSON.stringify(next));
       return next;
     });
@@ -52,18 +51,16 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/auth/login", {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (data.success) {
-        // ✅ guardar username para sugestões futuras
         saveUsernameToMemory(username);
-
         sessionStorage.setItem("user", JSON.stringify(data.user));
         sessionStorage.setItem("justLoggedIn", "1");
         navigate("/dashboard");
@@ -72,41 +69,9 @@ export default function Login() {
       }
     } catch (err) {
       console.error(err);
-       setMsg("❌ Erro de ligação ao servidor.");
+      setMsg("❌ Erro de ligação ao servidor.");
     }
-=======
-async function handleSubmit(e) {
-  e.preventDefault();
-  setMsg("");
-
-  if (!username || !password) {
-    setMsg("Username e password inválidos.");
-    return;
->>>>>>> 401b67fa91ec68ef50b1aba0e1d7d89cb4335601
   }
-
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
-
-  try {
-    const response = await fetch(${API_URL}/auth/login, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      sessionStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/dashboard");
-    } else {
-      setMsg(data.message || "Erro ao entrar.");
-    }
-  } catch (err) {
-    console.error(err);
-    setMsg("❌ Erro de ligação ao servidor.");
-  }
-}
 
   return (
     <div className="loginPage">
@@ -121,8 +86,6 @@ async function handleSubmit(e) {
           <form onSubmit={handleSubmit} className="loginForm">
             <div>
               <label className="label">Username</label>
-
-              {/* ✅ sugestões de usernames */}
               <input
                 className="input"
                 type="text"
@@ -140,8 +103,6 @@ async function handleSubmit(e) {
 
             <div>
               <label className="label">Password</label>
-
-              {/* ✅ password com olhinho */}
               <div style={{ position: "relative" }}>
                 <input
                   className="input"
@@ -168,8 +129,9 @@ async function handleSubmit(e) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    height: "24px",
-                    width: "24px",
+                    height: "28px",
+                    width: "28px",
+                    opacity: 0.85,
                   }}
                 >
                   {showPass ? <FaEyeSlash /> : <FaEye />}
