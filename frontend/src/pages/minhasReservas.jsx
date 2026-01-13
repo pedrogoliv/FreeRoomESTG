@@ -1,10 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-// ✅ 1. Importar useLocation
 import { useNavigate, useLocation } from "react-router-dom"; 
 import Sidebar from "../components/Sidebar";
 import GerirReserva from "../components/gerirReserva";
 import { FaMapMarkedAlt, FaChevronRight, FaCalendarAlt, FaClock, FaUserFriends, FaHistory } from "react-icons/fa";
-import "./MinhasReservas.css"; 
+import "./minhasReservas.css"; 
 
 export default function MinhasReservas() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
