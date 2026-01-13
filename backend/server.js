@@ -18,7 +18,11 @@ const cursoRoutes = require("./src/routes/cursoRoutes");
 const app = express();
 
 app.use(cors({
-  origin: ["http://localhost:5173", "https://freeroom-estg.vercel.app"],
+  origin: [
+    "http://localhost:5173", 
+    "https://freeroom-estg.vercel.app", 
+    "https://freeroomestgvercel.vercel.app" 
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -29,7 +33,11 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://freeroom-estg.vercel.app"],
+    origin: [
+      "http://localhost:5173", 
+      "https://freeroom-estg.vercel.app",
+      "https://freeroomestgvercel.vercel.app"
+    ],
     methods: ["GET", "POST"]
   }
 });

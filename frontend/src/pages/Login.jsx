@@ -16,6 +16,7 @@ export default function Login() {
 
   const navigate = useNavigate();
 
+<<<<<<< HEAD
   // ✅ carregar usernames guardados
   useEffect(() => {
     try {
@@ -71,9 +72,41 @@ export default function Login() {
       }
     } catch (err) {
       console.error(err);
-      setMsg("❌ O servidor está desligado?");
+       setMsg("❌ Erro de ligação ao servidor.");
     }
+=======
+async function handleSubmit(e) {
+  e.preventDefault();
+  setMsg("");
+
+  if (!username || !password) {
+    setMsg("Username e password inválidos.");
+    return;
+>>>>>>> 401b67fa91ec68ef50b1aba0e1d7d89cb4335601
   }
+
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
+  try {
+    const response = await fetch(${API_URL}/auth/login, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      sessionStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/dashboard");
+    } else {
+      setMsg(data.message || "Erro ao entrar.");
+    }
+  } catch (err) {
+    console.error(err);
+    setMsg("❌ Erro de ligação ao servidor.");
+  }
+}
 
   return (
     <div className="loginPage">
