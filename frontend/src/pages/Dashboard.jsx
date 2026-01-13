@@ -403,9 +403,7 @@ export default function Dashboard() {
           <p>⏳ A carregar dados...</p>
         ) : diaAcabou ? (
            <div className="dia-terminou-card">
-            <span className="dia-terminou-icon" role="img" aria-label="sleeping face">
-                😴
-            </span>
+
             
             <h2>O dia terminou!</h2>
             
@@ -421,7 +419,7 @@ export default function Dashboard() {
                     setHoraSelecionada("08:00");
                 }}
             >
-                Ver disponibilidade para Amanhã →
+                Ver disponibilidade para amanhã →
             </button>
            </div>
         ) : foraDeHoras || fimDeSemana || feriado ? (
