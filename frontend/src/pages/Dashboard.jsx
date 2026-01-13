@@ -11,6 +11,11 @@ import "./Dashboard.css";
 import { useFiltros } from "../context/FiltrosContext";
 import "../components/detalhesSala.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const socket = io(API_BASE_URL, {
+  autoConnect: false
+});
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation(); 
@@ -22,17 +27,17 @@ export default function Dashboard() {
   const [minhasReservas, setMinhasReservas] = useState([]);
 
   const [undoToast, setUndoToast] = useState(null);
-
   const [reservaToast, setReservaToast] = useState(null);
+
+  const [salaSelecionada, setSalaSelecionada] = useState(null);
+  const [favoritosIds, setFavoritosIds] = useState([]);
+  const API_BASE = API_BASE_URL;
+
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
-
-  const [salaSelecionada, setSalaSelecionada] = useState(null);
-  const [favoritosIds, setFavoritosIds] = useState([]);
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     if (user && user.username) {
@@ -141,7 +146,7 @@ export default function Dashboard() {
       return;
     }
 
-
+    
     fetch(
       `${API_BASE}/api/salas-livres?dia=${encodeURIComponent(diaSelecionado)}&hora=${encodeURIComponent(horaSelecionada)}`
     )
@@ -158,22 +163,28 @@ export default function Dashboard() {
 
   useEffect(() => { refetchSalas(); }, [refetchSalas]);
 
+
   useEffect(() => {
-    const socket = io(API_BASE);
+    socket.connect();
 
-    socket.on("connect", () => {
-      console.log("🟢 Conectado ao servidor de Tempo Real");
-    });
+    const onConnect = () => {
+      console.log("🟢 Conectado ao servidor de Tempo Real (ID: " + socket.id + ")");
+    };
 
-    socket.on("atualizacao_mapa", (dados) => {
+    const onAtualizacao = (dados) => {
       console.log("🔔 Alguém reservou/libertou uma sala!", dados);
-      refetchSalas();
-    });
+      refetchSalas(); 
+    };
+
+    socket.on("connect", onConnect);
+    socket.on("atualizacao_mapa", onAtualizacao);
 
     return () => {
+      socket.off("connect", onConnect);
+      socket.off("atualizacao_mapa", onAtualizacao);
       socket.disconnect();
     };
-  }, [API_BASE, refetchSalas]);
+  }, [refetchSalas]);
 
 
   const salasFiltradas = useMemo(() => {
@@ -325,10 +336,10 @@ export default function Dashboard() {
         </div>
 
         {loading || feriadosLoading ? (
-          <p>A carregar dados...</p>
+          <p>⏳ A carregar dados...</p>
         ) : foraDeHoras || fimDeSemana || feriado ? (
           <div className="fechado">
-            <h2>Reservas indisponíveis</h2>
+            <h2>🚫 Reservas indisponíveis</h2>
             {fimDeSemana ? <p>Não é possível reservar salas ao fim-de-semana.</p> : feriado ? <p>Não é possível reservar salas em feriados.</p> : <p>Seleciona um horário entre 08:00 e 22:30.</p>}
           </div>
         ) : (
