@@ -3,6 +3,7 @@ import Select from "react-select";
 import Sidebar from "../components/Sidebar";
 import "./Perfil.css";
 import { useNavigate } from "react-router-dom";
+import PencilIcon from '/lapis.png';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -10,7 +11,7 @@ const customSelectStyles = {
   control: (base, state) => ({
     ...base,
     borderRadius: "99px",
-    padding: "2px 10px 2px 30px",
+    padding: "2px 10px 2px 40px",
     border: state.isFocused ? "1px solid #E38B2C" : "1px solid #e2e8f0",
     boxShadow: state.isFocused ? "0 0 0 2px rgba(227, 139, 44, 0.1)" : "none",
     minHeight: "42px",
@@ -232,7 +233,7 @@ export default function Perfil() {
     ? `url(${previewUrl})` 
     : user?.foto 
       ? `url(${API_BASE}${user.foto})` 
-      : `url(/assets/perfil.png)`;
+      : `url(/perfil.png)`;
 
   if (!user) return <div className="dashboard-container">Loading...</div>;
 
@@ -250,24 +251,24 @@ export default function Perfil() {
                   onClick={triggerFileSelect}
                   style={{ backgroundImage: bgImageStyle }}
                 >
-                  {isEditing && <div className="camera-overlay">📷</div>}
+                  {isEditing && <div className="camera-overlay">📂</div>}
                   <input type="file" ref={fileInputRef} style={{ display: "none" }} accept="image/*" onChange={handleFileChange}/>
                 </div>
 
-                {!isEditing && (
+                <div className="mini-actions-container">
+                  {isEditing ? (
+                    <>
+                      <button className="btn-mini btn-mini-cancel" onClick={cancelEdit} disabled={saving} title="Cancelar">✕</button>
+                      <button className="btn-mini btn-mini-save" onClick={saveProfile} disabled={!canSave || saving} title="Guardar">
+                        {saving ? ".." : "✓"}
+                      </button>
+                    </>
+                  ) : (
                     <button className="btn-icon-pencil" onClick={startEdit} title="Editar Perfil">
-                        ✏️
+                        <img src={PencilIcon} alt="Editar" />
                     </button>
-                )}
-
-                {isEditing && (
-                  <div className="mini-actions-container">
-                    <button className="btn-mini btn-mini-cancel" onClick={cancelEdit} disabled={saving} title="Cancelar">✕</button>
-                    <button className="btn-mini btn-mini-save" onClick={saveProfile} disabled={!canSave || saving} title="Guardar">
-                      {saving ? ".." : "✓"}
-                    </button>
-                  </div>
-                )}
+                  )}
+                </div>
             </div>
 
             <div className="hero-info">

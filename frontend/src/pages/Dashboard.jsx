@@ -380,11 +380,10 @@ export default function Dashboard() {
           <div className="search">
             <input
               className="searchInput"
-              placeholder="Procura o número de uma sala"
+              placeholder="🔎 Procura o número de uma sala"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <span className="searchIcon">🔎</span>
           </div>
           <div className="tabs">
             {["todas", "1", "2", "3"].map((piso) => (
@@ -502,7 +501,7 @@ export default function Dashboard() {
                         className={minhaReserva ? "btn-details btn-manage" : "btn-details"}
                         onClick={() => setSalaSelecionada({ ...item, reservaExistente: minhaReserva })}
                       >
-                        {minhaReserva ? "✏️ Gerir Reserva" : "Ver detalhes"}
+                        {minhaReserva ? "Gerir Reserva" : "Ver detalhes"}
                       </button>
                     </div>
                   </div>
