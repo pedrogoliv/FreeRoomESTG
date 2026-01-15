@@ -47,11 +47,11 @@ export default function Landing() {
 
             <div className="panel-divider" />
 
-            <ul className="panel-list">
-              <li><FaCheckCircle className="check-icon" /> Disponibilidade instantânea</li>
-              <li><FaCheckCircle className="check-icon" /> Planta interativa da escola</li>
-              <li><FaCheckCircle className="check-icon" /> Histórico de ocupação</li>
-            </ul>
+          <ul className="panel-list">
+            <li><FaCheckCircle className="check-icon" /> Encontra salas livres no momento</li>
+            <li><FaCheckCircle className="check-icon" /> Planta interativa da escola</li>
+            <li><FaCheckCircle className="check-icon" /> Estatísticas do teu estudo</li>
+          </ul>
 
           </div>
         </aside>

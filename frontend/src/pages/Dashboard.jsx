@@ -495,7 +495,8 @@ export default function Dashboard() {
                         <div className={`ocup-fill ${ocupClass}`} style={{ width: `${pct}%` }} />
                       </div>
                       <div className="ocup-hint">
-                        {livresAgora}/{capacidade} livres
+                        {livresAgora} lugares livres
+                        <span style={{ fontSize: "0.85em", opacity: 0.7 }}> (Capacidade: {capacidade})</span>
                       </div>
                       <button
                         className={minhaReserva ? "btn-details btn-manage" : "btn-details"}
